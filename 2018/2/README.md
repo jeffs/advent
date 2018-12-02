@@ -3,14 +3,14 @@ Advent of Code
 
     [About][Events][Shop][Settings][Log Out]
 
-(anonymous user #81473) 2*
-       λy.2018
+(anonymous user #81473) 3*
+   sub y{2018}
 
     [Calendar][AoC++][Sponsors][Leaderboard][Stats]
 
 Our sponsors help make Advent of Code possible:
 
-Alfie by Prodo - a more immediate, feedback-driven coding experience. Try our online JavaScript playground with Advent of Code!
+SmartyStreets - Global address validation made by developers, for developers
 --- Day 2: Inventory Management System ---
 
 You stop falling through time, catch your breath, and check the screen on the device. "Destination reached. Current Year: 1518. Current Location: North Pole Utility Closet 83N10." You made it! Now, to find those anomalies.
@@ -37,7 +37,28 @@ Of these box IDs, four of them contain a letter which appears exactly twice, and
 
 What is the checksum for your list of box IDs?
 
-To begin, get your puzzle input.
+Your puzzle answer was 7533.
+
+The first half of this puzzle is complete! It provides one gold star: *
+--- Part Two ---
+
+Confident that your list of box IDs is complete, you're ready to find the boxes full of prototype fabric.
+
+The boxes will have IDs which differ by exactly one character at the same position in both strings. For example, given the following box IDs:
+
+abcde
+fghij
+klmno
+pqrst
+fguij
+axcye
+wvxyz
+
+The IDs abcde and axcye are close, but they differ by two characters (the second and fourth). However, the IDs fghij and fguij differ by exactly one character, the third (h and u). Those must be the correct boxes.
+
+What letters are common between the two correct box IDs? (In the example above, this is found by removing the differing character from either ID, producing fgij.)
+
+Although it hasn't changed, you can still get your puzzle input.
 
 Answer:
 
