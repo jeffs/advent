@@ -40,6 +40,7 @@ def main():
     with open('input') as line:
         serial = int(line.read())
     x, y = find_square(serial)
+    print(square_power((x, y), serial))
     print('{},{}'.format(x, y))
 
 
