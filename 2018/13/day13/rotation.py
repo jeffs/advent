@@ -15,7 +15,7 @@ DirectionDict = Dict[Rotation, Dict[Direction, Direction]]
 
 
 def next_rotation(rotation: Rotation) -> Rotation:
-    return Rotation.LEFT     if rotation == Rotation.RIGHT \
+    return Rotation.LEFT if rotation == Rotation.RIGHT \
       else Rotation.STRAIGHT if rotation == Rotation.LEFT \
       else Rotation.RIGHT
 
@@ -29,7 +29,7 @@ def _make_rotated_directions() -> DirectionDict:
         Rotation.RIGHT:    (l, u, d, r),
     }
     return {
-        rot: { old: new for old, new in zip(dlru, news) }
+        rot: {old: new for old, new in zip(dlru, news)}
         for rot, news in values.items()
     }
 

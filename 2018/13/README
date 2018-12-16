@@ -3,13 +3,13 @@ Advent of Code
 
     [About][Events][Shop][Settings][Log Out]
 
-(anonymous user #81473) 24*
-      /*2018*/
+(anonymous user #81473) 25*
+ {'year':2018}
 
     [Calendar][AoC++][Sponsors][Leaderboard][Stats]
 
 Our sponsors help make Advent of Code possible:
-Catawiki - Online auctions for special objects. Win prizes on our private leaderboard! And obviously, we're hiring! bit.ly/join-cw
+Rainway - Play all your favorite PC games anytime, anywhere, across a variety of different devices.
 --- Day 13: Mine Cart Madness ---
 
 A crop of this size requires significant logistics to transport produce, soil, fertilizer, and so on. The Elves are very busy pushing things around in carts on some kind of rudimentary system of tracks they've come up with.
@@ -173,7 +173,54 @@ After following their respective paths for a while, the carts eventually crash. 
 
 In this example, the location of the first crash is 7,3.
 
-To begin, get your puzzle input.
+Your puzzle answer was 41,22.
+
+The first half of this puzzle is complete! It provides one gold star: *
+--- Part Two ---
+
+There isn't much you can do to prevent crashes in this ridiculous system. However, by predicting the crashes, the Elves know where to be in advance and instantly remove the two crashing carts the moment any crash occurs.
+
+They can proceed like this for a while, but eventually, they're going to run out of carts. It could be useful to figure out where the last cart that hasn't crashed will end up.
+
+For example:
+
+/>-<\  
+|   |  
+| /<+-\
+| | | v
+\>+</ |
+  |   ^
+  \<->/
+
+/---\  
+|   |  
+| v-+-\
+| | | |
+\-+-/ |
+  |   |
+  ^---^
+
+/---\  
+|   |  
+| /-+-\
+| v | |
+\-+-/ |
+  ^   ^
+  \---/
+
+/---\  
+|   |  
+| /-+-\
+| | | |
+\-+-/ ^
+  |   |
+  \---/
+
+After four very expensive crashes, a tick ends with only one cart remaining; its final location is 6,4.
+
+What is the location of the last cart at the end of the first tick where it is the only cart left?
+
+Although it hasn't changed, you can still get your puzzle input.
 
 Answer:
 

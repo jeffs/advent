@@ -1,8 +1,8 @@
 .PHONY: part1
 part1:
-	flake8 part1.py
-	mypy part1.py
-	./part1.py
+	PYTHONPATH="$(PWD)" flake8 day13
+	PYTHONPATH="$(PWD)" mypy -m day13
+	PYTHONPATH="$(PWD)" python3 -m day13
 
 .PHONY: clean
 clean:
