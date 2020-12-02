@@ -97,6 +97,7 @@ impl FromStr for Entry {
     }
 }
 
+// O(N) time, O(N) space
 fn load_entries<P: AsRef<Path>>(input: P) -> Result<Vec<Entry>, Box<dyn Error>> {
     let mut entries = Vec::new();
     for line in BufReader::new(File::open(input)?).lines() {
@@ -107,6 +108,7 @@ fn load_entries<P: AsRef<Path>>(input: P) -> Result<Vec<Entry>, Box<dyn Error>> 
 
 // Part 1
 
+// O(M * N) time, O(1) space where M is the average string length
 fn solve_part1(entries: &Vec<Entry>) -> u32 {
     entries
         .iter()
@@ -120,6 +122,7 @@ fn solve_part1(entries: &Vec<Entry>) -> u32 {
 
 // Part 2
 
+// O(M * N) time, O(1) space where M is the average string length
 fn solve_part2(entries: &Vec<Entry>) -> u32 {
     entries
         .iter()
