@@ -107,8 +107,12 @@ fn load_entries<P: AsRef<Path>>(input: P) -> Result<Vec<Entry>, Box<dyn Error>> 
 
 // Part 1
 
-fn solve_part1(_entries: &Vec<Entry>) -> u32 {
-    todo!()
+fn solve_part1(entries: &Vec<Entry>) -> u32 {
+    entries.iter().filter(|Entry { policy, password }| {
+        let Policy { range, letter } = policy;
+        let count = password.chars().filter(|c| c == letter).count() as u32;
+        range.contains(&count)
+    }).count() as u32
 }
 
 // Main
@@ -119,6 +123,5 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{:#?}", entries);
     println!("{}", solve_part1(&entries));
 }
