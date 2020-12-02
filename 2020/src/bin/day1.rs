@@ -38,7 +38,7 @@ pub fn solve_part1(entries: &HashSet<i32>) -> Result<i32, Box<dyn Error>> {
 
 // O(N²) time, O(N²) space
 pub fn solve_part2(entries: &HashSet<i32>) -> Result<i32, Box<dyn Error>> {
-    let mut pairs = HashMap::new(); // O(N²) space
+    let mut pairs = HashMap::new();
     for first in entries {
         for second in entries {
             if first != second {
