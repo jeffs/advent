@@ -26,18 +26,18 @@ fn load_entries<P: AsRef<Path>>(input: P) -> Result<HashSet<i32>, Box<dyn Error>
 }
 
 // O(N) time, O(1) space
-pub fn solve_part1(entries: &HashSet<i32>) -> Result<i32, Box<dyn Error>> {
+fn solve_part1(entries: &HashSet<i32>) -> Result<i32, NoSolution> {
     for entry in entries {
         let delta = 2020 - entry;
         if entries.contains(&delta) {
             return Ok(delta * entry);
         }
     }
-    Err(Box::new(NoSolution))
+    Err(NoSolution)
 }
 
 // O(N²) time, O(N²) space
-pub fn solve_part2(entries: &HashSet<i32>) -> Result<i32, Box<dyn Error>> {
+fn solve_part2(entries: &HashSet<i32>) -> Result<i32, NoSolution> {
     let mut pairs = HashMap::new();
     for first in entries {
         for second in entries {
@@ -52,7 +52,7 @@ pub fn solve_part2(entries: &HashSet<i32>) -> Result<i32, Box<dyn Error>> {
             return Ok(first * second * third);
         }
     }
-    Err(Box::new(NoSolution))
+    Err(NoSolution)
 }
 
 fn main() {
