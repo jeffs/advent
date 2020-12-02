@@ -38,6 +38,12 @@ impl From<ParseIntError> for ParseError {
 
 // Policy
 
+#[derive(Debug)]
+struct Policy {
+    range: Range<u32>,
+    letter: char,
+}
+
 fn parse_letter(s: &str) -> Result<char, ParseError> {
     match &s.chars().collect::<Vec<char>>()[..] {
         &[c] => Ok(c),
@@ -53,12 +59,6 @@ fn parse_range(s: &str) -> Result<Range<u32>, ParseError> {
         }),
         _ => Err(ParseError::new(&format!("bad range: {}", s))),
     }
-}
-
-#[derive(Debug)]
-struct Policy {
-    range: Range<u32>,
-    letter: char,
 }
 
 impl FromStr for Policy {
