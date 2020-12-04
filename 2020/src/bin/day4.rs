@@ -48,13 +48,7 @@ fn solve_part1(passports: &Vec<Passport>) -> usize {
 }
 
 fn is_four_digits_in_range(s: &str, r: RangeInclusive<u32>) -> bool {
-    s.len() == 4 && {
-        if let Ok(n) = s.parse::<u32>() {
-            r.contains(&n)
-        } else {
-            false
-        }
-    }
+    s.len() == 4 && s.parse().ok().filter(|n| r.contains(n)).is_some()
 }
 
 fn byr_is_valid(s: &str) -> bool {
@@ -92,7 +86,6 @@ fn hcl_is_valid(s: &str) -> bool {
 }
 
 fn ecl_is_valid(s: &str) -> bool {
-    let s: &str = &s;
     ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"][..].contains(&s)
 }
 
@@ -156,7 +149,7 @@ mod test {
 
     #[test]
     fn valids() {
-        let input = "tests/day4/valids2";
+        let input = "tests/day4/valids";
         let passports = load_passports(input).expect("can't read input");
         assert!(4 == solve_part1(&passports));
         assert!(4 == solve_part2(&passports));
