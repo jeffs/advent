@@ -1,10 +1,10 @@
-use std::cmp;
+use std::collections::HashSet;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
 use std::path::Path;
 
-fn parse_char(c: char) -> Result<u16, String> {
+fn parse_char(c: char) -> Result<usize, String> {
     match c {
         'F' | 'L' => Ok(0),
         'B' | 'R' => Ok(1),
@@ -12,7 +12,7 @@ fn parse_char(c: char) -> Result<u16, String> {
     }
 }
 
-fn parse(seat: &str) -> Result<u16, String> {
+fn parse(seat: &str) -> Result<usize, String> {
     let mut value = 0;
     for c in seat.chars() {
         value = (value << 1) | parse_char(c)?;
@@ -20,23 +20,49 @@ fn parse(seat: &str) -> Result<u16, String> {
     Ok(value)
 }
 
-fn solve_part1<P>(input: P) -> Result<u16, Box<dyn Error>>
+fn load_seats<P>(input: P) -> Result<Vec<usize>, Box<dyn Error>>
 where
     P: AsRef<Path>,
 {
-    let mut lines = BufReader::new(File::open(input)?).lines();
-    let mut max = parse(&lines.next().ok_or("empty input")??)?;
-    for line in lines {
-        max = cmp::max(max, parse(&line?)?);
+    let mut seats = Vec::new();
+    for line in BufReader::new(File::open(input)?).lines() {
+        seats.push(parse(&line?)?);
     }
-    Ok(max)
+    if seats.is_empty() {
+        Err("empty input")?
+    } else {
+        Ok(seats)
+    }
+}
+
+fn solve_part1(seats: &Vec<usize>) -> Option<usize> {
+    seats.iter().cloned().max()
+}
+
+fn solve_part2(seats: &Vec<usize>) -> Option<usize> {
+    const MAX_ID: usize = 1 << 10; // seats have ten-bit IDs
+    let mut taken = [false; MAX_ID + 1];
+    for &seat in seats {
+        taken[seat] = true;
+    }
+    let seats: HashSet<usize> = seats.iter().cloned().collect();
+    let has_neighbor = move |id: &usize| {
+        (1..MAX_ID).contains(id) && seats.contains(&(id - 1)) && seats.contains(&(id + 1))
+    };
+    taken
+        .iter()
+        .enumerate()
+        .filter_map(|(id, taken)| if !taken { Some(id) } else { None })
+        .filter(has_neighbor)
+        .next()
 }
 
 fn main() {
     let input = "tests/day5/input";
-    let answer1 = solve_part1(input).unwrap_or_else(|err| {
+    let seats = load_seats(input).unwrap_or_else(|err| {
         eprintln!("error: {}: {}", input, err);
-        std::process::exit(1);
+        std::process::exit(3);
     });
-    println!("{}", answer1);
+    println!("{}", solve_part1(&seats).unwrap());
+    println!("{}", solve_part2(&seats).unwrap());
 }
