@@ -40,7 +40,7 @@ fn solve_part1(seats: &Vec<usize>) -> Option<usize> {
 }
 
 fn solve_part2(seats: &Vec<usize>) -> Option<usize> {
-    const MAX_ID: usize = 1 << 10; // seats have ten-bit IDs
+    const MAX_ID: usize = (1 << 10) - 1; // seats have ten-bit IDs
     let mut taken = [false; MAX_ID + 1];
     for &seat in seats {
         taken[seat] = true;
