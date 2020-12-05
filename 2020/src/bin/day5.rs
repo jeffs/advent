@@ -41,19 +41,10 @@ fn solve_part1(seats: &Vec<usize>) -> Option<usize> {
 
 fn solve_part2(seats: &Vec<usize>) -> Option<usize> {
     const MAX_ID: usize = (1 << 10) - 1; // seats have ten-bit IDs
-    let mut taken = [false; MAX_ID + 1];
-    for &seat in seats {
-        taken[seat] = true;
-    }
-    let seats: HashSet<usize> = seats.iter().cloned().collect();
-    let has_neighbor = move |id: &usize| {
-        (1..MAX_ID).contains(id) && seats.contains(&(id - 1)) && seats.contains(&(id + 1))
-    };
-    taken
-        .iter()
-        .enumerate()
-        .filter_map(|(id, taken)| if !taken { Some(id) } else { None })
-        .filter(has_neighbor)
+    let taken: HashSet<usize> = seats.iter().cloned().collect();
+    (1..MAX_ID)
+        .filter(|id| !taken.contains(id))
+        .filter(|id| taken.contains(&(id - 1)) && taken.contains(&(id + 1)))
         .next()
 }
 
