@@ -8,46 +8,48 @@ fn solve_part1<P>(input: P) -> io::Result<usize>
 where
     P: AsRef<Path>,
 {
-    let mut groups = Vec::new();
+    let mut sum = 0;
     let mut group = HashSet::new();
     for line in BufReader::new(File::open(input)?).lines() {
         let line = line?;
         if line.is_empty() {
-            groups.push(mem::take(&mut group));
+            sum += mem::take(&mut group).len();
         } else {
             group.extend(line.chars());
         }
     }
-    if !group.is_empty() {
-        groups.push(group);
-    }
-    Ok(groups.iter().map(|g| g.len()).sum())
+    Ok(if group.is_empty() {
+        sum
+    } else {
+        sum + group.len()
+    })
 }
 
 fn solve_part2<P>(input: P) -> io::Result<usize>
 where
     P: AsRef<Path>,
 {
-    let mut groups = Vec::new();
+    let mut sum = 0;
     let mut group = HashSet::new();
     let mut first = true;
     for line in BufReader::new(File::open(input)?).lines() {
         let line = line?;
         if line.is_empty() {
             first = true;
-            groups.push(mem::take(&mut group));
+            sum += mem::take(&mut group).len();
         } else if first {
             first = false;
             group.extend(line.chars());
         } else {
-            let person: HashSet<char> = line.chars().collect(); 
+            let person: HashSet<char> = line.chars().collect();
             group = group.intersection(&person).cloned().collect();
         }
     }
-    if !group.is_empty() {
-        groups.push(group);
-    }
-    Ok(groups.iter().map(|g| g.len()).sum())
+    Ok(if group.is_empty() {
+        sum
+    } else {
+        sum + group.len()
+    })
 }
 
 fn main() {
