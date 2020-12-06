@@ -18,11 +18,7 @@ where
             group.extend(line.chars());
         }
     }
-    Ok(if group.is_empty() {
-        sum
-    } else {
-        sum + group.len()
-    })
+    Ok(sum + group.len())
 }
 
 fn solve_part2<P>(input: P) -> io::Result<usize>
@@ -46,11 +42,7 @@ where
             group = group.intersection(&person).cloned().collect();
         }
     }
-    Ok(if group.is_empty() {
-        sum
-    } else {
-        sum + group.len()
-    })
+    Ok(sum + group.len())
 }
 
 fn main() {
