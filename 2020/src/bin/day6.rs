@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead as _, BufReader};
-use std::mem;
 use std::path::Path;
 
 fn solve_part1<P>(input: P) -> io::Result<usize>
@@ -13,7 +12,8 @@ where
     for line in BufReader::new(File::open(input)?).lines() {
         let line = line?;
         if line.is_empty() {
-            sum += mem::take(&mut group).len();
+            sum += group.len();
+            group.clear();
         } else {
             group.extend(line.chars());
         }
@@ -36,7 +36,8 @@ where
         let line = line?;
         if line.is_empty() {
             first = true;
-            sum += mem::take(&mut group).len();
+            sum += group.len();
+            group.clear();
         } else if first {
             first = false;
             group.extend(line.chars());
