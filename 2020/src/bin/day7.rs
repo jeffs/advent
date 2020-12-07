@@ -11,4 +11,12 @@ fn main() {
         }
     };
     println!("{}", answer1);
+    let answer2 = match part2::solve(input, &color) {
+        Ok(answer) => answer,
+        Err(err) => {
+            eprintln!("error: {}: {}", input, err);
+            std::process::exit(2);
+        }
+    };
+    println!("{}", answer2);
 }
