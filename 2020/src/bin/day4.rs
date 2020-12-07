@@ -110,7 +110,6 @@ fn is_valid2(passport: &Passport) -> bool {
         && has_valid(passport, "pid", pid_is_valid)
 }
 
-// 103 is too low
 fn solve_part2(passports: &Vec<Passport>) -> usize {
     passports.iter().cloned().filter(is_valid2).count()
 }
