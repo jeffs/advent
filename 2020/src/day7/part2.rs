@@ -47,7 +47,7 @@ mod test {
 
     #[test]
     fn sample1() {
-        let rules = load_rules("tests/day7/test1").unwrap();
+        let rules = load_rules("tests/day7/sample1").unwrap();
         let color = ("shiny".to_owned(), "gold".to_owned());
         assert_eq!(32, tally(&rules, &color));
     }
