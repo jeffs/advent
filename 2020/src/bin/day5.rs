@@ -29,23 +29,21 @@ where
         seats.push(parse(&line?)?);
     }
     if seats.is_empty() {
-        Err("empty input")?
+        Err("empty input".into())
     } else {
         Ok(seats)
     }
 }
 
-fn solve_part1(seats: &Vec<usize>) -> Option<usize> {
+fn solve_part1(seats: &[usize]) -> Option<usize> {
     seats.iter().cloned().max()
 }
 
-fn solve_part2(seats: &Vec<usize>) -> Option<usize> {
+fn solve_part2(seats: &[usize]) -> Option<usize> {
     const MAX_ID: usize = (1 << 10) - 1; // seats have ten-bit IDs
     let taken: HashSet<usize> = seats.iter().cloned().collect();
     (1..MAX_ID)
-        .filter(|id| !taken.contains(id))
-        .filter(|id| taken.contains(&(id - 1)) && taken.contains(&(id + 1)))
-        .next()
+        .find(|id| !taken.contains(id) && taken.contains(&(id - 1)) && taken.contains(&(id + 1)))
 }
 
 fn main() {

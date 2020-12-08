@@ -43,7 +43,7 @@ fn is_valid1(passport: &Passport) -> bool {
     KEYS.iter().all(|&key| passport.contains_key(key))
 }
 
-fn solve_part1(passports: &Vec<Passport>) -> usize {
+fn solve_part1(passports: &[Passport]) -> usize {
     passports.iter().cloned().filter(is_valid1).count()
 }
 
@@ -110,7 +110,7 @@ fn is_valid2(passport: &Passport) -> bool {
         && has_valid(passport, "pid", pid_is_valid)
 }
 
-fn solve_part2(passports: &Vec<Passport>) -> usize {
+fn solve_part2(passports: &[Passport]) -> usize {
     passports.iter().cloned().filter(is_valid2).count()
 }
 

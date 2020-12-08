@@ -6,7 +6,7 @@ fn load_rows<P: AsRef<Path>>(input: P) -> io::Result<Vec<String>> {
     BufReader::new(File::open(input)?).lines().collect()
 }
 
-fn solve(rows: &Vec<String>, right: usize, down: usize) -> i32 {
+fn solve(rows: &[String], right: usize, down: usize) -> i32 {
     let mut iter = rows.iter();
     let row = iter.next().expect("empty table");
     let width = row.len();
@@ -18,14 +18,14 @@ fn solve(rows: &Vec<String>, right: usize, down: usize) -> i32 {
             count += 1
         }
     }
-    return count;
+    count
 }
 
-fn solve_part1(rows: &Vec<String>) -> i32 {
+fn solve_part1(rows: &[String]) -> i32 {
     solve(rows, 3, 1)
 }
 
-fn solve_part2(rows: &Vec<String>) -> i32 {
+fn solve_part2(rows: &[String]) -> i32 {
     solve(rows, 1, 1)
         * solve(rows, 3, 1)
         * solve(rows, 5, 1)

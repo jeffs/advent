@@ -45,8 +45,8 @@ struct Policy {
 }
 
 fn parse_letter(s: &str) -> Result<char, ParseError> {
-    match &s.chars().collect::<Vec<char>>()[..] {
-        &[c] => Ok(c),
+    match s.chars().collect::<Vec<char>>()[..] {
+        [c] => Ok(c),
         _ => Err(ParseError::new(&format!(r#"bad letter: "{}""#, s))),
     }
 }
@@ -109,7 +109,7 @@ fn load_entries<P: AsRef<Path>>(input: P) -> Result<Vec<Entry>, Box<dyn Error>> 
 // Part 1
 
 // O(M * N) time, O(1) space where M is the average string length
-fn solve_part1(entries: &Vec<Entry>) -> u32 {
+fn solve_part1(entries: &[Entry]) -> u32 {
     entries
         .iter()
         .filter(|Entry { policy, password }| {
@@ -123,7 +123,7 @@ fn solve_part1(entries: &Vec<Entry>) -> u32 {
 // Part 2
 
 // O(M * N) time, O(1) space where M is the average string length
-fn solve_part2(entries: &Vec<Entry>) -> u32 {
+fn solve_part2(entries: &[Entry]) -> u32 {
     entries
         .iter()
         .filter(|Entry { policy, password }| {
