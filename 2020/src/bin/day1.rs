@@ -1,20 +1,9 @@
+use advent2020::NoSolution;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
 use std::path::Path;
-
-#[derive(Debug)]
-struct NoSolution;
-
-impl Display for NoSolution {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "no solution")
-    }
-}
-
-impl Error for NoSolution {}
 
 // O(N) time, O(N) space
 fn load_entries<P: AsRef<Path>>(input: P) -> Result<HashSet<i32>, Box<dyn Error>> {

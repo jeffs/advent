@@ -1,3 +1,4 @@
+use advent2020::NoSolution;
 use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
@@ -80,35 +81,35 @@ fn execute(program: &[Instruction]) -> Termination {
     }
 }
 
-fn solve_part_1(program: &[Instruction]) -> i32 {
+fn solve_part1(program: &[Instruction]) -> Result<i32, NoSolution> {
     if let Termination::Loop(acc) = execute(program) {
-        acc
+        Ok(acc)
     } else {
-        panic!("unexpected halt")
+        Err(NoSolution)
     }
 }
 
-fn solve_part_2(mut program: Program) -> i32 {
+fn solve_part2(mut program: Program) -> Result<i32, NoSolution> {
     for i in 0..program.len() {
         match program[i] {
             Instruction::Jmp(arg) => {
                 program[i] = Instruction::Nop(arg);
                 if let Termination::Halt(acc) = execute(&program) {
-                    return acc;
+                    return Ok(acc);
                 }
                 program[i] = Instruction::Jmp(arg);
             }
             Instruction::Nop(arg) => {
                 program[i] = Instruction::Jmp(arg);
                 if let Termination::Halt(acc) = execute(&program) {
-                    return acc;
+                    return Ok(acc);
                 }
                 program[i] = Instruction::Nop(arg);
             }
             _ => (),
         }
     }
-    panic!("no solution");
+    Err(NoSolution)
 }
 
 fn main() {
@@ -120,8 +121,16 @@ fn main() {
             std::process::exit(3);
         }
     };
-    println!("{}", solve_part_1(&program));
-    println!("{}", solve_part_2(program));
+    let answer1 = solve_part1(&program).unwrap_or_else(|err| {
+        eprintln!("error: {}", err);
+        std::process::exit(1);
+    });
+    println!("{}", answer1);
+    let answer2 = solve_part2(program).unwrap_or_else(|err| {
+        eprintln!("error: {}", err);
+        std::process::exit(2);
+    });
+    println!("{}", answer2);
 }
 
 #[cfg(test)]
@@ -131,6 +140,6 @@ mod test {
     #[test]
     fn sample1() {
         let program = load_program("tests/day8/sample1").unwrap();
-        assert_eq!(5, solve_part_1(&program));
+        assert_eq!(5, solve_part1(&program).unwrap());
     }
 }
