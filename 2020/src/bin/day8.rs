@@ -22,10 +22,17 @@ impl Error for InstructionParseError {}
 enum Instruction {
     Acc(i32),
     Jmp(isize),
-    Nop,
+    Nop(isize),
 }
 
 type Program = Vec<Instruction>;
+
+// Indicates the final accumulator value of a program that either completed
+// normally (halted), or tried to enter an infinite loop.
+enum Termination {
+    Halt(i32),
+    Loop(i32),
+}
 
 fn load_program<P: AsRef<Path>>(input: P) -> Result<Program, Box<dyn Error>> {
     let mut program = Vec::new();
@@ -35,7 +42,7 @@ fn load_program<P: AsRef<Path>>(input: P) -> Result<Program, Box<dyn Error>> {
         let instruction = match &tokens[..] {
             ["acc", arg] => Instruction::Acc(arg.parse()?),
             ["jmp", arg] => Instruction::Jmp(arg.parse()?),
-            ["nop", _] => Instruction::Nop,
+            ["nop", arg] => Instruction::Nop(arg.parse()?),
             _ => return Err(Box::new(InstructionParseError { line })),
         };
         program.push(instruction);
@@ -43,22 +50,65 @@ fn load_program<P: AsRef<Path>>(input: P) -> Result<Program, Box<dyn Error>> {
     Ok(program)
 }
 
-fn solve_part_1(program: &Program) -> i32 {
+fn add_offset(pc: usize, arg: isize) -> usize {
+    if arg < 0 {
+        pc - -arg as usize
+    } else {
+        pc + arg as usize
+    }
+}
+
+fn execute(program: &[Instruction]) -> Termination {
     let mut acc = 0; // accumulator
     let mut pc = 0; // program counter
-    let mut seen: HashSet<isize> = HashSet::new(); // instruction indexes
-    while !seen.contains(&pc) {
+    let mut seen: HashSet<usize> = HashSet::new(); // instruction indexes
+    while !(pc == program.len() || seen.contains(&pc)) {
         seen.insert(pc);
-        match program[pc as usize] {
+        match program[pc] {
             Instruction::Acc(arg) => {
                 acc += arg;
                 pc += 1;
             }
-            Instruction::Jmp(arg) => pc += arg,
-            Instruction::Nop => pc += 1,
+            Instruction::Jmp(arg) => pc = add_offset(pc, arg),
+            Instruction::Nop(_) => pc += 1,
         }
     }
-    acc
+    if pc == program.len() {
+        Termination::Halt(acc)
+    } else {
+        Termination::Loop(acc)
+    }
+}
+
+fn solve_part_1(program: &[Instruction]) -> i32 {
+    if let Termination::Loop(acc) = execute(program) {
+        acc
+    } else {
+        panic!("unexpected halt")
+    }
+}
+
+fn solve_part_2(mut program: Program) -> i32 {
+    for i in 0..program.len() {
+        match program[i] {
+            Instruction::Jmp(arg) => {
+                program[i] = Instruction::Nop(arg);
+                if let Termination::Halt(acc) = execute(&program) {
+                    return acc;
+                }
+                program[i] = Instruction::Jmp(arg);
+            }
+            Instruction::Nop(arg) => {
+                program[i] = Instruction::Jmp(arg);
+                if let Termination::Halt(acc) = execute(&program) {
+                    return acc;
+                }
+                program[i] = Instruction::Nop(arg);
+            }
+            _ => (),
+        }
+    }
+    panic!("no solution");
 }
 
 fn main() {
@@ -71,6 +121,7 @@ fn main() {
         }
     };
     println!("{}", solve_part_1(&program));
+    println!("{}", solve_part_2(program));
 }
 
 #[cfg(test)]
