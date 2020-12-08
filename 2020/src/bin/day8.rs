@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
@@ -20,7 +21,7 @@ impl Error for InstructionParseError {}
 #[derive(Debug)]
 enum Instruction {
     Acc(i32),
-    Jmp(i32),
+    Jmp(isize),
     Nop,
 }
 
@@ -42,6 +43,24 @@ fn load_program<P: AsRef<Path>>(input: P) -> Result<Program, Box<dyn Error>> {
     Ok(program)
 }
 
+fn solve_part_1(program: &Program) -> i32 {
+    let mut acc = 0; // accumulator
+    let mut pc = 0; // program counter
+    let mut seen: HashSet<isize> = HashSet::new(); // instruction indexes
+    while !seen.contains(&pc) {
+        seen.insert(pc);
+        match program[pc as usize] {
+            Instruction::Acc(arg) => {
+                acc += arg;
+                pc += 1;
+            }
+            Instruction::Jmp(arg) => pc += arg,
+            Instruction::Nop => pc += 1,
+        }
+    }
+    acc
+}
+
 fn main() {
     let input = "tests/day8/input";
     let program = match load_program(input) {
@@ -51,5 +70,16 @@ fn main() {
             std::process::exit(3);
         }
     };
-    println!("{:?}", program);
+    println!("{}", solve_part_1(&program));
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn sample1() {
+        let program = load_program("tests/day8/sample1").unwrap();
+        assert_eq!(5, solve_part_1(&program));
+    }
 }
