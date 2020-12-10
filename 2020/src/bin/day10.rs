@@ -32,14 +32,14 @@ where
     }
 }
 
-fn take_kids<'a, I>(key: u32, tail: I) -> Vec<u32>
+fn take_kids<'a, I>(head: u32, tail: I) -> Vec<u32>
 where
     I: IntoIterator<Item = &'a u32>,
 {
     const MAX_DELTA: u32 = 3;
     tail.into_iter()
         .cloned()
-        .take_while(|&joltage| joltage - key <= MAX_DELTA)
+        .take_while(|&joltage| joltage - head <= MAX_DELTA)
         .collect()
 }
 
