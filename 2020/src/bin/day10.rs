@@ -6,6 +6,7 @@ use std::io::{BufRead, BufReader};
 use std::mem;
 use std::path::Path;
 
+type Graph = HashMap<u32, Vec<u32>>;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn load_joltages<P>(input: P) -> Result<Vec<u32>>
@@ -46,16 +47,41 @@ where
         .collect()
 }
 
+fn count_paths_with_memo(
+    graph: &Graph,
+    source: u32,
+    target: u32,
+    memo: &mut HashMap<(u32, u32), usize>,
+) -> usize {
+    if source == target {
+        1
+    } else if let Some(&known) = memo.get(&(source, target)) {
+        known
+    } else if let Some(kids) = graph.get(&source) {
+        let count = kids.iter()
+            .map(|&kid| count_paths_with_memo(graph, kid, target, memo))
+            .sum();
+        memo.insert((source, target), count);
+        count
+    } else {
+        panic!("bad graph: missing node {}", source);
+    }
+}
+
+/// Returns the number of paths from source to target in the specified graph.
+fn count_paths(graph: &Graph, source: u32, target: u32) -> usize {
+    let mut memo = HashMap::new();
+    count_paths_with_memo(graph, source, target, &mut memo)
+}
+
 fn solve_part2(adapters: Vec<u32>) -> usize {
-    let mut graph: HashMap<u32, Vec<u32>> = HashMap::new();
+    let mut graph = Graph::new();
     graph.insert(0, take_kids(0, &adapters));
     for i in 0..adapters.len() {
         let key = adapters[i];
         graph.insert(key, take_kids(key, &adapters[(i + 1)..]));
     }
-    use std::iter::FromIterator;
-    println!("{:?}", std::collections::BTreeMap::from_iter(graph.iter()));
-    0 // TODO
+    count_paths(&graph, 0, *adapters.last().unwrap())
 }
 
 fn main() {
