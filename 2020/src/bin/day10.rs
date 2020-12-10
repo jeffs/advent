@@ -82,13 +82,15 @@ fn solve_part1(adapters: &Vec<u32>) -> usize {
 
 fn solve_part2(adapters: &Vec<u32>) -> usize {
     assert!(is_sorted(&adapters));
+    let source = 0u32;
+    let target = *adapters.last().unwrap();
     let mut graph = Graph::new();
-    graph.insert(0, take_kids(0, adapters));
+    graph.insert(source, take_kids(0, adapters));
     for i in 0..adapters.len() {
         let key = adapters[i];
         graph.insert(key, take_kids(key, &adapters[(i + 1)..]));
     }
-    count_paths(&graph, 0, *adapters.last().unwrap())
+    count_paths(&graph, source, target)
 }
 
 fn main() {
