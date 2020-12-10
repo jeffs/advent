@@ -77,8 +77,7 @@ fn count_paths_with_memo(
 
 /// Returns the number of paths from source to target in the specified graph.
 fn count_paths(graph: &Graph, source: u32, target: u32) -> usize {
-    let mut memo = HashMap::new();
-    count_paths_with_memo(graph, source, target, &mut memo)
+    count_paths_with_memo(graph, source, target, &mut HashMap::new())
 }
 
 fn solve_part2(adapters: &Vec<u32>) -> usize {
