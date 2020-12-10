@@ -9,6 +9,9 @@ use std::path::Path;
 type Graph = HashMap<u32, Vec<u32>>;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+const MIN_DELTA: u32 = 1;
+const MAX_DELTA: u32 = 3;
+
 // The standard is_sorted function isn't stable yet.  See:
 // https://doc.rust-lang.org/std/primitive.slice.html#method.is_sorted
 fn is_sorted(joltages: &[u32]) -> bool {
@@ -25,7 +28,7 @@ where
     }
     joltages.sort_unstable();
     if let Some(&last) = joltages.last() {
-        joltages.push(last + 3);
+        joltages.push(last + MAX_DELTA);
         Ok(joltages)
     } else {
         Err(Box::new(EmptyFile::new(input)))
@@ -36,7 +39,6 @@ fn take_kids<'a, I>(head: u32, tail: I) -> Vec<u32>
 where
     I: IntoIterator<Item = &'a u32>,
 {
-    const MAX_DELTA: u32 = 3;
     tail.into_iter()
         .cloned()
         .take_while(|&joltage| joltage - head <= MAX_DELTA)
@@ -75,9 +77,9 @@ fn solve_part1(adapters: &[u32]) -> usize {
         .iter()
         .scan(0, |x, &y| Some(y - mem::replace(x, y)))
         .collect();
-    let count1 = deltas.iter().cloned().filter(|&d| d == 1).count();
-    let count3 = deltas.iter().cloned().filter(|&d| d == 3).count();
-    count1 * count3
+    let min_count = deltas.iter().cloned().filter(|&d| d == MIN_DELTA).count();
+    let max_count = deltas.iter().cloned().filter(|&d| d == MAX_DELTA).count();
+    min_count * max_count
 }
 
 fn solve_part2(adapters: &[u32]) -> usize {
