@@ -9,6 +9,12 @@ use std::path::Path;
 type Graph = HashMap<u32, Vec<u32>>;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+// The standard is_sorted function isn't stable yet.  See:
+// https://doc.rust-lang.org/std/primitive.slice.html#method.is_sorted
+fn is_sorted(joltages: &[u32]) -> bool {
+    (1..joltages.len()).all(|i| joltages[i] >= joltages[i - 1])
+}
+
 fn load_joltages<P>(input: P) -> Result<Vec<u32>>
 where
     P: AsRef<Path>,
@@ -27,6 +33,7 @@ where
 }
 
 fn solve_part1(adapters: &Vec<u32>) -> usize {
+    assert!(is_sorted(&adapters));
     let deltas: Vec<u32> = adapters
         .iter()
         .scan(0, |x, &y| Some(y - mem::replace(x, y)))
@@ -75,6 +82,7 @@ fn count_paths(graph: &Graph, source: u32, target: u32) -> usize {
 }
 
 fn solve_part2(adapters: &Vec<u32>) -> usize {
+    assert!(is_sorted(&adapters));
     let mut graph = Graph::new();
     graph.insert(0, take_kids(0, adapters));
     for i in 0..adapters.len() {
