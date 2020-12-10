@@ -105,24 +105,24 @@ mod test {
     #[test]
     fn part1_sample1a() {
         let adapters = load_joltages("tests/day10/sample1a").unwrap();
-        assert_eq!(35, solve_part1(adapters));
+        assert_eq!(35, solve_part1(&adapters));
     }
 
     #[test]
     fn part1_sample1b() {
         let adapters = load_joltages("tests/day10/sample1b").unwrap();
-        assert_eq!(220, solve_part1(adapters));
+        assert_eq!(220, solve_part1(&adapters));
     }
 
     #[test]
     fn part2_sample1a() {
         let adapters = load_joltages("tests/day10/sample1a").unwrap();
-        assert_eq!(8, solve_part2(adapters));
+        assert_eq!(8, solve_part2(&adapters));
     }
 
     #[test]
     fn part2_sample1b() {
         let adapters = load_joltages("tests/day10/sample1b").unwrap();
-        assert_eq!(19208, solve_part2(adapters));
+        assert_eq!(19208, solve_part2(&adapters));
     }
 }
