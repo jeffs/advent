@@ -58,17 +58,17 @@ fn count_paths_with_memo(
     graph: &Graph,
     source: u32,
     target: u32,
-    memo: &mut HashMap<(u32, u32), usize>,
+    memo: &mut HashMap<u32, usize>,
 ) -> usize {
     if source == target {
         1
-    } else if let Some(&known) = memo.get(&(source, target)) {
+    } else if let Some(&known) = memo.get(&source) {
         known
     } else if let Some(kids) = graph.get(&source) {
         let count = kids.iter()
             .map(|&kid| count_paths_with_memo(graph, kid, target, memo))
             .sum();
-        memo.insert((source, target), count);
+        memo.insert(source, count);
         count
     } else {
         panic!("bad graph: missing node {}", source);
