@@ -1,4 +1,5 @@
 pub mod day7;
-mod no_solution;
+mod error;
 
-pub use no_solution::NoSolution;
+pub use error::EmptyFile;
+pub use error::NoSolution;
