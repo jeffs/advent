@@ -32,17 +32,6 @@ where
     }
 }
 
-fn solve_part1(adapters: &Vec<u32>) -> usize {
-    assert!(is_sorted(&adapters));
-    let deltas: Vec<u32> = adapters
-        .iter()
-        .scan(0, |x, &y| Some(y - mem::replace(x, y)))
-        .collect();
-    let count1 = deltas.iter().cloned().filter(|&d| d == 1).count();
-    let count3 = deltas.iter().cloned().filter(|&d| d == 3).count();
-    count1 * count3
-}
-
 fn take_kids<'a, I>(key: u32, tail: I) -> Vec<u32>
 where
     I: IntoIterator<Item = &'a u32>,
@@ -78,6 +67,17 @@ fn count_paths_with_memo(
 /// Returns the number of paths from source to target in the specified graph.
 fn count_paths(graph: &Graph, source: u32, target: u32) -> usize {
     count_paths_with_memo(graph, source, target, &mut HashMap::new())
+}
+
+fn solve_part1(adapters: &Vec<u32>) -> usize {
+    assert!(is_sorted(&adapters));
+    let deltas: Vec<u32> = adapters
+        .iter()
+        .scan(0, |x, &y| Some(y - mem::replace(x, y)))
+        .collect();
+    let count1 = deltas.iter().cloned().filter(|&d| d == 1).count();
+    let count3 = deltas.iter().cloned().filter(|&d| d == 3).count();
+    count1 * count3
 }
 
 fn solve_part2(adapters: &Vec<u32>) -> usize {
