@@ -23,7 +23,7 @@ where
     for line in BufReader::new(File::open(&input)?).lines() {
         joltages.push(line?.parse()?);
     }
-    joltages.sort();
+    joltages.sort_unstable();
     if let Some(&last) = joltages.last() {
         joltages.push(last + 3);
         Ok(joltages)
@@ -69,7 +69,7 @@ fn count_paths(graph: &Graph, source: u32, target: u32) -> usize {
     count_paths_with_memo(graph, source, target, &mut HashMap::new())
 }
 
-fn solve_part1(adapters: &Vec<u32>) -> usize {
+fn solve_part1(adapters: &[u32]) -> usize {
     assert!(is_sorted(&adapters));
     let deltas: Vec<u32> = adapters
         .iter()
@@ -80,7 +80,7 @@ fn solve_part1(adapters: &Vec<u32>) -> usize {
     count1 * count3
 }
 
-fn solve_part2(adapters: &Vec<u32>) -> usize {
+fn solve_part2(adapters: &[u32]) -> usize {
     assert!(is_sorted(&adapters));
     let source = 0u32;
     let target = *adapters.last().unwrap();
