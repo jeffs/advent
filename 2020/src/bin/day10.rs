@@ -26,7 +26,7 @@ where
     }
 }
 
-fn solve_part1(adapters: Vec<u32>) -> usize {
+fn solve_part1(adapters: &Vec<u32>) -> usize {
     let deltas: Vec<u32> = adapters
         .iter()
         .scan(0, |x, &y| Some(y - mem::replace(x, y)))
@@ -74,9 +74,9 @@ fn count_paths(graph: &Graph, source: u32, target: u32) -> usize {
     count_paths_with_memo(graph, source, target, &mut memo)
 }
 
-fn solve_part2(adapters: Vec<u32>) -> usize {
+fn solve_part2(adapters: &Vec<u32>) -> usize {
     let mut graph = Graph::new();
-    graph.insert(0, take_kids(0, &adapters));
+    graph.insert(0, take_kids(0, adapters));
     for i in 0..adapters.len() {
         let key = adapters[i];
         graph.insert(key, take_kids(key, &adapters[(i + 1)..]));
@@ -87,8 +87,8 @@ fn solve_part2(adapters: Vec<u32>) -> usize {
 fn main() {
     let input = "tests/day10/input";
     let adapters = load_joltages(input).unwrap();
-    println!("{}", solve_part1(adapters.clone()));
-    println!("{}", solve_part2(adapters));
+    println!("{}", solve_part1(&adapters));
+    println!("{}", solve_part2(&adapters));
 }
 
 #[cfg(test)]
