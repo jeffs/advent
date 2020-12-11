@@ -18,6 +18,16 @@ impl Spot {
         }
     }
 
+    /// Returns the next value of this spot, given the specified number of
+    /// neighbors.
+    pub fn next(&self, n: usize) -> Spot {
+        match self {
+            Spot::Empty if n == 0 => Spot::Occupied,
+            Spot::Occupied if n > 3 => Spot::Empty,
+            _ => *self,
+        }
+    }
+
     pub fn parse_line(line: &str) -> Result<Vec<Spot>, ParseError> {
         line.chars().map(Spot::from_char).collect()
     }

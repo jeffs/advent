@@ -10,7 +10,7 @@ where
     let mut old = Grid::from_file(input)?;
     let mut new = Grid::with_size(old.size());
     loop {
-        old.next_to(&mut new);
+        old.next_buf(&mut new);
         if old == new {
             return Ok(old.pop_count());
         }
