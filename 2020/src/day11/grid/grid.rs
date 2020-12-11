@@ -1,4 +1,5 @@
 use super::{ParseError, Position, Size, Spot};
+use std::cmp;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
@@ -14,6 +15,8 @@ pub struct Grid {
 
 impl Grid {
     fn at(&self, pos: Position) -> Spot {
+        assert!(pos.row < self.height);
+        assert!(pos.column < self.width);
         self.spots[pos.row * self.width + pos.column]
     }
 
@@ -65,7 +68,7 @@ impl Grid {
         }
     }
 
-    fn count_neighbors(&self, pos: Position) -> usize {
+    fn count_neighbors1(&self, pos: Position) -> usize {
         // i and j are 0-based indexes into the 3x3 grid around pos.
         let mut count = 0;
         let Position { row, column } = pos;
@@ -88,7 +91,130 @@ impl Grid {
         count
     }
 
-    pub fn next_buf(&self, out: &mut Grid) {
+    fn count_neighbors2_right(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let row = pos.row;
+        for column in (pos.column + 1)..self.width {
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_up_right(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let distance = cmp::min(pos.row, self.width - pos.column - 1);
+        for delta in 0..distance {
+            let row = pos.row - delta;
+            let column = pos.column + delta;
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_up(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let column = pos.column;
+        for row in (0..pos.row).rev() {
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_up_left(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let distance = cmp::min(pos.row, pos.column);
+        for delta in 0..distance {
+            let row = pos.row - delta;
+            let column = pos.column - delta;
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_left(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let row = pos.row;
+        for column in (0..pos.column).rev() {
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_down_left(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let distance = cmp::min(self.height - pos.row - 1, pos.column);
+        for delta in 0..distance {
+            let row = pos.row + delta;
+            let column = pos.column - delta;
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_down(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let column = pos.column;
+        for row in (pos.row + 1)..self.height {
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2_down_right(&self, pos: Position) -> usize {
+        let mut count = 0;
+        let distance = cmp::min(self.height - pos.row - 1, self.width - pos.column - 1);
+        for delta in 0..distance {
+            let row = pos.row + delta;
+            let column = pos.column + delta;
+            match self.at(Position { row, column }) {
+                Spot::Floor => (),
+                Spot::Empty => return count,
+                Spot::Occupied => count += 1,
+            }
+        }
+        count
+    }
+
+    fn count_neighbors2(&self, pos: Position) -> usize {
+        self.count_neighbors2_right(pos)
+            + self.count_neighbors2_up_right(pos)
+            + self.count_neighbors2_up(pos)
+            + self.count_neighbors2_up_left(pos)
+            + self.count_neighbors2_left(pos)
+            + self.count_neighbors2_down_left(pos)
+            + self.count_neighbors2_down(pos)
+            + self.count_neighbors2_down_right(pos)
+    }
+
+    pub fn next1(&self, out: &mut Grid) {
         assert_eq!(out.height, self.height);
         assert_eq!(out.width, self.width);
         assert!(self.height > 1);
@@ -101,8 +227,28 @@ impl Grid {
                 if old == Spot::Floor {
                     out.spots.push(old);
                 } else {
-                    let count = self.count_neighbors(pos);
-                    out.spots.push(self.at(pos).next(count));
+                    let count = self.count_neighbors1(pos);
+                    out.spots.push(self.at(pos).next1(count));
+                }
+            }
+        }
+    }
+
+    pub fn next2(&self, out: &mut Grid) {
+        assert_eq!(out.height, self.height);
+        assert_eq!(out.width, self.width);
+        assert!(self.height > 1);
+        assert!(self.width > 1);
+        out.spots.clear();
+        for row in 0..self.height {
+            for column in 0..self.width {
+                let pos = Position { row, column };
+                let old = self.at(pos);
+                if old == Spot::Floor {
+                    out.spots.push(old);
+                } else {
+                    let count = self.count_neighbors2(pos);
+                    out.spots.push(self.at(pos).next2(count));
                 }
             }
         }

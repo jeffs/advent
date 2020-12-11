@@ -20,10 +20,20 @@ impl Spot {
 
     /// Returns the next value of this spot, given the specified number of
     /// neighbors.
-    pub fn next(&self, n: usize) -> Spot {
+    pub fn next1(&self, n: usize) -> Spot {
         match self {
             Spot::Empty if n == 0 => Spot::Occupied,
             Spot::Occupied if n > 3 => Spot::Empty,
+            _ => *self,
+        }
+    }
+
+    /// Returns the next value of this spot, given the specified number of
+    /// neighbors.
+    pub fn next2(&self, n: usize) -> Spot {
+        match self {
+            Spot::Empty if n == 0 => Spot::Occupied,
+            Spot::Occupied if n > 4 => Spot::Empty,
             _ => *self,
         }
     }
