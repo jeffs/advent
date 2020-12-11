@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Grid {
     height: usize,
     width: usize,
@@ -92,115 +92,107 @@ impl Grid {
     }
 
     fn count_neighbors2_right(&self, pos: Position) -> usize {
-        let mut count = 0;
         let row = pos.row;
         for column in (pos.column + 1)..self.width {
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_up_right(&self, pos: Position) -> usize {
-        let mut count = 0;
-        let distance = cmp::min(pos.row, self.width - pos.column - 1);
-        for delta in 0..distance {
+        let distance = cmp::min(pos.row, self.width - 1 - pos.column);
+        for delta in 1..=distance {
             let row = pos.row - delta;
             let column = pos.column + delta;
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_up(&self, pos: Position) -> usize {
-        let mut count = 0;
         let column = pos.column;
         for row in (0..pos.row).rev() {
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_up_left(&self, pos: Position) -> usize {
-        let mut count = 0;
         let distance = cmp::min(pos.row, pos.column);
-        for delta in 0..distance {
+        for delta in 1..=distance {
             let row = pos.row - delta;
             let column = pos.column - delta;
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_left(&self, pos: Position) -> usize {
-        let mut count = 0;
         let row = pos.row;
         for column in (0..pos.column).rev() {
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_down_left(&self, pos: Position) -> usize {
-        let mut count = 0;
-        let distance = cmp::min(self.height - pos.row - 1, pos.column);
-        for delta in 0..distance {
+        let distance = cmp::min(self.height - 1 - pos.row, pos.column);
+        for delta in 1..=distance {
             let row = pos.row + delta;
             let column = pos.column - delta;
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_down(&self, pos: Position) -> usize {
-        let mut count = 0;
         let column = pos.column;
         for row in (pos.row + 1)..self.height {
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2_down_right(&self, pos: Position) -> usize {
-        let mut count = 0;
-        let distance = cmp::min(self.height - pos.row - 1, self.width - pos.column - 1);
-        for delta in 0..distance {
+        let distance = cmp::min(self.height - 1 - pos.row, self.width - 1 - pos.column);
+        for delta in 1..=distance {
             let row = pos.row + delta;
             let column = pos.column + delta;
             match self.at(Position { row, column }) {
                 Spot::Floor => (),
-                Spot::Empty => return count,
-                Spot::Occupied => count += 1,
+                Spot::Empty => return 0,
+                Spot::Occupied => return 1,
             }
         }
-        count
+        0
     }
 
     fn count_neighbors2(&self, pos: Position) -> usize {
@@ -268,18 +260,48 @@ impl Grid {
 
 impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut out = String::new();
         for row in 0..self.height {
             for column in 0..self.width {
                 let pos = Position { row, column };
-                out.push(match self.at(pos) {
-                    Spot::Floor => '.',
-                    Spot::Empty => 'L',
-                    Spot::Occupied => '#',
-                });
+                self.at(pos).fmt(f)?
             }
-            out.push('\n');
+            writeln!(f)?
         }
-        write!(f, "{}", out)
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn count_neighbors2_sample2a() {
+        let grid = Grid::from_file("tests/day11/sample2a").unwrap();
+        let pos = Position { row: 4, column: 3 };
+        assert_eq!(1, grid.count_neighbors2_right(pos));
+        assert_eq!(1, grid.count_neighbors2_up_right(pos));
+        assert_eq!(1, grid.count_neighbors2_up(pos));
+        assert_eq!(1, grid.count_neighbors2_up_left(pos));
+        assert_eq!(1, grid.count_neighbors2_left(pos));
+        assert_eq!(1, grid.count_neighbors2_down_left(pos));
+        assert_eq!(1, grid.count_neighbors2_down(pos));
+        assert_eq!(1, grid.count_neighbors2_down_right(pos));
+        assert_eq!(8, grid.count_neighbors2(pos));
+    }
+
+    #[test]
+    fn count_neighbors2_sample2b() {
+        let grid = Grid::from_file("tests/day11/sample2b").unwrap();
+        let pos = Position { row: 1, column: 1 };
+        assert_eq!(0, grid.count_neighbors2_right(pos));
+        assert_eq!(0, grid.count_neighbors2_up_right(pos));
+        assert_eq!(0, grid.count_neighbors2_up(pos));
+        assert_eq!(0, grid.count_neighbors2_up_left(pos));
+        assert_eq!(0, grid.count_neighbors2_left(pos));
+        assert_eq!(0, grid.count_neighbors2_down_left(pos));
+        assert_eq!(0, grid.count_neighbors2_down(pos));
+        assert_eq!(0, grid.count_neighbors2_down_right(pos));
+        assert_eq!(0, grid.count_neighbors2(pos));
     }
 }

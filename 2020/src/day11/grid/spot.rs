@@ -1,7 +1,8 @@
 use super::ParseError;
+use std::fmt;
 
 /// The state of some position in a Grid.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum Spot {
     Floor,
     Empty,
@@ -40,5 +41,15 @@ impl Spot {
 
     pub fn parse_line(line: &str) -> Result<Vec<Spot>, ParseError> {
         line.chars().map(Spot::from_char).collect()
+    }
+}
+
+impl fmt::Display for Spot {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Spot::Floor => write!(f, "."),
+            Spot::Empty => write!(f, "L"),
+            Spot::Occupied => write!(f, "#"),
+        }
     }
 }
