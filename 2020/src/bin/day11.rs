@@ -1,5 +1,5 @@
-use advent2020::{EmptyFile, ParseError};
-use std::fmt;
+use advent2020::EmptyFile;
+use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -7,23 +7,17 @@ use std::path::Path;
 type DynResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug)]
-pub struct SpotParseError {
-    what: char,
+pub struct ParseError {
+    what: String,
 }
 
-impl SpotParseError {
-    pub fn new<P>(what: char) -> SpotParseError {
-        SpotParseError { what }
-    }
-}
-
-impl fmt::Display for SpotParseError {
+impl Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: bad spot", self.what)
+        write!(f, "{}", self.what)
     }
 }
 
-impl std::error::Error for SpotParseError {}
+impl std::error::Error for ParseError {}
 
 /// The state of some position in a Grid.
 #[derive(Clone, Copy, Debug)]
@@ -34,16 +28,18 @@ enum Spot {
 }
 
 impl Spot {
-    fn from_char(c: char) -> Result<Spot, SpotParseError> {
+    fn from_char(c: char) -> Result<Spot, ParseError> {
         match c {
             '.' => Ok(Spot::Floor),
             'L' => Ok(Spot::Empty),
             '#' => Ok(Spot::Occupied),
-            _ => Err(SpotParseError { what: c }),
+            _ => Err(ParseError {
+                what: format!("{}: bad spot", c),
+            }),
         }
     }
 
-    fn parse_line(line: &str) -> Result<Vec<Spot>, SpotParseError> {
+    fn parse_line(line: &str) -> Result<Vec<Spot>, ParseError> {
         line.chars().map(Spot::from_char).collect()
     }
 }
@@ -56,12 +52,13 @@ struct Grid {
 }
 
 impl Grid {
-    fn from_file<P: AsRef<Path>>(input: P) -> DynResult<Grid> {
+    fn from_file<P: AsRef<Path> + Display>(input: P) -> DynResult<Grid> {
         let mut lines = BufReader::new(File::open(&input)?).lines();
         let first_line = lines.next().ok_or_else(|| EmptyFile::new(&input))??;
         if first_line.is_empty() {
-            let what = "rows must not be empty";
-            return Err(Box::new(ParseError::new(&input, what)));
+            return Err(Box::new(ParseError {
+                what: format!("{}: empty row", input),
+            }));
         }
         let width = first_line.len();
         let mut height = 1;
@@ -69,8 +66,9 @@ impl Grid {
         for line in lines {
             let line = line?;
             if line.len() != width {
-                let what = "all rows must be the same length";
-                return Err(Box::new(ParseError::new(&input, what)));
+                return Err(Box::new(ParseError {
+                    what: format!("{}:{}: jagged rows", input, height),
+                }));
             }
             spots.extend(Spot::parse_line(&line)?.iter());
             height += 1;
@@ -85,7 +83,7 @@ impl Grid {
 
 fn solve_part1<P>(input: P) -> DynResult<usize>
 where
-    P: AsRef<Path>,
+    P: AsRef<Path> + Display,
 {
     let grid = Grid::from_file(input)?;
     println!("{:?}", grid);
