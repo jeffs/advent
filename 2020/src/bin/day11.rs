@@ -1,93 +1,21 @@
-use advent2020::EmptyFile;
-use std::fmt::{self, Display};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use advent2020::day11::Grid;
+use std::error::Error;
+use std::mem;
 use std::path::Path;
 
-type DynResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-#[derive(Debug)]
-pub struct ParseError {
-    what: String,
-}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.what)
-    }
-}
-
-impl std::error::Error for ParseError {}
-
-/// The state of some position in a Grid.
-#[derive(Clone, Copy, Debug)]
-enum Spot {
-    Floor,
-    Empty,
-    Occupied,
-}
-
-impl Spot {
-    fn from_char(c: char) -> Result<Spot, ParseError> {
-        match c {
-            '.' => Ok(Spot::Floor),
-            'L' => Ok(Spot::Empty),
-            '#' => Ok(Spot::Occupied),
-            _ => Err(ParseError {
-                what: format!("{}: bad spot", c),
-            }),
-        }
-    }
-
-    fn parse_line(line: &str) -> Result<Vec<Spot>, ParseError> {
-        line.chars().map(Spot::from_char).collect()
-    }
-}
-
-#[derive(Debug)]
-struct Grid {
-    height: usize,
-    width: usize,
-    spots: Vec<Spot>,
-}
-
-impl Grid {
-    fn from_file<P: AsRef<Path> + Display>(input: P) -> DynResult<Grid> {
-        let mut lines = BufReader::new(File::open(&input)?).lines();
-        let first_line = lines.next().ok_or_else(|| EmptyFile::new(&input))??;
-        if first_line.is_empty() {
-            return Err(Box::new(ParseError {
-                what: format!("{}: empty row", input),
-            }));
-        }
-        let width = first_line.len();
-        let mut height = 1;
-        let mut spots = Spot::parse_line(&first_line)?;
-        for line in lines {
-            let line = line?;
-            if line.len() != width {
-                return Err(Box::new(ParseError {
-                    what: format!("{}:{}: jagged rows", input, height),
-                }));
-            }
-            spots.extend(Spot::parse_line(&line)?.iter());
-            height += 1;
-        }
-        Ok(Grid {
-            height,
-            width,
-            spots,
-        })
-    }
-}
-
-fn solve_part1<P>(input: P) -> DynResult<usize>
+fn solve_part1<P>(input: P) -> Result<usize, Box<dyn Error>>
 where
-    P: AsRef<Path> + Display,
+    P: AsRef<Path>,
 {
-    let grid = Grid::from_file(input)?;
-    println!("{:?}", grid);
-    todo!()
+    let mut old = Grid::from_file(input)?;
+    let mut new = Grid::with_size(old.size());
+    loop {
+        old.next_to(&mut new);
+        if old == new {
+            return Ok(old.pop_count());
+        }
+        mem::swap(&mut old, &mut new);
+    }
 }
 
 fn main() {
