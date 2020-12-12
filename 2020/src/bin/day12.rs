@@ -87,9 +87,14 @@ fn solve_part1<P: AsRef<Path>>(input: P) -> Result<usize, Box<dyn Error>> {
     Ok(x.abs() as usize + y.abs() as usize)
 }
 
+fn solve_part2<P: AsRef<Path>>(input: P) -> Result<usize, Box<dyn Error>> {
+    todo!()
+}
+
 fn main() {
     let input = "tests/day12/input";
     println!("{}", solve_part1(input).unwrap());
+    println!("{}", solve_part2(input).unwrap());
 }
 
 #[cfg(test)]
@@ -99,5 +104,10 @@ mod test {
     #[test]
     fn part1_sample1() {
         assert_eq!(25, solve_part1("tests/day12/sample1").unwrap());
+    }
+
+    #[test]
+    fn part2_sample1() {
+        assert_eq!(286, solve_part2("tests/day12/sample1").unwrap());
     }
 }
