@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter, Result};
+use std::num::ParseIntError;
 
 #[derive(Debug)]
 pub struct ParseError {
@@ -19,3 +20,9 @@ impl Display for ParseError {
 }
 
 impl Error for ParseError {}
+
+impl From<ParseIntError> for ParseError {
+    fn from(err: ParseIntError) -> Self {
+        Self::new(err.to_string())
+    }
+}

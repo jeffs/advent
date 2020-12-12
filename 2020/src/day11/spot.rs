@@ -1,4 +1,4 @@
-use super::ParseError;
+use crate::error::ParseError;
 use std::fmt;
 
 /// The state of some position in a Grid.

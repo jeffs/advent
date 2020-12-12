@@ -1,4 +1,4 @@
-use advent2020::EmptyFile;
+use advent2020::error::EmptyFile;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
@@ -56,7 +56,8 @@ fn count_paths_with_memo(
     } else if let Some(&known) = memo.get(&source) {
         known
     } else if let Some(kids) = graph.get(&source) {
-        let count = kids.iter()
+        let count = kids
+            .iter()
             .map(|&kid| count_paths_with_memo(graph, kid, target, memo))
             .sum();
         memo.insert(source, count);

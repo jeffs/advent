@@ -25,14 +25,3 @@ impl Display for EmptyFile {
 }
 
 impl Error for EmptyFile {}
-
-#[derive(Debug)]
-pub struct NoSolution;
-
-impl Display for NoSolution {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "no solution")
-    }
-}
-
-impl Error for NoSolution {}

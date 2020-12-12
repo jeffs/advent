@@ -1,23 +1,9 @@
-use advent2020::NoSolution;
+use advent2020::error::{NoSolution, ParseError};
 use std::collections::HashSet;
 use std::error::Error;
-use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
 use std::path::Path;
-
-#[derive(Debug)]
-struct InstructionParseError {
-    line: String,
-}
-
-impl Display for InstructionParseError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "bad instruction: {}", self.line)
-    }
-}
-
-impl Error for InstructionParseError {}
 
 #[derive(Debug)]
 enum Instruction {
@@ -44,7 +30,10 @@ fn load_program<P: AsRef<Path>>(input: P) -> Result<Program, Box<dyn Error>> {
             ["acc", arg] => Instruction::Acc(arg.parse()?),
             ["jmp", arg] => Instruction::Jmp(arg.parse()?),
             ["nop", arg] => Instruction::Nop(arg.parse()?),
-            _ => return Err(Box::new(InstructionParseError { line })),
+            _ => {
+                let what = format!("bad instruction: {}", line);
+                return Err(Box::new(ParseError::new(what)));
+            }
         };
         program.push(instruction);
     }

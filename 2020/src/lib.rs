@@ -1,6 +1,4 @@
-pub mod day7;
 pub mod day11;
+pub mod day7;
 
-mod error;
-
-pub use error::*;
+pub mod error;

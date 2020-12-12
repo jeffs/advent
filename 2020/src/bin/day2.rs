@@ -1,40 +1,10 @@
+use advent2020::error::ParseError;
 use std::error::Error;
-use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
-use std::num::ParseIntError;
 use std::ops::Range;
 use std::path::Path;
 use std::str::FromStr;
-
-// ParseError
-
-#[derive(Debug)]
-struct ParseError {
-    what: String,
-}
-
-impl ParseError {
-    fn new(what: &str) -> ParseError {
-        ParseError {
-            what: what.to_owned(),
-        }
-    }
-}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.what)
-    }
-}
-
-impl Error for ParseError {}
-
-impl From<ParseIntError> for ParseError {
-    fn from(err: ParseIntError) -> Self {
-        Self::new(&err.to_string())
-    }
-}
 
 // Policy
 
@@ -47,7 +17,7 @@ struct Policy {
 fn parse_letter(s: &str) -> Result<char, ParseError> {
     match s.chars().collect::<Vec<char>>()[..] {
         [c] => Ok(c),
-        _ => Err(ParseError::new(&format!(r#"bad letter: "{}""#, s))),
+        _ => Err(ParseError::new(format!(r#"bad letter: "{}""#, s))),
     }
 }
 
@@ -57,7 +27,7 @@ fn parse_range(s: &str) -> Result<Range<u32>, ParseError> {
             start: min.parse()?,
             end: max.parse::<u32>()? + 1,
         }),
-        _ => Err(ParseError::new(&format!("bad range: {}", s))),
+        _ => Err(ParseError::new(format!("bad range: {}", s))),
     }
 }
 
@@ -70,7 +40,7 @@ impl FromStr for Policy {
                 range: parse_range(range)?,
                 letter: parse_letter(letter)?,
             }),
-            _ => Err(ParseError::new(&format!("bad policy: {}", s))),
+            _ => Err(ParseError::new(format!("bad policy: {}", s))),
         }
     }
 }
@@ -92,7 +62,7 @@ impl FromStr for Entry {
                 policy: policy.parse()?,
                 password: password.to_owned(),
             }),
-            _ => Err(ParseError::new(&format!("bad entry: {}", s))),
+            _ => Err(ParseError::new(format!("bad entry: {}", s))),
         }
     }
 }

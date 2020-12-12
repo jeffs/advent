@@ -1,4 +1,5 @@
-use super::{ParseError, Position, Size, Spot};
+use super::{Position, Size, Spot};
+use crate::error::ParseError;
 use std::cmp;
 use std::error::Error;
 use std::fmt;

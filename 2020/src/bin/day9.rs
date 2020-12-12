@@ -1,4 +1,4 @@
-use advent2020::NoSolution;
+use advent2020::error::NoSolution;
 use std::collections::VecDeque;
 use std::error::Error;
 use std::fs::File;
