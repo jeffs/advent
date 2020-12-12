@@ -3,7 +3,7 @@ pub enum Relative {
     Right,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Cardinal {
     East,
     North,

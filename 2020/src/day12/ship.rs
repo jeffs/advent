@@ -1,5 +1,6 @@
 use super::{CardinalDirection, Point, RelativeDirection};
 
+#[derive(Debug)]
 pub struct Ship {
     dir: CardinalDirection,
     pos: Point,
@@ -67,5 +68,21 @@ impl Ship {
     /// Returns this Ship's Manhattan distance from the origin.
     pub fn distance(self) -> usize {
         self.pos.x.abs() as usize + self.pos.y.abs() as usize
+    }
+
+    pub fn pos(&self) -> Point {
+        self.pos
+    }
+
+    pub fn toward(self, pos: Point, distance: usize) -> Ship {
+        let dx = distance * (pos.x - self.pos.x).abs() as usize;
+        let dy = distance * (pos.y - self.pos.y).abs() as usize;
+        println!("dx={}, dy={}", dx, dy);
+        match (pos.x < self.pos.x, pos.y < self.pos.y) {
+            (false, false) => self.east(dx).north(dy),
+            (false, true) => self.east(dx).south(dy),
+            (true, false) => self.west(dx).north(dy),
+            (true, true) => self.west(dx).south(dy),
+        }
     }
 }

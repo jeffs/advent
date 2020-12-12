@@ -1,4 +1,4 @@
-use advent2020::day12::{Instruction, Ship};
+use advent2020::day12::{Instruction, Ship, Waypoint};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -22,7 +22,25 @@ fn solve_part1<P: AsRef<Path>>(input: P) -> Result<usize, Box<dyn Error>> {
 
 #[allow(dead_code, unused_mut, unused_variables)]
 fn solve_part2<P: AsRef<Path>>(input: P) -> Result<usize, Box<dyn Error>> {
-    todo!()
+    let mut ship = Ship::new();
+    let mut way = Waypoint::new();
+    let mut i = 0;
+    println!("{}. ship: {:?}\n   way:  {:?}", i, ship, way);
+    for line in BufReader::new(File::open(input)?).lines() {
+        let line = line?;
+        match Instruction::parse(line.clone())? {
+            Instruction::North { distance } => way = way.north(distance),
+            Instruction::South { distance } => way = way.south(distance),
+            Instruction::East { distance } => way = way.east(distance),
+            Instruction::West { distance } => way = way.west(distance),
+            Instruction::Left { degrees } => way = way.left(ship.pos(), degrees),
+            Instruction::Right { degrees } => way = way.right(ship.pos(), degrees),
+            Instruction::Forward { distance } => ship = ship.toward(way.pos(), distance),
+        }
+        i += 1;
+        println!("{}. {}\n   ship: {:?}\n   way:  {:?}", i, line, ship, way);
+    }
+    Ok(ship.distance())
 }
 
 fn main() {
