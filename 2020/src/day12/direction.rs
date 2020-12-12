@@ -12,18 +12,13 @@ pub enum Cardinal {
 }
 
 impl Cardinal {
-    fn from_usize(index: usize) -> Cardinal {
+    fn from_isize(index: isize) -> Cardinal {
         use Cardinal::*;
         const CARDINALS: [Cardinal; 4] = [East, North, West, South];
-        CARDINALS[index % CARDINALS.len()]
+        CARDINALS[((index % 4 + 4) % 4) as usize]
     }
 
-    pub fn turn(self, rel: Relative, degrees: usize) -> Cardinal {
-        let index = self as usize;
-        let rot = degrees / 90;
-        match rel {
-            Relative::Left => Cardinal::from_usize(index + rot),
-            Relative::Right => Cardinal::from_usize(index + 4 - rot),
-        }
+    pub fn turn(self, degrees: isize) -> Cardinal {
+        Cardinal::from_isize(self as isize + degrees / 90)
     }
 }
