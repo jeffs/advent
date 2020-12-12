@@ -45,15 +45,11 @@ impl Grid {
             spots.extend(Spot::parse_line(&line)?.iter());
             height += 1;
         }
-        if height < 2 || width < 2 {
-            todo!("support single-row and single-column grids")
-        } else {
-            Ok(Grid {
-                height,
-                width,
-                spots,
-            })
-        }
+        Ok(Grid {
+            height,
+            width,
+            spots,
+        })
     }
 
     pub fn with_size(size: Size) -> Grid {
