@@ -1,33 +1,26 @@
-#![allow(dead_code, unused_mut, unused_variables)]
-
-use advent2020::day12::{CardinalDirection, Instruction, Point, RelativeDirection};
+use advent2020::day12::{Instruction, Ship};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 fn solve_part1<P: AsRef<Path>>(input: P) -> Result<usize, Box<dyn Error>> {
-    let mut dir = CardinalDirection::East;
-    let mut pos = Point { x: 0, y: 0 };
+    let mut ship = Ship::new();
     for line in BufReader::new(File::open(input)?).lines() {
         match Instruction::parse(line?)? {
-            Instruction::North { distance } => pos = pos.north(distance),
-            Instruction::South { distance } => pos = pos.south(distance),
-            Instruction::East { distance } => pos = pos.east(distance),
-            Instruction::West { distance } => pos = pos.west(distance),
-            Instruction::Left { degrees } => dir = dir.turn(RelativeDirection::Left, degrees),
-            Instruction::Right { degrees } => dir = dir.turn(RelativeDirection::Right, degrees),
-            Instruction::Forward { distance } => match dir {
-                CardinalDirection::North => pos = pos.north(distance),
-                CardinalDirection::South => pos = pos.south(distance),
-                CardinalDirection::East => pos = pos.east(distance),
-                CardinalDirection::West => pos = pos.west(distance),
-            },
+            Instruction::North { distance } => ship = ship.north(distance),
+            Instruction::South { distance } => ship = ship.south(distance),
+            Instruction::East { distance } => ship = ship.east(distance),
+            Instruction::West { distance } => ship = ship.west(distance),
+            Instruction::Left { degrees } => ship = ship.left(degrees),
+            Instruction::Right { degrees } => ship = ship.right(degrees),
+            Instruction::Forward { distance } => ship = ship.forward(distance),
         }
     }
-    Ok(pos.x.abs() as usize + pos.y.abs() as usize)
+    Ok(ship.distance())
 }
 
+#[allow(dead_code, unused_mut, unused_variables)]
 fn solve_part2<P: AsRef<Path>>(input: P) -> Result<usize, Box<dyn Error>> {
     todo!()
 }
