@@ -24,7 +24,10 @@ fn load_input1(input_path: &str) -> Result<Input1, Box<dyn Error>> {
         .split_terminator(',')
         .filter_map(|s| s.parse().ok())
         .collect();
-    if buses.is_empty() {
+    if lines.next().is_some() {
+        let what = format!("{}: expected only two lines", input_path);
+        Err(Box::new(ParseError::new(what)))
+    } else if buses.is_empty() {
         let what = format!("{}: can't find any buses", input_path);
         Err(Box::new(ParseError::new(what)))
     } else {
