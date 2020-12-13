@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# This problem really threw me for a loop, so explored the space a little in
+# This problem really threw me for a loop, so I explored the space a little in
 # Python.  It's great to use a dynamic language with a REPL to figure stuff out
 # before investing in a more robust and maintainable implementation.  Python is
 # especially nice for working with large integers.
