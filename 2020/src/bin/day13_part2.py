@@ -144,6 +144,7 @@ def test_solve_part2():
             ('1789,37,47,1889', 1202161486)):
         assert want == solve_part2(*parse_line(line))
 
+
 def test():
     test_is_prime()
     test_find_timestamp()
