@@ -44,10 +44,6 @@ impl Ship {
         self.pos.x.abs() as usize + self.pos.y.abs() as usize
     }
 
-    pub fn pos(&self) -> Point {
-        self.pos
-    }
-
     pub fn wayward(&self, way: Vector, distance: usize) -> Ship {
         Ship {
             dir: self.dir,

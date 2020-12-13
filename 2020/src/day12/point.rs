@@ -8,36 +8,6 @@ pub struct Point {
     pub y: isize, // Cartesian latitude
 }
 
-impl Point {
-    pub fn north(self, distance: usize) -> Point {
-        Point {
-            x: self.x,
-            y: self.y + distance as isize,
-        }
-    }
-
-    pub fn east(self, distance: usize) -> Point {
-        Point {
-            x: self.x + distance as isize,
-            y: self.y,
-        }
-    }
-
-    pub fn south(self, distance: usize) -> Point {
-        Point {
-            x: self.x,
-            y: self.y - distance as isize,
-        }
-    }
-
-    pub fn west(self, distance: usize) -> Point {
-        Point {
-            x: self.x - distance as isize,
-            y: self.y,
-        }
-    }
-}
-
 impl Add<Vector> for Point {
     type Output = Point;
 

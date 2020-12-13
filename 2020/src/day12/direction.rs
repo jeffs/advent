@@ -1,8 +1,3 @@
-pub enum Relative {
-    Left,
-    Right,
-}
-
 #[derive(Clone, Copy, Debug)]
 pub enum Cardinal {
     East,

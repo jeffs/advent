@@ -2,10 +2,13 @@ mod direction;
 mod instruction;
 mod point;
 mod ship;
-pub mod vector;
+mod vector;
 
-pub use direction::{Cardinal as CardinalDirection, Relative as RelativeDirection};
-pub use instruction::Instruction;
-pub use point::Point;
-pub use ship::Ship;
-pub use vector::Vector;
+pub mod part1;
+pub mod part2;
+
+use direction::{Cardinal as CardinalDirection};
+use instruction::Instruction;
+use point::Point;
+use ship::Ship;
+use vector::Vector;
