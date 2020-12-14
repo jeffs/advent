@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 const MAX: usize = (1 << 36) - 1;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Address(usize);
 
 impl FromStr for Address {

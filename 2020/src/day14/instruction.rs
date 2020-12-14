@@ -29,8 +29,8 @@ fn parse_value(line: &str) -> Result<Value, ParseError> {
 
 #[derive(Debug)]
 pub struct Instruction {
-    address: Address,
-    value: Value,
+    pub address: Address,
+    pub value: Value,
 }
 
 impl Instruction {

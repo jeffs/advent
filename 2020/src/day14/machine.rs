@@ -17,8 +17,8 @@ impl Machine {
         }
     }
 
-    pub fn execute(self, instruction: Instruction) -> Machine {
-        todo!()
+    pub fn execute(&mut self, instruction: Instruction) {
+        self.memory[instruction.address] = instruction.value;
     }
 
     pub fn sum(&self) -> usize {

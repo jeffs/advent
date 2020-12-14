@@ -1,8 +1,8 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 use super::instruction::Instruction;
-use super::mask::Mask;
 use super::machine::Machine;
+use super::mask::Mask;
 use super::memory::Sparse;
 use super::value::Value;
 use crate::error::{NoSolution, ParseError};
@@ -19,7 +19,7 @@ where
     let mask = Mask::parse_line(lines.next().ok_or(NoSolution)??)?;
     let mut machine = Machine::new(mask);
     for line in lines {
-        machine = machine.execute(Instruction::parse(line?)?);
+        machine.execute(Instruction::parse(line?)?);
     }
     Ok(machine.sum())
 }
