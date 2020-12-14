@@ -1,11 +1,7 @@
-#![allow(dead_code, unused_imports, unused_variables)]
-
 use super::instruction::Instruction;
 use super::machine::Machine;
 use super::mask::Mask;
-use super::memory::Sparse;
-use super::value::Value;
-use crate::error::{NoSolution, ParseError};
+use crate::error::NoSolution;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};

@@ -1,4 +1,3 @@
-#![allow(dead_code, unused_variables)]
 use super::address::Address;
 use super::value::Value;
 use std::collections::HashMap;

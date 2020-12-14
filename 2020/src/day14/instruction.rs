@@ -1,5 +1,3 @@
-#![allow(dead_code, unused_imports, unused_variables)]
-
 use super::address::Address;
 use super::mask::Mask;
 use super::value::Value;

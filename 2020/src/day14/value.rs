@@ -1,4 +1,3 @@
-#![allow(dead_code, unused_variables)]
 use crate::error::ParseError;
 use std::str::FromStr;
 
