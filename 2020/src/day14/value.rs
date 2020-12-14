@@ -7,6 +7,18 @@ const MAX: usize = (1 << 36) - 1;
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Value(usize);
 
+impl From<usize> for Value {
+    fn from(u: usize) -> Self {
+        Value(u)
+    }
+}
+
+impl From<Value> for usize {
+    fn from(v: Value) -> Self {
+        v.0
+    }
+}
+
 impl FromStr for Value {
     type Err = ParseError;
 
@@ -18,11 +30,5 @@ impl FromStr for Value {
         } else {
             Ok(Value(value))
         }
-    }
-}
-
-impl From<Value> for usize {
-    fn from(value: Value) -> Self {
-        value.0
     }
 }
