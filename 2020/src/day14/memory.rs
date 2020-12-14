@@ -13,4 +13,8 @@ impl Sparse {
             cells: HashMap::new(),
         }
     }
+
+    pub fn sum(&self) -> usize {
+        self.cells.values().map(|&v| usize::from(v)).sum()
+    }
 }

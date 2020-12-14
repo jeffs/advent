@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 const MAX: usize = (1 << 36) - 1;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Value(usize);
 
 impl FromStr for Value {
@@ -18,5 +18,11 @@ impl FromStr for Value {
         } else {
             Ok(Value(value))
         }
+    }
+}
+
+impl From<Value> for usize {
+    fn from(value: Value) -> Self {
+        value.0
     }
 }

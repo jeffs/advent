@@ -2,6 +2,7 @@
 
 use super::instruction::Instruction;
 use super::mask::Mask;
+use super::machine::Machine;
 use super::memory::Sparse;
 use super::value::Value;
 use crate::error::{NoSolution, ParseError};
@@ -16,13 +17,11 @@ where
 {
     let mut lines = BufReader::new(File::open(input)?).lines();
     let mask = Mask::parse_line(lines.next().ok_or(NoSolution)??)?;
-    println!("{:?}", mask);
-    let memory = Sparse::new();
+    let mut machine = Machine::new(mask);
     for line in lines {
-        let instruction = Instruction::parse(line?)?;
-        println!("{:?}", instruction);
+        machine = machine.execute(Instruction::parse(line?)?);
     }
-    todo!()
+    Ok(machine.sum())
 }
 
 #[cfg(test)]
