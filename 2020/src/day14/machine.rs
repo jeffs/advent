@@ -18,8 +18,13 @@ impl Machine {
     }
 
     pub fn execute(&mut self, instruction: Instruction) {
-        let value = self.mask.apply(instruction.value);
-        self.memory[instruction.address] = value;
+        match instruction {
+            Instruction::Assign(address, value) => {
+                let masked = self.mask.apply(value);
+                self.memory[address] = masked;
+            }
+            Instruction::Mask(mask) => self.mask = mask,
+        }
     }
 
     pub fn sum(&self) -> usize {

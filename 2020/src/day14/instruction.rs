@@ -1,6 +1,7 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 use super::address::Address;
+use super::mask::Mask;
 use super::value::Value;
 use crate::error::ParseError;
 
@@ -28,17 +29,21 @@ fn parse_value(line: &str) -> Result<Value, ParseError> {
 }
 
 #[derive(Debug)]
-pub struct Instruction {
-    pub address: Address,
-    pub value: Value,
+pub enum Instruction {
+    Assign(Address, Value),
+    Mask(Mask),
 }
 
 impl Instruction {
     pub fn parse<S: AsRef<str>>(line: S) -> Result<Instruction, ParseError> {
         let line = line.as_ref();
-        Ok(Instruction {
-            address: parse_address(line)?,
-            value: parse_value(line)?,
-        })
+        if line.starts_with("mask") {
+            Ok(Instruction::Mask(Mask::parse_line(line)?))
+        } else {
+            Ok(Instruction::Assign(
+                parse_address(line)?,
+                parse_value(line)?,
+            ))
+        }
     }
 }
