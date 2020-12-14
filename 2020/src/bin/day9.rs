@@ -63,7 +63,7 @@ where
 fn sum_min_max(numbers: &[usize]) -> usize {
     let min = numbers.iter().min().unwrap();
     let max = numbers.iter().max().unwrap();
-    return min + max;
+    min + max
 }
 
 /// Returns the sum of the first and last numbers of a contiguous subsequence

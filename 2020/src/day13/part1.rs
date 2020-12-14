@@ -37,7 +37,7 @@ fn load_input(input_path: &str) -> Result<Input, Box<dyn Error>> {
 
 pub fn solve(input_path: &str) -> Result<usize, Box<dyn Error>> {
     let input = load_input(input_path)?;
-    if let Some(_) = input.buses.iter().find(|&&bus| input.timestamp % bus == 0) {
+    if input.buses.iter().any(|&bus| input.timestamp % bus == 0) {
         Ok(0)
     } else {
         let to_etd = |bus| bus * (input.timestamp / bus + 1);
