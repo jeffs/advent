@@ -5,9 +5,7 @@ use std::str::FromStr;
 const MAX: usize = (1 << 36) - 1;
 
 #[derive(Debug)]
-pub struct Address {
-    address: usize,
-}
+pub struct Address(usize);
 
 impl FromStr for Address {
     type Err = ParseError;
@@ -18,7 +16,7 @@ impl FromStr for Address {
             let what = format!("{}: address is too large", address);
             Err(ParseError::new(what))
         } else {
-            Ok(Address { address })
+            Ok(Address(address))
         }
     }
 }
