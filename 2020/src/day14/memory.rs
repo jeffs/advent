@@ -34,9 +34,6 @@ impl Index<Address> for Sparse {
 
 impl IndexMut<Address> for Sparse {
     fn index_mut(&mut self, address: Address) -> &mut Self::Output {
-        if !self.values.contains_key(&address) {
-            self.values.insert(address, self.default);
-        }
-        self.values.get_mut(&address).unwrap()
+        self.values.entry(address).or_insert(self.default)
     }
 }

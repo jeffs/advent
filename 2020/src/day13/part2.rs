@@ -1,6 +1,5 @@
 /// This file is a line-by-line translation of src/bin/day13_part2.py.  See
 /// that file for a high-level explanation of the algorithm implemented here.
-
 use crate::error::{NoSolution, ParseError};
 use std::error::Error;
 use std::fs;
@@ -80,15 +79,13 @@ fn solve_buses(buses: Vec<BusDelay>) -> Result<usize, NoSolution> {
     assert!(buses.iter().all(|&BusDelay { id, .. }| is_prime(id)));
     let bus_remainders: Vec<BusRemainder> = buses
         .iter()
-        .map(|bus| {
-            BusRemainder {
-                id: bus.id,
-                remainder: if bus.id < bus.delay {
-                    (bus.id * bus.delay - bus.delay) % bus.id
-                } else {
-                    (bus.id - bus.delay) % bus.id
-                },
-            }
+        .map(|bus| BusRemainder {
+            id: bus.id,
+            remainder: if bus.id < bus.delay {
+                (bus.id * bus.delay - bus.delay) % bus.id
+            } else {
+                (bus.id - bus.delay) % bus.id
+            },
         })
         .collect();
     find_timestamp(&bus_remainders)

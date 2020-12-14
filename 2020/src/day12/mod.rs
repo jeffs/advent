@@ -7,7 +7,7 @@ mod vector;
 pub mod part1;
 pub mod part2;
 
-use direction::{Cardinal as CardinalDirection};
+use direction::Cardinal as CardinalDirection;
 use instruction::Instruction;
 use point::Point;
 use ship::Ship;

@@ -11,7 +11,7 @@ where
 {
     let mut machine = Machine::new();
     for line in BufReader::new(File::open(input)?).lines() {
-        machine.execute1(Instruction::parse(line?)?);
+        machine.execute2(Instruction::parse(line?)?);
     }
     Ok(machine.sum())
 }
@@ -21,8 +21,8 @@ mod test {
     use super::*;
 
     #[test]
-    fn solve_sample1() {
-        let input = "tests/day14/sample1";
-        assert_eq!(165, solve(input).unwrap());
+    fn solve_sample2() {
+        let input = "tests/day14/sample2";
+        assert_eq!(208, solve(input).unwrap());
     }
 }

@@ -1,10 +1,23 @@
 use crate::error::ParseError;
 use std::str::FromStr;
 
-const MAX: usize = (1 << 36) - 1;
+pub const LEN: usize = 36;
+const MAX: usize = (1 << LEN) - 1;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Address(usize);
+
+impl From<usize> for Address {
+    fn from(u: usize) -> Self {
+        Address(u)
+    }
+}
+
+impl From<Address> for usize {
+    fn from(a: Address) -> Self {
+        a.0
+    }
+}
 
 impl FromStr for Address {
     type Err = ParseError;
