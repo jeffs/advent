@@ -36,10 +36,6 @@ impl Mask {
         Ok(mask)
     }
 
-    fn bits(&self, u: usize) -> usize {
-        u & !self.clear | self.set
-    }
-
     pub fn new() -> Mask {
         Mask { clear: 0, set: 0 }
     }
@@ -54,7 +50,7 @@ impl Mask {
     }
 
     pub fn value(&self, value: Value) -> Value {
-        Value::from(self.bits(usize::from(value)))
+        Value::from(usize::from(value) & !self.clear | self.set)
     }
 
     pub fn parse_line<S: AsRef<str>>(line: S) -> Result<Mask, ParseError> {
