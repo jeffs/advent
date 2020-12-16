@@ -1,13 +1,13 @@
-#![allow(unused_imports)]
 use advent2020::error::{NoSolution, ParseError};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::iter::FromIterator;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 
-fn parse_range(s: &str) -> Result<RangeInclusive<u32>, ParseError> {
+fn parse_range(s: &str) -> Result<RangeInclusive<u64>, ParseError> {
     let parts: Vec<_> = s.splitn(2, '-').collect();
     if parts.len() != 2 {
         Err(ParseError::new(format!("bad range '{}'", s)))
@@ -19,11 +19,11 @@ fn parse_range(s: &str) -> Result<RangeInclusive<u32>, ParseError> {
 #[derive(Debug, Eq, Hash, PartialEq)]
 struct Rule {
     field: String,
-    ranges: (RangeInclusive<u32>, RangeInclusive<u32>),
+    ranges: (RangeInclusive<u64>, RangeInclusive<u64>),
 }
 
 impl Rule {
-    fn is_valid(&self, value: u32) -> bool {
+    fn is_valid(&self, value: u64) -> bool {
         self.ranges.0.contains(&value) || self.ranges.1.contains(&value)
     }
 }
@@ -52,7 +52,7 @@ impl FromStr for Rule {
 
 #[derive(Debug)]
 struct Ticket {
-    values: Vec<u32>,
+    values: Vec<u64>,
 }
 
 impl FromStr for Ticket {
@@ -102,7 +102,7 @@ fn load_document(input_path: &str) -> Result<Document, Box<dyn Error>> {
     })
 }
 
-fn solve_part1(doc: &Document) -> u32 {
+fn solve_part1(doc: &Document) -> u64 {
     doc.tickets
         .iter()
         .flat_map(|ticket| ticket.values.iter())
@@ -121,23 +121,69 @@ fn collect_valid_tickets(doc: &Document) -> impl Iterator<Item = &Ticket> {
 
 /// Maps columns (by index) to sets of rules that reject any values in them.
 fn exclude_rules_by_column(doc: &Document) -> Vec<HashSet<&Rule>> {
-    let column_count = doc.ticket.values.len();
-    let mut excluded_rules = vec![HashSet::new(); column_count];
+    let mut excluded_rules = vec![HashSet::new(); doc.ticket.values.len()];
     for (column, &value) in
         collect_valid_tickets(doc).flat_map(|ticket| ticket.values.iter().enumerate())
     {
-        let rules = doc.rules.iter().filter(|rule| !rule.is_valid(value));
-        excluded_rules[column].extend(rules);
+        excluded_rules[column].extend(doc.rules.iter().filter(|rule| !rule.is_valid(value)));
     }
     excluded_rules
 }
 
-fn solve_part2(doc: &Document) -> Result<u32, NoSolution> {
-    let excluded_rules = exclude_rules_by_column(doc);
-    for (column, rules) in excluded_rules.iter().enumerate() {
-        println!("column {:2} excludes {:2} rules", column, rules.len());
+fn complement<'doc>(
+    sets: &[HashSet<&'doc Rule>],
+    universe: &'doc [Rule],
+) -> HashMap<usize, HashSet<&'doc Rule>> {
+    let universe = HashSet::from_iter(universe.iter());
+    sets.iter().map(|set| &universe - set).enumerate().collect()
+}
+
+/// Maps each rule to its column index.
+fn map_columns(doc: &Document) -> Result<HashMap<&Rule, usize>, NoSolution> {
+    // Map columns to sets of rules that cannot apply to them ("exclusions").
+    // Complement the sets to find applicable rules by column ("candidates").
+    // While candidates remain (i.e., any column is mapped to multiple rules):
+    //      Find the first column having exactly one candidate.
+    //          If none, return NoSolution.
+    //      Graduate that entry to a match:
+    //          Map the rule to the column ("columns").
+    //          Remove the entry from the candidates map.
+    //      Remove the matched rule from all remaining candidate sets.
+    // Return the final mapping from rules to columns.
+    let exclusions = exclude_rules_by_column(doc);
+    let mut candidates = complement(&exclusions, &doc.rules);
+    let mut columns = HashMap::new();
+    while !candidates.is_empty() {
+        let (&column, rule) = candidates
+            .iter_mut()
+            .find_map(|(column, rules)| {
+                if rules.len() == 1 {
+                    rules.drain().next().map(|rule| (column, rule))
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| NoSolution)?;
+        candidates.remove(&column);
+        columns.insert(rule, column);
+        for rules in candidates.values_mut() {
+            rules.remove(&rule);
+        }
     }
-    Ok(0) // TODO
+    Ok(columns)
+}
+
+fn solve_part2(doc: &Document) -> Result<u64, NoSolution> {
+    Ok(map_columns(doc)?
+        .iter()
+        .filter_map(|(rule, &column)| {
+            if rule.field.starts_with("departure") {
+                doc.ticket.values.get(column)
+            } else {
+                None
+            }
+        })
+        .product())
 }
 
 fn main() {
