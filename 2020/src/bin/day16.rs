@@ -16,6 +16,7 @@ fn parse_range(s: &str) -> Result<RangeInclusive<u32>, ParseError> {
 
 #[derive(Debug)]
 struct Rule {
+    field: String,
     ranges: (RangeInclusive<u32>, RangeInclusive<u32>),
 }
 
@@ -34,10 +35,11 @@ impl FromStr for Rule {
             let what = format!(r#"bad rule; expected separator: "{}""#, s);
             ParseError::new(what)
         })?;
-        let (_, tail) = s.split_at(pos + sep.len());
+        let (field, tail) = s.split_at(pos + sep.len());
         let parts = tail.split(' ').collect::<Vec<_>>();
         if let [first, "or", second] = parts.as_slice() {
             Ok(Rule {
+                field: field.to_owned(),
                 ranges: (parse_range(first)?, parse_range(second)?),
             })
         } else {
@@ -66,7 +68,8 @@ impl FromStr for Ticket {
 #[derive(Debug)]
 struct Document {
     rules: Vec<Rule>,
-    tickets: Vec<Ticket>,
+    ticket: Ticket,       // your ticket
+    tickets: Vec<Ticket>, // nearby tickets
 }
 
 fn load_document(input_path: &str) -> Result<Document, Box<dyn Error>> {
@@ -79,12 +82,22 @@ fn load_document(input_path: &str) -> Result<Document, Box<dyn Error>> {
         }
         rules.push(line.parse()?);
     }
+    let mut lines = lines.skip(1); // "your ticket:"
+    let ticket = if let Some(line) = lines.next() {
+        line?.parse()?
+    } else {
+        let what = "expected ticket, got EOF".to_owned();
+        return Err(Box::new(ParseError::new(what)));
+    };
     let mut tickets = Vec::new();
-    let lines = lines.skip(3); // “Ignore your ticket for now.”
-    for line in lines.skip(1) {
+    for line in lines.skip(2) {
         tickets.push(line?.parse()?);
     }
-    Ok(Document { rules, tickets })
+    Ok(Document {
+        rules,
+        ticket,
+        tickets,
+    })
 }
 
 fn solve_part1(doc: &Document) -> u32 {
