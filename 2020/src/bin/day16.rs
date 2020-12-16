@@ -110,25 +110,21 @@ fn solve_part1(doc: &Document) -> u32 {
         .sum()
 }
 
-fn collect_valid_tickets(doc: &Document) -> Vec<&Ticket> {
-    doc.tickets
-        .iter()
-        .filter(|ticket| {
-            !ticket
-                .values
-                .iter()
-                .any(|value| doc.rules.iter().all(|rule| !rule.is_valid(*value)))
-        })
-        .collect()
+fn collect_valid_tickets(doc: &Document) -> impl Iterator<Item = &Ticket> {
+    doc.tickets.iter().filter(move |ticket| {
+        !ticket
+            .values
+            .iter()
+            .any(|value| doc.rules.iter().all(|rule| !rule.is_valid(*value)))
+    })
 }
 
 /// Maps columns (by index) to sets of rules that reject any values in them.
 fn exclude_rules_by_column(doc: &Document) -> Vec<HashSet<&Rule>> {
     let column_count = doc.ticket.values.len();
     let mut excluded_rules = vec![HashSet::new(); column_count];
-    for (column, &value) in collect_valid_tickets(doc)
-        .iter()
-        .flat_map(|ticket| ticket.values.iter().enumerate())
+    for (column, &value) in
+        collect_valid_tickets(doc).flat_map(|ticket| ticket.values.iter().enumerate())
     {
         let rules = doc.rules.iter().filter(|rule| !rule.is_valid(value));
         excluded_rules[column].extend(rules);
