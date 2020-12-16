@@ -2,21 +2,27 @@ use advent2020::error::ParseError;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::ops::Range;
+use std::ops::RangeInclusive;
 use std::str::FromStr;
 
-fn parse_range(s: &str) -> Result<Range<u32>, ParseError> {
+fn parse_range(s: &str) -> Result<RangeInclusive<u32>, ParseError> {
     let parts: Vec<_> = s.splitn(2, '-').collect();
     if parts.len() != 2 {
         Err(ParseError::new(format!("{}: bad range", s)))
     } else {
-        Ok(parts[0].parse()?..parts[1].parse()?)
+        Ok(parts[0].parse()?..=parts[1].parse()?)
     }
 }
 
 #[derive(Debug)]
 struct Rule {
-    ranges: (Range<u32>, Range<u32>),
+    ranges: (RangeInclusive<u32>, RangeInclusive<u32>),
+}
+
+impl Rule {
+    fn is_valid(&self, value: u32) -> bool {
+        self.ranges.0.contains(&value) || self.ranges.1.contains(&value)
+    }
 }
 
 impl FromStr for Rule {
@@ -74,13 +80,21 @@ fn load_document(input_path: &str) -> Result<Document, Box<dyn Error>> {
 }
 
 fn solve_part1(doc: &Document) -> u32 {
-    println!("{:?}", doc);
-    todo!()
+    doc.tickets
+        .iter()
+        .flat_map(|ticket| ticket.values.iter())
+        .filter(|&value| !doc.rules.iter().any(|rule| rule.is_valid(*value)))
+        .sum()
 }
 
 fn main() {
-    let doc = load_document("tests/day16/input").unwrap();
-    println!("{}", solve_part1(&doc));
+    match load_document("tests/day16/input") {
+        Ok(doc) => println!("{}", solve_part1(&doc)),
+        Err(err) => {
+            eprintln!("error: {}", err);
+            std::process::exit(3);
+        }
+    }
 }
 
 #[cfg(test)]
