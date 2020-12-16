@@ -8,7 +8,7 @@ use std::str::FromStr;
 fn parse_range(s: &str) -> Result<RangeInclusive<u32>, ParseError> {
     let parts: Vec<_> = s.splitn(2, '-').collect();
     if parts.len() != 2 {
-        Err(ParseError::new(format!("{}: bad range", s)))
+        Err(ParseError::new(format!("bad range '{}'", s)))
     } else {
         Ok(parts[0].parse()?..=parts[1].parse()?)
     }
@@ -29,11 +29,19 @@ impl FromStr for Rule {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match &s.split(' ').collect::<Vec<_>>()[..] {
-            [_, first, "or", second] => Ok(Rule {
+        let sep = ": ";
+        let pos = s.find(": ").ok_or_else(|| {
+            let what = format!(r#"bad rule; expected separator: "{}""#, s);
+            ParseError::new(what)
+        })?;
+        let (_, tail) = s.split_at(pos + sep.len());
+        let parts = tail.split(' ').collect::<Vec<_>>();
+        if let [first, "or", second] = parts.as_slice() {
+            Ok(Rule {
                 ranges: (parse_range(first)?, parse_range(second)?),
-            }),
-            _ => Err(ParseError::new(format!("{}: bad rule", s))),
+            })
+        } else {
+            Err(ParseError::new(format!("bad rule: '{}'", s)))
         }
     }
 }
@@ -103,7 +111,9 @@ mod test {
 
     #[test]
     fn part1_sample1() {
-        let doc = load_document("tests/day16/sample1").unwrap();
-        assert_eq!(71, solve_part1(&doc));
+        match load_document("tests/day16/sample1") {
+            Ok(doc) => assert_eq!(71, solve_part1(&doc)),
+            Err(err) => panic!("{}", err),
+        }
     }
 }
