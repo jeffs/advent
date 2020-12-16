@@ -1,4 +1,6 @@
-use advent2020::error::ParseError;
+#![allow(unused_imports)]
+use advent2020::error::{NoSolution, ParseError};
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -14,7 +16,7 @@ fn parse_range(s: &str) -> Result<RangeInclusive<u32>, ParseError> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Rule {
     field: String,
     ranges: (RangeInclusive<u32>, RangeInclusive<u32>),
@@ -39,7 +41,7 @@ impl FromStr for Rule {
         let parts = tail.split(' ').collect::<Vec<_>>();
         if let [first, "or", second] = parts.as_slice() {
             Ok(Rule {
-                field: field.to_owned(),
+                field: field[0..(field.len() - sep.len())].to_owned(),
                 ranges: (parse_range(first)?, parse_range(second)?),
             })
         } else {
@@ -108,11 +110,55 @@ fn solve_part1(doc: &Document) -> u32 {
         .sum()
 }
 
+fn collect_valid_tickets(doc: &Document) -> Vec<&Ticket> {
+    doc.tickets
+        .iter()
+        .filter(|ticket| {
+            !ticket
+                .values
+                .iter()
+                .any(|value| doc.rules.iter().all(|rule| !rule.is_valid(*value)))
+        })
+        .collect()
+}
+
+/// Maps columns (by index) to sets of rules that reject any values in them.
+fn exclude_rules_by_column(doc: &Document) -> Vec<HashSet<&Rule>> {
+    let column_count = doc.ticket.values.len();
+    let mut excluded_rules = vec![HashSet::new(); column_count];
+    for (column, &value) in collect_valid_tickets(doc)
+        .iter()
+        .flat_map(|ticket| ticket.values.iter().enumerate())
+    {
+        let rules = doc.rules.iter().filter(|rule| !rule.is_valid(value));
+        excluded_rules[column].extend(rules);
+    }
+    excluded_rules
+}
+
+fn solve_part2(doc: &Document) -> Result<u32, NoSolution> {
+    let excluded_rules = exclude_rules_by_column(doc);
+    for (column, rules) in excluded_rules.iter().enumerate() {
+        println!("column {:2} excludes {:2} rules", column, rules.len());
+    }
+    Ok(0) // TODO
+}
+
 fn main() {
-    match load_document("tests/day16/input") {
-        Ok(doc) => println!("{}", solve_part1(&doc)),
+    let input_path = "tests/day16/input";
+    match load_document(input_path) {
+        Ok(doc) => {
+            println!("{}", solve_part1(&doc));
+            match solve_part2(&doc) {
+                Ok(answer) => println!("{}", answer),
+                Err(err) => {
+                    eprintln!("error: {}: part 2: {}", input_path, err);
+                    std::process::exit(2);
+                }
+            }
+        }
         Err(err) => {
-            eprintln!("error: {}", err);
+            eprintln!("error: {}: can't load document: {}", input_path, err);
             std::process::exit(3);
         }
     }
@@ -126,6 +172,14 @@ mod test {
     fn part1_sample1() {
         match load_document("tests/day16/sample1") {
             Ok(doc) => assert_eq!(71, solve_part1(&doc)),
+            Err(err) => panic!("{}", err),
+        }
+    }
+
+    #[test]
+    fn part2_sample2() {
+        match load_document("tests/day16/sample2") {
+            Ok(doc) => assert_eq!(1, solve_part2(&doc).unwrap()),
             Err(err) => panic!("{}", err),
         }
     }
