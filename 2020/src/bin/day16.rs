@@ -119,13 +119,17 @@ fn collect_valid_tickets(doc: &Document) -> impl Iterator<Item = &Ticket> {
     })
 }
 
-/// Maps columns (by index) to sets of rules that reject any values in them.
+fn enumerate_values(ticket: &Ticket) -> impl Iterator<Item = (usize, &u64)> {
+    ticket.values.iter().enumerate()
+}
+
+/// Maps columns (by index) to sets of rules that rejected any values in them.
 fn exclude_rules_by_column(doc: &Document) -> Vec<HashSet<&Rule>> {
     let mut excluded_rules = vec![HashSet::new(); doc.ticket.values.len()];
-    for (column, &value) in
-        collect_valid_tickets(doc).flat_map(|ticket| ticket.values.iter().enumerate())
-    {
-        excluded_rules[column].extend(doc.rules.iter().filter(|rule| !rule.is_valid(value)));
+    let tickets = collect_valid_tickets(doc);
+    for (column, &value) in tickets.flat_map(enumerate_values) {
+        let rules = doc.rules.iter().filter(|rule| !rule.is_valid(value));
+        excluded_rules[column].extend(rules);
     }
     excluded_rules
 }
@@ -163,7 +167,7 @@ fn map_columns(doc: &Document) -> Result<HashMap<&Rule, usize>, NoSolution> {
                     None
                 }
             })
-            .ok_or_else(|| NoSolution)?;
+            .ok_or(NoSolution)?;
         candidates.remove(&column);
         columns.insert(rule, column);
         for rules in candidates.values_mut() {
