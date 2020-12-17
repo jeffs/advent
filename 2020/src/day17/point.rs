@@ -3,20 +3,20 @@
 pub struct Point(pub isize, pub isize, pub isize);
 
 impl Point {
-    pub fn neighborhood(self) -> Neighborhood {
-        Neighborhood::around(self)
+    pub fn neighbors(self) -> Neighbors {
+        Neighbors::around(self)
     }
 }
 
-pub struct Neighborhood {
+pub struct Neighbors {
     origin: Point,
     offset: (isize, isize, isize),
     done: bool,
 }
 
-impl Neighborhood {
-    fn around(origin: Point) -> Neighborhood {
-        Neighborhood {
+impl Neighbors {
+    fn around(origin: Point) -> Neighbors {
+        Neighbors {
             origin,
             offset: (-1, -1, -1),
             done: false,
@@ -24,7 +24,7 @@ impl Neighborhood {
     }
 }
 
-impl Iterator for Neighborhood {
+impl Iterator for Neighbors {
     type Item = Point;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -44,8 +44,7 @@ impl Iterator for Neighborhood {
             (0, -1, -1) => (0, -1, 0),
             (0, -1, 0) => (0, -1, 1),
             (0, -1, 1) => (0, 0, -1),
-            (0, 0, -1) => (0, 0, 0),
-            (0, 0, 0) => (0, 0, 1),
+            (0, 0, -1) => (0, 0, 1),    // skip self
             (0, 0, 1) => (0, 1, -1),
             (0, 1, -1) => (0, 1, 0),
             (0, 1, 0) => (0, 1, 1),

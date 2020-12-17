@@ -40,8 +40,8 @@ impl Grid {
 
     fn count_neighbors(&self, point: Point) -> usize {
         point
-            .neighborhood()
-            .filter(|&address| address != point && self[address].is_active())
+            .neighbors()
+            .filter(|&address| self[address].is_active())
             .count()
     }
 
@@ -51,7 +51,7 @@ impl Grid {
         //      if their "next" is active, add them to the next active set
         let mut active = HashSet::new();
         for p in self.active.iter() {
-            for q in p.neighborhood() {
+            for q in p.neighbors() {
                 let n = self.count_neighbors(q);
                 if self[q].next(n).is_active() {
                     active.insert(q);
