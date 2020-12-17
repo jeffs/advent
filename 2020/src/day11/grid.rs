@@ -31,8 +31,7 @@ impl Grid {
             None => todo!("support empty grids"),
         };
         if first_line.is_empty() {
-            let what = format!("{}: empty row", input.as_ref().display());
-            return Err(Box::new(ParseError::new(what)));
+            return Err(Box::new(ParseError::in_file(input, "empty row")));
         }
         let width = first_line.len();
         let mut height = 1;
@@ -40,8 +39,7 @@ impl Grid {
         for line in lines {
             let line = line?;
             if line.len() != width {
-                let what = format!("{}:{}: jagged rows", input.as_ref().display(), height);
-                return Err(Box::new(ParseError::new(what)));
+                return Err(Box::new(ParseError::at(input, height, "jagged rows")));
             }
             spots.extend(Spot::parse_line(&line)?.iter());
             height += 1;

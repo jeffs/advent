@@ -17,19 +17,14 @@ fn load_input(input_path: &str) -> Result<Input, Box<dyn Error>> {
         .parse()?;
     let buses: Vec<usize> = lines
         .next()
-        .ok_or_else(|| {
-            let what = format!("{}: expected two lines, got only one", input_path);
-            ParseError::new(what)
-        })?
+        .ok_or_else(|| ParseError::in_file(input_path, "expected two lines, got only one"))?
         .split_terminator(',')
         .filter_map(|s| s.parse().ok())
         .collect();
     if lines.next().is_some() {
-        let what = format!("{}: expected only two lines", input_path);
-        Err(Box::new(ParseError::new(what)))
+        Err(Box::new(ParseError::in_file(input_path, "expected only two lines")))
     } else if buses.is_empty() {
-        let what = format!("{}: can't find any buses", input_path);
-        Err(Box::new(ParseError::new(what)))
+        Err(Box::new(ParseError::in_file(input_path, "can't find any buses")))
     } else {
         Ok(Input { timestamp, buses })
     }

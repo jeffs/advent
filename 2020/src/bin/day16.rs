@@ -88,8 +88,8 @@ fn load_document(input_path: &str) -> Result<Document, Box<dyn Error>> {
     let ticket = if let Some(line) = lines.next() {
         line?.parse()?
     } else {
-        let what = "expected ticket, got EOF".to_owned();
-        return Err(Box::new(ParseError::new(what)));
+        let what = "expected ticket, got EOF";
+        return Err(Box::new(ParseError::in_file(input_path, what)));
     };
     let mut tickets = Vec::new();
     for line in lines.skip(2) {

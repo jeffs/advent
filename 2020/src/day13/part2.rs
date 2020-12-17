@@ -42,10 +42,10 @@ fn parse_line(line: &str) -> Vec<BusDelay> {
 
 fn load_input(input_path: &str) -> Result<Vec<BusDelay>, Box<dyn Error>> {
     let text = fs::read_to_string(input_path)?;
-    let line = text.split_terminator('\n').nth(1).ok_or_else(|| {
-        let what = format!("{}: expected two lines", input_path);
-        ParseError::new(what)
-    })?;
+    let line = text
+        .split_terminator('\n')
+        .nth(1)
+        .ok_or_else(|| ParseError::in_file(input_path, "expected two lines"))?;
     Ok(parse_line(line))
 }
 
