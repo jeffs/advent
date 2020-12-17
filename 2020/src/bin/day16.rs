@@ -216,17 +216,13 @@ mod test {
 
     #[test]
     fn part1_sample1() {
-        match load_document("tests/day16/sample1") {
-            Ok(doc) => assert_eq!(71, solve_part1(&doc)),
-            Err(err) => panic!("{}", err),
-        }
+        let doc = load_document("tests/day16/sample1").unwrap();
+        assert_eq!(71, solve_part1(&doc));
     }
 
     #[test]
     fn part2_sample2() {
-        match load_document("tests/day16/sample2") {
-            Ok(doc) => assert_eq!(1, solve_part2(&doc).unwrap()),
-            Err(err) => panic!("{}", err),
-        }
+        let doc = load_document("tests/day16/sample2").unwrap();
+        assert_eq!(1, solve_part2(&doc).unwrap());
     }
 }
