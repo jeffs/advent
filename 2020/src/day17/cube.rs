@@ -22,7 +22,6 @@ impl Cube {
 
     /// Returns the next state of a cube having this state currently, given n
     /// active neighboring cubes.
-    #[allow(dead_code)]
     pub fn next(&self, n: usize) -> Cube {
         match (self, n) {
             (Cube::Active, 2) => Cube::Active,
