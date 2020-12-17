@@ -6,10 +6,23 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new() -> Simulation {
-        Simulation {
-            grid: Grid::default(),
+    pub fn from_grid(grid: Grid) -> Simulation {
+        Simulation { grid }
+    }
+
+    pub fn advance(mut self, n: usize) -> Simulation {
+        for _ in 0..n {
+            self = self.next();
         }
+        self
+    }
+
+    pub fn next(self) -> Simulation {
+        todo!()
+    }
+
+    pub fn population(&self) -> usize {
+        self.grid.population()
     }
 }
 
@@ -19,11 +32,12 @@ mod test {
 
     #[test]
     fn sample1() {
-        let _grid: Grid = "
+        let grid = "
             .#.
             ..#
             ###
-        ".parse().unwrap();
+        ";
+        let sim = Simulation::from_grid(grid.parse().unwrap());
+        assert_eq!(112, sim.advance(6).population());
     }
 }
-

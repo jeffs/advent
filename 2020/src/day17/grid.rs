@@ -1,6 +1,7 @@
 use super::cube::Cube;
 use super::point::Point;
 use crate::error::ParseError;
+use std::fmt::{self, Display, Formatter};
 use std::ops::{Index, Range};
 use std::str::FromStr;
 
@@ -27,6 +28,12 @@ impl SpaceRange {
 pub struct Grid {
     cubes: Vec<Cube>,
     range: SpaceRange,
+}
+
+impl Grid {
+    pub fn population(&self) -> usize {
+        self.cubes.iter().filter(|cube| cube.is_active()).count()
+    }
 }
 
 impl Default for Grid {
@@ -81,5 +88,42 @@ impl FromStr for Grid {
                 z: 0..1,
             },
         })
+    }
+}
+
+impl Display for Grid {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let s = self.range.z.clone().map(|z| {
+                self.range.y.clone().map(|y| {
+                self.range.x.clone().map(|x| {
+                     self[Point { x, y, z }].to_string()
+                }).collect::<Vec<_>>().join("")
+                }).collect::<Vec<_>>().join("\n")
+                }).collect::<Vec<_>>().join("");
+        write!(f, "{}", s)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const SAMPLE1: &str = "
+        .#.
+        ..#
+        ###
+    ";
+
+    #[test]
+    fn read_after_write() {
+        let grid: Grid = SAMPLE1.parse().unwrap();
+        assert_eq!(".#.\n..#\n###", grid.to_string());
+    }
+
+    #[test]
+    fn outer_space() {
+        let grid: Grid = SAMPLE1.parse().unwrap();
+        assert_eq!(Cube::Inactive, grid[Point { x: -1, y: 0, z: 0 }]);
     }
 }
