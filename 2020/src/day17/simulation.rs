@@ -18,7 +18,12 @@ impl Simulation {
     }
 
     pub fn next(self) -> Simulation {
-        todo!()
+        // We have to look at cells one place past currently occupied space on
+        // each edge, since they might come alive.
+        let grid = Grid::default();
+        Simulation {
+            grid
+        }
     }
 
     pub fn population(&self) -> usize {

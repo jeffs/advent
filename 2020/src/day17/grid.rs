@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use super::cube::Cube;
 use super::point::Point;
 use crate::error::ParseError;
@@ -24,13 +25,36 @@ impl SpaceRange {
 }
 
 /// An infinite set of cubes arranged contiguously in 3-space.
-#[allow(dead_code)]
 pub struct Grid {
     cubes: Vec<Cube>,
     range: SpaceRange,
 }
 
 impl Grid {
+    pub fn x_start(&self) -> isize {
+        self.range.x.start
+    }
+
+    pub fn x_end(&self) -> isize {
+        self.range.x.end
+    }
+
+    pub fn y_start(&self) -> isize {
+        self.range.y.start
+    }
+
+    pub fn y_end(&self) -> isize {
+        self.range.y.end
+    }
+
+    pub fn z_start(&self) -> isize {
+        self.range.z.start
+    }
+
+    pub fn z_end(&self) -> isize {
+        self.range.z.end
+    }
+
     pub fn population(&self) -> usize {
         self.cubes.iter().filter(|cube| cube.is_active()).count()
     }
