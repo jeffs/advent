@@ -2,73 +2,67 @@
 use super::cube::Cube;
 use super::point::Point;
 use crate::error::ParseError;
+use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Index, Range};
+use std::ops::Index;
 use std::str::FromStr;
 
-/// The dimensions of a grid's internal storage block.
-struct SpaceRange {
-    x: Range<isize>,
-    y: Range<isize>,
-    z: Range<isize>,
-}
-
-impl SpaceRange {
-    fn linearize(&self, point: Point) -> usize {
-        let dx = self.x.len();
-        let dy = self.y.len();
-        let x = (point.x - self.x.start) as usize;
-        let y = (point.y - self.y.start) as usize;
-        let z = (point.z - self.z.start) as usize;
-        z * dx * dy + y * dx + x
-    }
+#[derive(Debug)]
+pub struct Boundary {
+    min: Point,
+    max: Point,
 }
 
 /// An infinite set of cubes arranged contiguously in 3-space.
+#[derive(Debug)]
 pub struct Grid {
-    cubes: Vec<Cube>,
-    range: SpaceRange,
+    active: HashSet<Point>,
 }
 
 impl Grid {
-    pub fn x_start(&self) -> isize {
-        self.range.x.start
+    /// Returns the lower and upper bounds of this grid, as points.  The min point's
+    /// components are all at least as low (i.e., nearest -∞) as the lowest
+    /// corresponding component of any active cube in this grid, and the max
+    /// point's are at least as high (nearest ∞).  Returns None if this grid
+    /// contains no active cubes.
+    fn bounds(&self) -> Option<Boundary> {
+        self.active.iter().map(|p| p.0).min().map(|xn| {
+            let yn = self.active.iter().map(|p| p.1).min().unwrap();
+            let zn = self.active.iter().map(|p| p.2).min().unwrap();
+            let xp = self.active.iter().map(|p| p.0).max().unwrap();
+            let yp = self.active.iter().map(|p| p.1).max().unwrap();
+            let zp = self.active.iter().map(|p| p.2).max().unwrap();
+            Boundary {
+                min: Point(xn, yn, zn),
+                max: Point(xp, yp, zp),
+            }
+        })
     }
 
-    pub fn x_end(&self) -> isize {
-        self.range.x.end
+    /// Returns a point whose components are all at least as low (i.e., as
+    /// close to -∞) as the lowest corresponding component of any active cube
+    /// in this grid.  Returns None if this grid contains no active cubes.
+    pub fn lower_bound(&self) -> Option<Point> {
+        match (
+            self.active.iter().map(|p| p.0).min(),
+            self.active.iter().map(|p| p.1).min(),
+            self.active.iter().map(|p| p.2).min(),
+        ) {
+            (Some(x), Some(y), Some(z)) => Some(Point(x, y, z)),
+            _ => None,
+        }
     }
 
-    pub fn y_start(&self) -> isize {
-        self.range.y.start
-    }
-
-    pub fn y_end(&self) -> isize {
-        self.range.y.end
-    }
-
-    pub fn z_start(&self) -> isize {
-        self.range.z.start
-    }
-
-    pub fn z_end(&self) -> isize {
-        self.range.z.end
-    }
-
+    /// Returns the number of active cubes in this grid.
     pub fn population(&self) -> usize {
-        self.cubes.iter().filter(|cube| cube.is_active()).count()
+        self.active.len()
     }
 }
 
 impl Default for Grid {
     fn default() -> Grid {
         Grid {
-            cubes: Vec::new(),
-            range: SpaceRange {
-                x: 0..0,
-                y: 0..0,
-                z: 0..0,
-            },
+            active: HashSet::new(),
         }
     }
 }
@@ -77,8 +71,11 @@ impl Index<Point> for Grid {
     type Output = Cube;
 
     fn index(&self, point: Point) -> &Self::Output {
-        let index = self.range.linearize(point);
-        self.cubes.get(index).unwrap_or(&Cube::Inactive)
+        if self.active.contains(&point) {
+            &Cube::Active
+        } else {
+            &Cube::Inactive
+        }
     }
 }
 
@@ -99,33 +96,32 @@ impl FromStr for Grid {
         if lines.iter().any(|s| s.len() != dx) {
             return Err(ParseError::new("jagged grid".to_owned()));
         }
-        let cubes: Result<Vec<Cube>, ParseError> = lines
-            .iter()
-            .flat_map(|line| line.chars())
-            .map(Cube::parse)
-            .collect();
-        Ok(Grid {
-            cubes: cubes?,
-            range: SpaceRange {
-                x: 0..dx as isize,
-                y: 0..lines.len() as isize,
-                z: 0..1,
-            },
-        })
+        let mut active: HashSet<Point> = HashSet::new();
+        for (y, line) in lines.iter().enumerate() {
+            for (x, cube) in line.chars().enumerate() {
+                if Cube::parse(cube)?.is_active() {
+                    active.insert(Point(x as isize, y as isize, 0));
+                }
+            }
+        }
+        Ok(Grid { active: active })
     }
 }
 
 impl Display for Grid {
     #[rustfmt::skip]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let s = self.range.z.clone().map(|z| {
-                self.range.y.clone().map(|y| {
-                self.range.x.clone().map(|x| {
-                     self[Point { x, y, z }].to_string()
+        match self.bounds() {
+            Some(Boundary { min, max }) => write!(f, "{}",
+                ((min.2)..=max.2).map(|z| {
+                ((min.1)..=max.1).map(|y| {
+                ((min.0)..=max.0).map(|x| {
+                    self[Point(x, y, z)].to_string()
                 }).collect::<Vec<_>>().join("")
                 }).collect::<Vec<_>>().join("\n")
-                }).collect::<Vec<_>>().join("");
-        write!(f, "{}", s)
+                }).collect::<Vec<_>>().join("")),
+            None => Ok(())
+        }
     }
 }
 
@@ -148,6 +144,6 @@ mod test {
     #[test]
     fn outer_space() {
         let grid: Grid = SAMPLE1.parse().unwrap();
-        assert_eq!(Cube::Inactive, grid[Point { x: -1, y: 0, z: 0 }]);
+        assert_eq!(Cube::Inactive, grid[Point(-1, 0, 0)]);
     }
 }
