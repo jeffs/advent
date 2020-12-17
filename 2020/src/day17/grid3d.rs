@@ -1,5 +1,5 @@
 use super::cube::Cube;
-use super::point::Point;
+use super::point3d::Point3d;
 use crate::error::ParseError;
 use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter};
@@ -8,17 +8,17 @@ use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct Boundary {
-    min: Point,
-    max: Point,
+    min: Point3d,
+    max: Point3d,
 }
 
 /// An infinite set of cubes arranged contiguously in 3-space.
 #[derive(Clone, Debug)]
-pub struct Grid {
-    active: HashSet<Point>,
+pub struct Grid3d {
+    active: HashSet<Point3d>,
 }
 
-impl Grid {
+impl Grid3d {
     /// Returns the lower and upper bounds of this grid, as points.  The min point's
     /// components are all at least as low (i.e., nearest -∞) as the lowest
     /// corresponding component of any active cube in this grid, and the max
@@ -32,20 +32,20 @@ impl Grid {
             let yp = self.active.iter().map(|p| p.1).max().unwrap();
             let zp = self.active.iter().map(|p| p.2).max().unwrap();
             Boundary {
-                min: Point(xn, yn, zn),
-                max: Point(xp, yp, zp),
+                min: Point3d(xn, yn, zn),
+                max: Point3d(xp, yp, zp),
             }
         })
     }
 
-    fn count_neighbors(&self, point: Point) -> usize {
+    fn count_neighbors(&self, point: Point3d) -> usize {
         point
             .neighbors()
             .filter(|&address| self[address].is_active())
             .count()
     }
 
-    pub fn next(self) -> Grid {
+    pub fn next(self) -> Grid3d {
         //  for each active cube
         //      consider the point and its neighbors
         //      if their "next" is active, add them to the next active set
@@ -58,7 +58,7 @@ impl Grid {
                 }
             }
         }
-        Grid { active }
+        Grid3d { active }
     }
 
     /// Returns the number of active cubes in this grid.
@@ -66,7 +66,7 @@ impl Grid {
         self.active.len()
     }
 
-    pub fn advance(mut self, time: usize) -> Grid {
+    pub fn advance(mut self, time: usize) -> Grid3d {
         for _ in 0..time {
             self = self.next();
         }
@@ -74,18 +74,18 @@ impl Grid {
     }
 }
 
-impl Default for Grid {
-    fn default() -> Grid {
-        Grid {
+impl Default for Grid3d {
+    fn default() -> Grid3d {
+        Grid3d {
             active: HashSet::new(),
         }
     }
 }
 
-impl Index<Point> for Grid {
+impl Index<Point3d> for Grid3d {
     type Output = Cube;
 
-    fn index(&self, point: Point) -> &Self::Output {
+    fn index(&self, point: Point3d) -> &Self::Output {
         if self.active.contains(&point) {
             &Cube::Active
         } else {
@@ -94,7 +94,7 @@ impl Index<Point> for Grid {
     }
 }
 
-impl FromStr for Grid {
+impl FromStr for Grid3d {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -114,15 +114,15 @@ impl FromStr for Grid {
         for (y, line) in lines.iter().enumerate() {
             for (x, cube) in line.chars().enumerate() {
                 if Cube::parse(cube)?.is_active() {
-                    active.insert(Point(x as isize, y as isize, 0));
+                    active.insert(Point3d(x as isize, y as isize, 0));
                 }
             }
         }
-        Ok(Grid { active })
+        Ok(Grid3d { active })
     }
 }
 
-impl Display for Grid {
+impl Display for Grid3d {
     #[rustfmt::skip]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.bounds() {
@@ -130,7 +130,7 @@ impl Display for Grid {
                 ((min.2)..=max.2).map(|z| {
                 ((min.1)..=max.1).map(|y| {
                 ((min.0)..=max.0).map(|x| {
-                    self[Point(x, y, z)].to_string()
+                    self[Point3d(x, y, z)].to_string()
                 }).collect::<Vec<_>>().join("")
                 }).collect::<Vec<_>>().join("\n")
                 }).collect::<Vec<_>>().join("\n\n")),
@@ -143,7 +143,7 @@ impl Display for Grid {
 mod test {
     use super::*;
 
-    fn sample1() -> Grid {
+    fn sample1() -> Grid3d {
         ".#.
          ..#
          ###"
@@ -154,8 +154,8 @@ mod test {
     #[test]
     fn count_neighbors() {
         let grid = sample1();
-        assert_eq!(1, grid.count_neighbors(Point(0, 0, -1)));
-        assert_eq!(2, grid.count_neighbors(Point(1, 0, -1)));
+        assert_eq!(1, grid.count_neighbors(Point3d(0, 0, -1)));
+        assert_eq!(2, grid.count_neighbors(Point3d(1, 0, -1)));
     }
 
     #[test]
@@ -165,7 +165,7 @@ mod test {
 
     #[test]
     fn outer_space() {
-        assert_eq!(Cube::Inactive, sample1()[Point(-1, 0, 0)]);
+        assert_eq!(Cube::Inactive, sample1()[Point3d(-1, 0, 0)]);
     }
 
     #[test]
