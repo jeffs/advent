@@ -23,6 +23,7 @@ impl Grid4d {
         //  for each active cube
         //      consider the point and its neighbors
         //      if their "next" is active, add them to the next active set
+        let mut seen = HashSet::new();
         let mut active = HashSet::new();
         for &p in self.active.iter() {
             let n = self.count_neighbors(p);
@@ -30,6 +31,10 @@ impl Grid4d {
                 active.insert(p);
             }
             for q in p.neighbors() {
+                if seen.contains(&q) {
+                    continue;
+                }
+                seen.insert(q);
                 let n = self.count_neighbors(q);
                 if self[q].next(n).is_active() {
                     active.insert(q);
