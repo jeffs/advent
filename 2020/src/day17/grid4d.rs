@@ -24,7 +24,11 @@ impl Grid4d {
         //      consider the point and its neighbors
         //      if their "next" is active, add them to the next active set
         let mut active = HashSet::new();
-        for p in self.active.iter() {
+        for &p in self.active.iter() {
+            let n = self.count_neighbors(p);
+            if self[p].next(n).is_active() {
+                active.insert(p);
+            }
             for q in p.neighbors() {
                 let n = self.count_neighbors(q);
                 if self[q].next(n).is_active() {
