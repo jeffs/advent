@@ -87,11 +87,11 @@ impl FromStr for Grid4d {
             .filter(|s| !s.is_empty())
             .collect();
         if lines.is_empty() {
-            return Err(ParseError::new("empty grid".to_owned()));
+            return Err(ParseError::new("empty grid"));
         }
         let dx = lines[0].len();
         if lines.iter().any(|s| s.len() != dx) {
-            return Err(ParseError::new("jagged grid".to_owned()));
+            return Err(ParseError::new("jagged grid"));
         }
         let mut active = HashSet::new();
         for (y, line) in lines.iter().enumerate() {

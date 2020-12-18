@@ -9,8 +9,8 @@ pub struct ParseError {
 }
 
 impl ParseError {
-    pub fn new(what: String) -> ParseError {
-        ParseError { what }
+    pub fn new<S: ToString>(what: S) -> ParseError {
+        ParseError { what: what.to_string() }
     }
 
     pub fn at<P, S>(path: P, line: usize, what: S) -> ParseError

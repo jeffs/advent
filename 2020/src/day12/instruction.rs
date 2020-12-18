@@ -13,7 +13,7 @@ pub enum Instruction {
 impl Instruction {
     pub fn parse(mut line: String) -> Result<Instruction, ParseError> {
         if line.is_empty() {
-            return Err(ParseError::new("empty instruction".to_owned()));
+            return Err(ParseError::new("empty instruction"));
         }
         let action = line.as_bytes()[0];
         let value: usize = line.split_off(1).parse()?;
