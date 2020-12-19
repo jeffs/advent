@@ -140,11 +140,14 @@ impl FromStr for Rule {
 
 pub fn solve(text: &str) -> Result<usize, ParseError> {
     let mut lines = text.lines();
-    let rules: RuleMap = lines
+    let mut rules = lines
         .by_ref()
         .take_while(|line| !line.is_empty())
         .map(|line| line.parse())
-        .collect::<Result<Vec<Rule>, _>>()?
+        .collect::<Result<Vec<Rule>, _>>()?;
+    rules.push("8: 42 | 42 8".parse()?);
+    rules.push("11: 42 31 | 42 11 31".parse()?);
+    let rules: RuleMap = rules
         .into_iter()
         .map(|rule| (rule.id, rule.pattern))
         .collect();
@@ -160,14 +163,8 @@ mod test {
     use std::fs;
 
     #[test]
-    fn solve_sample1() {
-        let text = fs::read_to_string("tests/day19/sample1").unwrap();
-        assert_eq!(2, solve(&text).unwrap());
-    }
-
-    #[test]
     fn solve_sample2() {
         let text = fs::read_to_string("tests/day19/sample2").unwrap();
-        assert_eq!(3, solve(&text).unwrap());
+        assert_eq!(12, solve(&text).unwrap());
     }
 }
