@@ -50,10 +50,9 @@ impl Partial {
     }
 }
 
-fn eval_imp(tokens: &mut Vec<Token>, depth: usize) -> Result<u64, ParseError> {
+fn eval_imp(tokens: &mut Vec<Token>) -> Result<u64, ParseError> {
     let mut op: Partial = Partial::None;
     while let Some(token) = tokens.pop() {
-        println!("{} {:?} {:?}", "  ".repeat(depth), op, token);
         op = match token {
             Token::Plus => Partial::Plus(match op {
                 Partial::Value(u) => u,
@@ -63,7 +62,7 @@ fn eval_imp(tokens: &mut Vec<Token>, depth: usize) -> Result<u64, ParseError> {
                 Partial::Value(u) => u,
                 _ => return Err(ParseError::new("unexpected *")),
             }),
-            Token::Open => op.apply(eval_imp(tokens, depth + 1)?)?,
+            Token::Open => op.apply(eval_imp(tokens)?)?,
             Token::Close => break,
             Token::Value(v) => op.apply(v)?,
         };
@@ -78,7 +77,7 @@ fn eval_imp(tokens: &mut Vec<Token>, depth: usize) -> Result<u64, ParseError> {
 
 fn eval(mut tokens: Vec<Token>) -> Result<u64, ParseError> {
     tokens.reverse();
-    eval_imp(&mut tokens, 0)
+    eval_imp(&mut tokens)
 }
 
 fn parse_tokens(expr: &str) -> Result<Vec<Token>, ParseError> {
@@ -101,20 +100,24 @@ fn parse_tokens(expr: &str) -> Result<Vec<Token>, ParseError> {
     Ok(tokens)
 }
 
-fn solve_part1(expr: &str) -> Result<u64, ParseError> {
-    Ok(eval(parse_tokens(expr)?)?)
+fn solve_part1(text: &str) -> Result<u64, ParseError> {
+    let mut sum = 0;
+    for line in text.lines() {
+        sum += eval(parse_tokens(line)?)?;
+    }
+    Ok(sum)
 }
 
 fn main() {
     let input = "tests/day18/input";
-    let expr = match fs::read_to_string(input) {
+    let text = match fs::read_to_string(input) {
         Ok(text) => text,
         Err(err) => {
             eprintln!("error: {}: {}", input, err);
             std::process::exit(3);
         }
     };
-    match solve_part1(&expr) {
+    match solve_part1(&text) {
         Ok(answer) => println!("{}", answer),
         Err(err) => {
             eprintln!("error: {}: {}", input, err);
