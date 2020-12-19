@@ -30,7 +30,6 @@ impl FromStr for Token {
 
 #[derive(Debug)]
 enum Partial {
-    None,
     Plus(u64),
     Times(u64),
     Value(u64),
@@ -39,7 +38,6 @@ enum Partial {
 impl Partial {
     fn apply(&self, v: u64) -> Result<Partial, ParseError> {
         Ok(Partial::Value(match self {
-            Partial::None => v,
             Partial::Plus(u) => u + v,
             Partial::Times(u) => u * v,
             Partial::Value(u) => {
@@ -51,27 +49,36 @@ impl Partial {
 }
 
 fn eval_imp(tokens: &mut Vec<Token>) -> Result<u64, ParseError> {
-    let mut op: Partial = Partial::None;
+    let mut op: Option<Partial> = None;
     while let Some(token) = tokens.pop() {
         op = match token {
-            Token::Plus => Partial::Plus(match op {
-                Partial::Value(u) => u,
+            Token::Plus => Some(Partial::Plus(match op {
+                Some(Partial::Value(u)) => u,
                 _ => return Err(ParseError::new("unexpected +")),
-            }),
-            Token::Times => Partial::Times(match op {
-                Partial::Value(u) => u,
+            })),
+            Token::Times => Some(Partial::Times(match op {
+                Some(Partial::Value(u)) => u,
                 _ => return Err(ParseError::new("unexpected *")),
-            }),
-            Token::Open => op.apply(eval_imp(tokens)?)?,
+            })),
+            Token::Open => {
+                let v = eval_imp(tokens)?;
+                match op {
+                    Some(part) => Some(part.apply(v)?),
+                    None => Some(Partial::Value(v)),
+                }
+            }
             Token::Close => break,
-            Token::Value(v) => op.apply(v)?,
+            Token::Value(v) => match op {
+                Some(part) => Some(part.apply(v)?),
+                None => Some(Partial::Value(v)),
+            },
         };
     }
     match op {
-        Partial::None => Err(ParseError::new("expected tokens")),
-        Partial::Plus(_) => Err(ParseError::new("unsatisified +")),
-        Partial::Times(_) => Err(ParseError::new("unsatisified *")),
-        Partial::Value(u) => Ok(u),
+        Some(Partial::Plus(_)) => Err(ParseError::new("unsatisified +")),
+        Some(Partial::Times(_)) => Err(ParseError::new("unsatisified *")),
+        Some(Partial::Value(u)) => Ok(u),
+        None => Err(ParseError::new("expected tokens")),
     }
 }
 
