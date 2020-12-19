@@ -1,3 +1,10 @@
+//! Each `count_bytes` function in this module tries to match its first
+//! parameter against a specified line, and returns a set of the number of
+//! bytes each match would consume.  For example, if a pattern can match a
+//! prefix of a given line in three different ways, consuming 2, 5, or 9 bytes
+//! respectively, then `pattern.count_bytes(line, rules)` returns a set of the
+//! values 2, 5, and 9.
+
 use crate::error::ParseError;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -12,9 +19,6 @@ enum Atom {
 }
 
 impl Atom {
-    /// Returns the number of leading bytes in the specified line corresponding
-    /// to each possible match by this atom, or an empty set if there is no way
-    /// for this atom to match a prefix of the line.
     fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
         match self {
             Atom::RuleId(id) => {
@@ -41,9 +45,6 @@ impl FromStr for Atom {
     }
 }
 
-/// Returns the number of leading bytes in the specified line corresponding to
-/// each possible match by the specified sequence of atoms, or an empty set if
-/// there is no way for this sequence to match a prefix of the line.
 fn count_bytes(atoms: &[Atom], line: &str, rules: &RuleMap) -> HashSet<usize> {
     match atoms.len() {
         0 => HashSet::new(),
@@ -64,9 +65,6 @@ fn count_bytes(atoms: &[Atom], line: &str, rules: &RuleMap) -> HashSet<usize> {
 struct Branch(Vec<Atom>);
 
 impl Branch {
-    /// Returns the number of leading bytes in the specified line corresponding
-    /// to each possible match by this branch, or an empty set if there is no
-    /// way for this branch to match a prefix of the line.
     fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
         count_bytes(&self.0, line, rules)
     }
