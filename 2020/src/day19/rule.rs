@@ -1,4 +1,5 @@
 use crate::error::ParseError;
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
@@ -84,15 +85,26 @@ impl FromStr for Branch {
 }
 
 #[derive(Debug)]
-pub struct Pattern(Vec<Branch>); // Branches are alternative sequences of atoms.
+pub struct Pattern {
+    memo: RefCell<HashMap<String, HashSet<usize>>>,
+    branches: Vec<Branch>, // alternative sequences of atoms
+}
 
 impl Pattern {
     fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
-        let mut counts = HashSet::new();
-        for branch in self.0.iter() {
-            counts.extend(branch.count_bytes(line, &rules));
+        if self.memo.borrow().contains_key(line) {
+            self.memo.borrow()[line].clone()
+        } else {
+            let counts = {
+                let mut counts = HashSet::new();
+                for branch in self.branches.iter() {
+                    counts.extend(branch.count_bytes(line, &rules));
+                }
+                counts
+            };
+            self.memo.borrow_mut().insert(line.to_owned(), counts.clone());
+            counts
         }
-        counts
     }
 
     pub fn matches(&self, line: &str, rules: &RuleMap) -> bool {
@@ -113,7 +125,10 @@ impl FromStr for Pattern {
             .split(" | ")
             .map(|branch| branch.parse())
             .collect::<Result<_, _>>()?;
-        Ok(Pattern(branches))
+        Ok(Pattern {
+            memo: RefCell::new(HashMap::new()),
+            branches,
+        })
     }
 }
 
