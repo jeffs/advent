@@ -1,5 +1,3 @@
-#![allow(dead_code, unused_mut, unused_variables)]
-
 use crate::error::ParseError;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
