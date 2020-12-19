@@ -18,7 +18,6 @@ fn product(parts: &[Partial]) -> Result<u64, ParseError> {
     let values: Vec<u64> = parts
         .iter()
         .filter_map(|term| match term {
-            Partial::Times(u) => Some(*u),
             Partial::Value(u) => Some(*u),
             _ => None,
         })
@@ -41,13 +40,10 @@ fn eval_imp(tokens: &mut Vec<Token>) -> Result<u64, ParseError> {
                     return Err(ParseError::new("unexpected +"));
                 }
             }
-            Token::Times => {
-                if let Some(Partial::Value(u)) = parts.pop() {
-                    parts.push(Partial::Times(u));
-                } else {
-                    return Err(ParseError::new("unexpected *"));
-                }
-            }
+            Token::Times => match parts.last() {
+                Some(Partial::Value(_)) => (),
+                _ => return Err(ParseError::new("unexpected *")),
+            },
             Token::Open => push_value(&mut parts, eval_imp(tokens)?),
             Token::Close => break,
             Token::Value(v) => push_value(&mut parts, v),
