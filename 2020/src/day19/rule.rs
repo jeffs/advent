@@ -100,17 +100,19 @@ impl Pattern {
                 }
                 counts
             };
-            self.memo.borrow_mut().insert(line.to_owned(), counts.clone());
+            self.memo
+                .borrow_mut()
+                .insert(line.to_owned(), counts.clone());
             counts
         }
     }
 
     pub fn matches(&self, line: &str, rules: &RuleMap) -> bool {
-        0 != self
-            .count_bytes(line, rules)
+        self.count_bytes(line, rules)
             .into_iter()
             .filter(|&count| count == line.len())
-            .count()
+            .next()
+            .is_some()
     }
 }
 
