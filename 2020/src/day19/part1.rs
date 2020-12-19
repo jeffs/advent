@@ -1,12 +1,33 @@
 #![allow(dead_code, unused_mut, unused_variables)]
 
 use crate::error::ParseError;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
+type RuleMap = HashMap<usize, Pattern>;
+
+#[derive(Debug)]
 enum Atom {
     RuleId(usize),
     Literal(String),
+}
+
+impl Atom {
+    /// Returns the number of leading bytes in the specified line corresponding
+    /// to each possible match by this atom, or an empty set if there is no way
+    /// for this atom to match a prefix of the line.
+    fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
+        match self {
+            Atom::RuleId(id) => {
+                let pattern = rules.get(id).expect(&format!("can't find rule id {}", id));
+                pattern.count_bytes(line, rules)
+            }
+            Atom::Literal(prefix) if line.starts_with(prefix) => {
+                [prefix.len()].iter().cloned().collect()
+            }
+            _ => HashSet::new(),
+        }
+    }
 }
 
 impl FromStr for Atom {
@@ -21,7 +42,36 @@ impl FromStr for Atom {
     }
 }
 
+/// Returns the number of leading bytes in the specified line corresponding to
+/// each possible match by the specified sequence of atoms, or an empty set if
+/// there is no way for this sequence to match a prefix of the line.
+fn count_bytes(atoms: &[Atom], line: &str, rules: &RuleMap) -> HashSet<usize> {
+    match atoms.len() {
+        0 => HashSet::new(),
+        1 => atoms[0].count_bytes(line, rules),
+        _ => {
+            let mut counts = HashSet::new();
+            for head_count in atoms[0].count_bytes(line, rules) {
+                for tail_count in count_bytes(&atoms[1..], &line[head_count..], rules) {
+                    counts.insert(head_count + tail_count);
+                }
+            }
+            counts
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Branch(Vec<Atom>);
+
+impl Branch {
+    /// Returns the number of leading bytes in the specified line corresponding
+    /// to each possible match by this branch, or an empty set if there is no
+    /// way for this branch to match a prefix of the line.
+    fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
+        count_bytes(&self.0, line, rules)
+    }
+}
 
 impl FromStr for Branch {
     type Err = ParseError;
@@ -35,7 +85,26 @@ impl FromStr for Branch {
     }
 }
 
-struct Pattern(Vec<Branch>); // branches are alternative sequences of atoms
+#[derive(Debug)]
+struct Pattern(Vec<Branch>); // Branches are alternative sequences of atoms.
+
+impl Pattern {
+    fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
+        let mut counts = HashSet::new();
+        for branch in self.0.iter() {
+            counts.extend(branch.count_bytes(line, &rules));
+        }
+        counts
+    }
+
+    fn matches(&self, line: &str, rules: &RuleMap) -> bool {
+        0 != self
+            .count_bytes(line, rules)
+            .into_iter()
+            .filter(|&count| count == line.len())
+            .count()
+    }
+}
 
 impl FromStr for Pattern {
     type Err = ParseError;
@@ -73,7 +142,7 @@ impl FromStr for Rule {
 
 pub fn solve(text: &str) -> Result<usize, ParseError> {
     let mut lines = text.lines();
-    let rules: HashMap<usize, Pattern> = lines
+    let rules: RuleMap = lines
         .by_ref()
         .take_while(|line| !line.is_empty())
         .map(|line| line.parse())
@@ -81,10 +150,10 @@ pub fn solve(text: &str) -> Result<usize, ParseError> {
         .into_iter()
         .map(|rule| (rule.id, rule.pattern))
         .collect();
-    for line in lines {
-        todo!()
-    }
-    todo!()
+    let pattern = rules
+        .get(&0)
+        .ok_or_else(|| ParseError::new("can't find rule 0"))?;
+    Ok(lines.filter(|line| pattern.matches(line, &rules)).count())
 }
 
 #[cfg(test)]
