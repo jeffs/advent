@@ -21,7 +21,7 @@ impl From<Value> for usize {
 impl FromStr for Value {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> Result<Value, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let value: usize = s.parse()?;
         if MAX < value {
             let what = format!("{}: value is too large", value);
