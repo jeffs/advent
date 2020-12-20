@@ -10,6 +10,16 @@ pub struct Projection {
     pub left: String,
 }
 
+impl Projection {
+    pub fn collect(tiles: &[Tile]) -> Vec<Projection> {
+        let mut projections = Vec::new();
+        for tile in tiles {
+            projections.extend(tile.projections().iter().cloned());
+        }
+        projections
+    }
+}
+
 fn rev(s: &str) -> String {
     s.chars().rev().collect()
 }

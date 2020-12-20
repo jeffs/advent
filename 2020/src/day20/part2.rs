@@ -87,6 +87,6 @@ mod test {
     fn solve_sample1() {
         let input_path = "tests/day20/sample1";
         let text = fs::read_to_string(input_path).unwrap();
-        assert_eq!(20899048083289, solve(&text).unwrap());
+        assert_eq!(273, solve(&text).unwrap());
     }
 }
