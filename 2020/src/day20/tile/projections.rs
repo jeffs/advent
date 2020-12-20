@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use super::{Projection, Tile};
 
 fn rev(s: &str) -> String {

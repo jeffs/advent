@@ -1,5 +1,3 @@
-#![allow(dead_code, unused_imports, unused_variables)]
-use super::abutment::Abutment;
 use super::projection::Projection;
 use super::tile::Tile;
 use crate::error::NoSolution;
