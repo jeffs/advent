@@ -17,6 +17,16 @@ pub struct Tile {
     left: String,
 }
 
+impl Tile {
+    pub fn parse_all(text: &str) -> Result<Vec<Tile>, ParseError> {
+        let mut tiles = Vec::new();
+        for paragraph in text.trim().split("\n\n") {
+            tiles.push(paragraph.parse()?);
+        }
+        Ok(tiles)
+    }
+}
+
 impl FromStr for Tile {
     type Err = ParseError;
 
