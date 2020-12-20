@@ -1,11 +1,68 @@
+#![allow(dead_code)]
 use crate::error::ParseError;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+
+type TileId = u64;
+type TileMap = HashMap<TileId, Tile>;
+
+#[derive(Eq, Hash, PartialEq)]
+enum Abutment {
+    Top,
+    Right,
+    Bottom,
+    Left,
+}
 
 struct Tile {
     top: String,
     right: String,
     bottom: String,
     left: String,
+}
+
+impl Tile {
+    fn abuts(&self, other: &Tile) -> Option<Abutment> {
+        if self.top == other.bottom
+            || self.top == other.left
+            || self.top.chars().rev().eq(other.top.chars())
+            || self.top.chars().rev().eq(other.right.chars())
+        {
+            return Some(Abutment::Top);
+        }
+        if self.right == other.left
+            || self.right == self.bottom
+            || self.right.chars().rev().eq(other.right.chars())
+            || self.right.chars().rev().eq(other.top.chars())
+        {
+            return Some(Abutment::Right);
+        }
+        if self.bottom == other.top
+            || self.bottom == other.right
+            || self.bottom.chars().rev().eq(other.bottom.chars())
+            || self.bottom.chars().rev().eq(other.left.chars())
+        {
+            return Some(Abutment::Bottom);
+        }
+        if self.left == other.right
+            || self.left == self.top
+            || self.left.chars().rev().eq(other.left.chars())
+            || self.left.chars().rev().eq(other.bottom.chars())
+        {
+            return Some(Abutment::Left);
+        }
+        None
+    }
+
+    fn is_corner<'a, I>(&self, others: I) -> bool
+    where
+        I: Iterator<Item = &'a Tile> + Clone,
+    {
+        use Abutment::*;
+        let abutments: HashSet<_> = others.flat_map(|t| self.abuts(&t)).collect();
+        abutments.len() == 2
+            && (abutments.contains(&Top) || abutments.contains(&Bottom))
+            && (abutments.contains(&Left) || abutments.contains(&Right))
+    }
 }
 
 fn collect_column(lines: &[&str], n: usize) -> String {
@@ -22,7 +79,7 @@ pub fn solve(text: &str) -> Result<u64, ParseError> {
         {
             return Err(ParseError::new("bad tile"));
         }
-        let id: u64 = lines[0]
+        let id: TileId = lines[0]
             .trim_end_matches(':')
             .split_whitespace()
             .last()
@@ -36,7 +93,13 @@ pub fn solve(text: &str) -> Result<u64, ParseError> {
         };
         tiles.insert(id, edges);
     }
-    todo!()
+    let corners: Vec<_> = tiles
+        .iter()
+        .filter(|(_, tile)| tile.is_corner(tiles.values()))
+        .map(|(id, _)| id)
+        .collect();
+    println!("{:?}", corners);
+    Ok(corners.iter().cloned().product())
 }
 
 #[cfg(test)]

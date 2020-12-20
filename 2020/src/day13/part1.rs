@@ -22,9 +22,15 @@ fn load_input(input_path: &str) -> Result<Input, Box<dyn Error>> {
         .filter_map(|s| s.parse().ok())
         .collect();
     if lines.next().is_some() {
-        Err(Box::new(ParseError::in_file(input_path, "expected only two lines")))
+        Err(Box::new(ParseError::in_file(
+            input_path,
+            "expected only two lines",
+        )))
     } else if buses.is_empty() {
-        Err(Box::new(ParseError::in_file(input_path, "can't find any buses")))
+        Err(Box::new(ParseError::in_file(
+            input_path,
+            "can't find any buses",
+        )))
     } else {
         Ok(Input { timestamp, buses })
     }
