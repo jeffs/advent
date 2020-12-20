@@ -1,105 +1,65 @@
 #![allow(dead_code)]
-use crate::error::ParseError;
-use std::collections::{HashMap, HashSet};
+use super::projection::Projection;
+use super::tile::Tile;
+use crate::error::NoSolution;
+use std::error::Error;
 
-type TileId = u64;
-type TileMap = HashMap<TileId, Tile>;
-
-#[derive(Eq, Hash, PartialEq)]
-enum Abutment {
-    Top,
-    Right,
-    Bottom,
-    Left,
-}
-
-struct Tile {
-    top: String,
-    right: String,
-    bottom: String,
-    left: String,
-}
-
-impl Tile {
-    fn abuts(&self, other: &Tile) -> Option<Abutment> {
-        if self.top == other.bottom
-            || self.top == other.left
-            || self.top.chars().rev().eq(other.top.chars())
-            || self.top.chars().rev().eq(other.right.chars())
-        {
-            return Some(Abutment::Top);
+//  given mutable references to sets of projected and raw tiles:
+//      if the set of raw tiles is empty
+//          find the set of corners from the projections
+//          if we found exactly four corners
+//              return Some(corner IDs)
+//          else
+//              return None
+//      else
+//          remove a tile from the raw set
+//          for each projection of the tile
+//              add the projection to the projected set
+//              let corner_ids = recurse(projections, tiles);
+//              if corner_ids.is_some()
+//                  return corner_ids
+//              remove the projection from the projected set
+//          return the tile to the raw set
+//          return None
+fn find_corners_imp(projections: &mut Vec<Projection>, tiles: & [Tile]) -> Option<[u64; 4]> {
+    if tiles.is_empty() {
+        let corner_ids: Vec<_> = projections
+            .iter()
+            .filter(|projection| projection.is_corner(projections))
+            .map(|projection| projection.tile_id)
+            .collect();
+        match corner_ids.as_slice() {
+            &[a, b, c, d] => Some([a, b, c, d]),
+            _ => None,
         }
-        if self.right == other.left
-            || self.right == self.bottom
-            || self.right.chars().rev().eq(other.right.chars())
-            || self.right.chars().rev().eq(other.top.chars())
-        {
-            return Some(Abutment::Right);
-        }
-        if self.bottom == other.top
-            || self.bottom == other.right
-            || self.bottom.chars().rev().eq(other.bottom.chars())
-            || self.bottom.chars().rev().eq(other.left.chars())
-        {
-            return Some(Abutment::Bottom);
-        }
-        if self.left == other.right
-            || self.left == self.top
-            || self.left.chars().rev().eq(other.left.chars())
-            || self.left.chars().rev().eq(other.bottom.chars())
-        {
-            return Some(Abutment::Left);
+    } else {
+        let tile = &tiles[0];
+        for projection in &tile.projections() {
+            projections.push(projection.clone());
+            let corner_ids = find_corners_imp(projections, &tiles[1..]);
+            if corner_ids.is_some() {
+                return corner_ids;
+            }
+            projections.pop();
         }
         None
     }
-
-    fn is_corner<'a, I>(&self, others: I) -> bool
-    where
-        I: Iterator<Item = &'a Tile> + Clone,
-    {
-        use Abutment::*;
-        let abutments: HashSet<_> = others.flat_map(|t| self.abuts(&t)).collect();
-        abutments.len() == 2
-            && (abutments.contains(&Top) || abutments.contains(&Bottom))
-            && (abutments.contains(&Left) || abutments.contains(&Right))
-    }
 }
 
-fn collect_column(lines: &[&str], n: usize) -> String {
-    lines.iter().flat_map(|line| line.chars().nth(n)).collect()
+/// Returns corner tile IDs, or None if four corners can't be found.
+fn find_corners(tiles: &[Tile]) -> Option<[u64; 4]> {
+    find_corners_imp(&mut Vec::new(), tiles)
 }
 
-pub fn solve(text: &str) -> Result<u64, ParseError> {
-    let mut tiles = HashMap::new();
-    for tile in text.split("\n\n") {
-        let lines: Vec<&str> = tile.lines().collect();
-        if lines.len() < 3
-            || lines[1].len() < 2
-            || lines[2..].iter().any(|line| line.len() != lines[1].len())
-        {
-            return Err(ParseError::new("bad tile"));
-        }
-        let id: TileId = lines[0]
-            .trim_end_matches(':')
-            .split_whitespace()
-            .last()
-            .and_then(|id| id.parse().ok())
-            .ok_or_else(|| ParseError::new("expected tile ID"))?;
-        let edges = Tile {
-            top: lines[1].to_owned(),
-            right: collect_column(&lines[1..], lines[0].len() - 1),
-            bottom: lines[lines.len() - 1].to_owned(),
-            left: collect_column(&lines[1..], 0),
-        };
-        tiles.insert(id, edges);
+pub fn solve(text: &str) -> Result<u64, Box<dyn Error>> {
+    let mut tiles = Vec::new();
+    for paragraph in text.split("\n\n") {
+        tiles.push(paragraph.parse()?);
     }
-    let corners: Vec<_> = tiles
-        .iter()
-        .filter(|(_, tile)| tile.is_corner(tiles.values()))
-        .map(|(id, _)| id)
-        .collect();
-    println!("{:?}", corners);
-    Ok(corners.iter().cloned().product())
+    match find_corners(&tiles) {
+        Some(corner_ids) => Ok(corner_ids.iter().product()),
+        None => Err(Box::new(NoSolution)),
+    }
 }
 
 #[cfg(test)]
