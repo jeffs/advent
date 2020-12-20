@@ -1,8 +1,9 @@
-mod projections;
+mod projection;
 
-use super::projection::Projection;
 use crate::error::ParseError;
 use std::str::FromStr;
+
+pub use projection::Projection;
 
 fn collect_column(lines: &[&str], n: usize) -> String {
     lines.iter().flat_map(|line| line.chars().nth(n)).collect()

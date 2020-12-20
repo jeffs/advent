@@ -1,5 +1,4 @@
-use super::projection::Projection;
-use super::tile::Tile;
+use super::tile::{Tile, Projection};
 use crate::error::NoSolution;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
