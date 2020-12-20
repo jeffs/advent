@@ -1,28 +1,29 @@
 #![allow(dead_code)]
+use super::abutment::Abutment;
 use super::projection::Projection;
 use super::tile::Tile;
 use crate::error::NoSolution;
+use std::collections::HashSet;
 use std::error::Error;
 
-//  given mutable references to sets of projected and raw tiles:
-//      if the set of raw tiles is empty
-//          find the set of corners from the projections
-//          if we found exactly four corners
-//              return Some(corner IDs)
-//          else
-//              return None
-//      else
-//          remove a tile from the raw set
-//          for each projection of the tile
-//              add the projection to the projected set
-//              let corner_ids = recurse(projections, tiles);
-//              if corner_ids.is_some()
-//                  return corner_ids
-//              remove the projection from the projected set
-//          return the tile to the raw set
-//          return None
-fn find_corners_imp(projections: &mut Vec<Projection>, tiles: & [Tile]) -> Option<[u64; 4]> {
+fn is_valid(abutments: &[Abutment]) -> bool {
+    match abutments.len() {
+        n @ (2..=4) => {
+            let unique: HashSet<_> = abutments.iter().collect();
+            unique.len() == n
+        }
+        _ => false,
+    }
+}
+
+fn find_corners_imp(projections: &mut Vec<Projection>, tiles: &[Tile]) -> Option<[u64; 4]> {
     if tiles.is_empty() {
+        for p in projections.iter() {
+            let abutments: Vec<_> = projections.iter().flat_map(|q| p.abuts(q)).collect();
+            if !is_valid(&abutments) {
+                return None;
+            }
+        }
         let corner_ids: Vec<_> = projections
             .iter()
             .filter(|projection| projection.is_corner(projections))
@@ -56,10 +57,9 @@ pub fn solve(text: &str) -> Result<u64, Box<dyn Error>> {
     for paragraph in text.split("\n\n") {
         tiles.push(paragraph.parse()?);
     }
-    match find_corners(&tiles) {
-        Some(corner_ids) => Ok(corner_ids.iter().product()),
-        None => Err(Box::new(NoSolution)),
-    }
+    let corner_ids = find_corners(&tiles).ok_or_else(|| Box::new(NoSolution))?;
+    println!("{:?}", corner_ids);
+    Ok(corner_ids.iter().product())
 }
 
 #[cfg(test)]

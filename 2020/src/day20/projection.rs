@@ -4,7 +4,7 @@ use super::abutment::Abutment;
 use std::collections::HashSet;
 
 /// Rotation and/or reflection of a Tile.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Projection {
     pub tile_id: u64,
     pub top: String,
@@ -14,7 +14,7 @@ pub struct Projection {
 }
 
 impl Projection {
-    fn abuts(&self, other: &Projection) -> Option<Abutment> {
+    pub fn abuts(&self, other: &Projection) -> Option<Abutment> {
         if self.top == other.bottom {
             Some(Abutment::Top)
         } else if self.right == other.left {
@@ -28,9 +28,17 @@ impl Projection {
         }
     }
 
-    pub fn is_corner(&self, others: &[Projection]) -> bool {
+    pub fn is_corner(&self, projections: &[Projection]) -> bool {
         use Abutment::*;
-        let abutments: HashSet<_> = others.iter().flat_map(|t| self.abuts(t)).collect();
+        let others = projections
+            .iter()
+            .filter(|other| self.tile_id != other.tile_id);
+        let abutted: Vec<_> = others.clone()
+            .filter(|other| self.abuts(other).is_some())
+            .map(|other| other.tile_id)
+            .collect();
+        println!("{} {:?}", self.tile_id, abutted);
+        let abutments: HashSet<_> = others.flat_map(|t| self.abuts(t)).collect();
         abutments.len() == 2
             && (abutments.contains(&Top) || abutments.contains(&Bottom))
             && (abutments.contains(&Left) || abutments.contains(&Right))
