@@ -54,7 +54,7 @@ fn find_corners(tiles: &[Tile]) -> Option<[u64; 4]> {
 
 pub fn solve(text: &str) -> Result<u64, Box<dyn Error>> {
     let mut tiles = Vec::new();
-    for paragraph in text.split("\n\n") {
+    for paragraph in text.trim().split("\n\n") {
         tiles.push(paragraph.parse()?);
     }
     let corner_ids = find_corners(&tiles).ok_or_else(|| Box::new(NoSolution))?;
