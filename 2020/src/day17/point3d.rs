@@ -44,7 +44,7 @@ impl Iterator for Neighbors {
             (0, -1, -1) => (0, -1, 0),
             (0, -1, 0) => (0, -1, 1),
             (0, -1, 1) => (0, 0, -1),
-            (0, 0, -1) => (0, 0, 1),    // skip self
+            (0, 0, -1) => (0, 0, 1), // skip self
             (0, 0, 1) => (0, 1, -1),
             (0, 1, -1) => (0, 1, 0),
             (0, 1, 0) => (0, 1, 1),
@@ -60,7 +60,7 @@ impl Iterator for Neighbors {
             (1, 1, 1) => {
                 self.done = true;
                 (1, 1, 1)
-            },
+            }
             _ => unreachable!(),
         };
         let neighbor = Point3d(

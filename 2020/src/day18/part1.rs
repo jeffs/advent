@@ -1,6 +1,6 @@
-use crate::error::ParseError;
 use super::partial::Partial;
 use super::token::Token;
+use crate::error::ParseError;
 
 fn eval_imp(tokens: &mut Vec<Token>) -> Result<u64, ParseError> {
     let mut op: Option<Partial> = None;
