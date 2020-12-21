@@ -1,8 +1,79 @@
 use super::neighbor::NeighborSet;
+use super::rotate::clockwise;
 use super::tile::{Projection, Tile};
 use crate::error::NoSolution;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+
+const MONSTER_NOISE: usize = 15; // number of '#' per monster
+
+fn is_monster_at(image: &[Vec<u8>], i: usize, j: usize) -> bool {
+    //                    #
+    //  #    ##    ##    ###
+    //   #  #  #  #  #  #
+    [
+        (0, 18),
+        (1, 0),
+        (1, 5),
+        (1, 6),
+        (1, 11),
+        (1, 12),
+        (1, 17),
+        (1, 18),
+        (1, 19),
+        (2, 1),
+        (2, 4),
+        (2, 7),
+        (2, 10),
+        (2, 13),
+        (2, 16),
+    ]
+    .iter()
+    .all(|(di, dj)| {
+        let (y, x) = (i + di, j + dj);
+        y < image.len() && x < image[0].len() && image[y][x] == b'#'
+    })
+}
+
+fn count_monsters(image: &[Vec<u8>]) -> usize {
+    let mut count = 0;
+    for i in 0..image.len() {
+        for j in 0..image[0].len() {
+            if is_monster_at(&image, i, j) {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
+fn count_monsters_transformed(image: &[Vec<u8>]) -> Result<usize, NoSolution> {
+    let count = count_monsters(image);
+    if count != 0 {
+        return Ok(count);
+    }
+    let mut image = image.to_vec();
+    for _ in 1..4 {
+        image = clockwise(&image);
+        let count = count_monsters(&image);
+        if count != 0 {
+            return Ok(count);
+        }
+    }
+    image.reverse();
+    let count = count_monsters(&image);
+    if count != 0 {
+        return Ok(count);
+    }
+    for _ in 1..4 {
+        image = clockwise(&image);
+        let count = count_monsters(&image);
+        if count != 0 {
+            return Ok(count);
+        }
+    }
+    Err(NoSolution)
+}
 
 struct Solver<'a> {
     neighbors: HashMap<&'a Projection, NeighborSet<'a>>,
@@ -71,25 +142,22 @@ impl<'a> Solver<'a> {
                 }
             }
         }
-        let lines: Vec<String> = rendered
-            .iter()
-            .map(|v| String::from_utf8(v.clone()).unwrap())
-            .collect();
-        let text = lines.join("\n");
-        println!("{}", text);
         rendered
     }
 
+    #[allow(clippy::naive_bytecount)]
     fn solve(mut self) -> Result<usize, NoSolution> {
-        // TODO:
-        // * Flip and rotate until you see two sea monsters.
-        // * Replace the sea monsters with O characters.
-        Ok(self
-            .recur()
-            .ok_or(NoSolution)?
-            .iter()
-            .flat_map(|row| row.iter().filter(|&&b| b == b'#'))
-            .count())
+        let image = self.recur().ok_or(NoSolution)?;
+        let count = count_monsters_transformed(&image)?;
+        if count == 0 {
+            Err(NoSolution)
+        } else {
+            let noise: usize = image
+                .iter()
+                .map(|row| row.iter().filter(|&&b| b == b'#').count())
+                .sum();
+            Ok(noise - count * MONSTER_NOISE)
+        }
     }
 }
 
@@ -109,5 +177,40 @@ mod test {
         let input_path = "tests/day20/sample1";
         let text = fs::read_to_string(input_path).unwrap();
         assert_eq!(273, solve(&text).unwrap());
+    }
+
+    #[test]
+    fn search() {
+        let image: Vec<Vec<u8>> = "
+            .####...#####..#...###..
+            #####..#..#.#.####..#.#.
+            .#.#...#.###...#.##.##..
+            #.#.##.###.#.##.##.#####
+            ..##.###.####..#.####.##
+            ...#.#..##.##...#..#..##
+            #.##.#..#.#..#..##.#.#..
+            .###.##.....#...###.#...
+            #.####.#.#....##.#..#.#.
+            ##...#..#....#..#...####
+            ..#.##...###..#.#####..#
+            ....#.##.#.#####....#...
+            ..##.##.###.....#.##..#.
+            #...#...###..####....##.
+            .#.##...#.##.#.#.###...#
+            #.###.#..####...##..#...
+            #.###...#.##...#.######.
+            .###.###.#######..#####.
+            ..##.#..#..#.#######.###
+            #.#..##.########..#..##.
+            #.#####..#.#...##..#....
+            #....##..#.#########..##
+            #...#.....#..##...###.##
+            #..###....##.#...##.##.#"
+            .trim()
+            .lines()
+            .map(|line| line.trim().bytes().collect())
+            .collect();
+        assert!(is_monster_at(&image, 2, 2));
+        assert_eq!(2, count_monsters(&image));
     }
 }

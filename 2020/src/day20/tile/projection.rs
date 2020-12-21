@@ -82,30 +82,30 @@ impl Tile {
             right: right.clone(),
             bottom: bottom.clone(),
             left: left.clone(),
-            interior: interior.clone(),
+            interior,
         };
         let flip_turn1 = Projection {
             tile_id: self.id,
             top: rev_left.clone(),
-            right: top.clone(),
+            right: top,
             bottom: rev_right.clone(),
-            left: bottom.clone(),
+            left: bottom,
             interior: rotate::clockwise(&flip_turn0.interior),
         };
         let flip_turn2 = Projection {
             tile_id: self.id,
             top: rev_bottom.clone(),
-            right: rev_left.clone(),
+            right: rev_left,
             bottom: rev_top.clone(),
-            left: rev_right.clone(),
+            left: rev_right,
             interior: rotate::clockwise(&flip_turn1.interior),
         };
         let flip_turn3 = Projection {
             tile_id: self.id,
-            top: right.clone(),
-            right: rev_bottom.clone(),
-            bottom: left.clone(),
-            left: rev_top.clone(),
+            top: right,
+            right: rev_bottom,
+            bottom: left,
+            left: rev_top,
             interior: rotate::clockwise(&flip_turn2.interior),
         };
         [

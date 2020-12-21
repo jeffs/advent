@@ -1,8 +1,8 @@
-use advent2020::day19::{part1, part2};
+use advent2020::day20::{part1, part2};
 use std::fs;
 
 fn main() {
-    let input = "tests/day19/input";
+    let input = "tests/day20/input";
     let text = match fs::read_to_string(input) {
         Ok(text) => text,
         Err(err) => {
