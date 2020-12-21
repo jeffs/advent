@@ -1,5 +1,6 @@
 mod projection;
 
+use super::rotate;
 use crate::error::ParseError;
 use std::str::FromStr;
 
@@ -16,6 +17,7 @@ pub struct Tile {
     right: String,
     bottom: String,
     left: String,
+    interior: Vec<Vec<u8>>,
 }
 
 impl Tile {
@@ -45,12 +47,17 @@ impl FromStr for Tile {
             .last()
             .and_then(|id| id.parse().ok())
             .ok_or_else(|| ParseError::new("expected tile ID"))?;
+        let interior = lines[2..(lines.len() - 1)]
+            .iter()
+            .map(|line| Vec::from(&line[1..(line.len() - 1)]))
+            .collect();
         Ok(Tile {
             id,
             top: lines[1].to_owned(),
             right: collect_column(&lines[1..], lines[0].len() - 1),
             bottom: lines[lines.len() - 1].to_owned(),
             left: collect_column(&lines[1..], 0),
+            interior,
         })
     }
 }

@@ -1,5 +1,5 @@
 use super::neighbor::NeighborSet;
-use super::tile::{Tile, Projection};
+use super::tile::{Projection, Tile};
 use crate::error::NoSolution;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -19,14 +19,6 @@ impl<'a> Solver<'a> {
             image: Vec::new(),
             used: HashSet::new(),
         }
-    }
-
-    fn corner_id_product(&self) -> u64 {
-        let m = self.side - 1;
-        [(0, 0), (0, m), (m, 0), (m, m)]
-            .iter()
-            .map(|(i, j)| self.image[i * self.side + j].tile_id)
-            .product()
     }
 
     fn candidates(&self) -> Vec<&'a Projection> {
@@ -49,9 +41,9 @@ impl<'a> Solver<'a> {
             .unwrap_or_else(|| self.neighbors.keys().cloned().collect())
     }
 
-    fn recur(&mut self) -> Option<u64> {
+    fn recur(&mut self) -> Option<Vec<Vec<u8>>> {
         if self.image.len() == self.side * self.side {
-            return Some(self.corner_id_product());
+            return Some(self.render());
         }
         let candidates = self.candidates();
         for p in candidates {
@@ -67,12 +59,41 @@ impl<'a> Solver<'a> {
         None
     }
 
-    fn solve(mut self) -> Result<u64, NoSolution> {
-        self.recur().ok_or(NoSolution)
+    fn render(&self) -> Vec<Vec<u8>> {
+        const INTERIOR_SIDE: usize = 8;
+        let side = self.side;
+        let mut rendered: Vec<Vec<u8>> = vec![Vec::new(); side * INTERIOR_SIDE];
+        for i in 0..side {
+            for j in 0..side {
+                let p = self.image[i * side + j];
+                for k in 0..INTERIOR_SIDE {
+                    rendered[i * INTERIOR_SIDE + k].extend(p.interior[k].iter());
+                }
+            }
+        }
+        let lines: Vec<String> = rendered
+            .iter()
+            .map(|v| String::from_utf8(v.clone()).unwrap())
+            .collect();
+        let text = lines.join("\n");
+        println!("{}", text);
+        rendered
+    }
+
+    fn solve(mut self) -> Result<usize, NoSolution> {
+        // TODO:
+        // * Flip and rotate until you see two sea monsters.
+        // * Replace the sea monsters with O characters.
+        Ok(self
+            .recur()
+            .ok_or(NoSolution)?
+            .iter()
+            .flat_map(|row| row.iter().filter(|&&b| b == b'#'))
+            .count())
     }
 }
 
-pub fn solve(text: &str) -> Result<u64, Box<dyn Error>> {
+pub fn solve(text: &str) -> Result<usize, Box<dyn Error>> {
     let tiles = Tile::parse_all(text)?;
     let projections = Projection::collect(&tiles);
     Ok(Solver::new(&tiles, &projections).solve()?)
