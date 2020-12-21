@@ -68,12 +68,12 @@ fn solve_part2(analysis: &Analysis) -> String {
     for set in candidates.values_mut() {
         *set = &*set - safe;
     }
-    let mut pairs: Vec<(&str, &str)> = Vec::new(); // (allergen, ingredient)...
+    let mut pairs = Vec::new(); // (allergen, ingredient)...
     while !candidates.is_empty() {
-        let known: HashMap<&str, &str> = candidates // allergen => ingredient
+        let known: HashMap<_, _> = candidates // allergen => ingredient
             .iter()
             .filter(|(_, set)| set.len() == 1)
-            .map(|(allergen, set)| (allergen.clone(), set.iter().next().unwrap().clone()))
+            .map(|(allergen, set)| (*allergen, *set.iter().next().unwrap()))
             .collect();
         candidates.retain(|_, set| set.len() > 1);
         for set in candidates.values_mut() {
@@ -83,7 +83,7 @@ fn solve_part2(analysis: &Analysis) -> String {
         }
         pairs.extend(known);
     }
-    pairs.sort();
+    pairs.sort_unstable();
     let ingredients: Vec<_> = pairs.iter().map(|pair| pair.1).collect();
     ingredients.join(",")
 }
