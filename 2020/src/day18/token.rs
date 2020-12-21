@@ -16,7 +16,7 @@ impl Token {
         let mut words: Vec<&str> = expr.split_whitespace().collect();
         words.reverse();
         while let Some(word) = words.pop() {
-            if word.len() > 1 && !word.chars().nth(0).unwrap().is_numeric() {
+            if word.len() > 1 && !word.chars().next().unwrap().is_numeric() {
                 let (first, second) = word.split_at(1);
                 words.push(second);
                 words.push(first);

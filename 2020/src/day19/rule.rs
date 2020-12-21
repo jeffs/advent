@@ -22,7 +22,9 @@ impl Atom {
     fn count_bytes(&self, line: &str, rules: &RuleMap) -> HashSet<usize> {
         match self {
             Atom::RuleId(id) => {
-                let pattern = rules.get(id).expect(&format!("can't find rule id {}", id));
+                let pattern = rules
+                    .get(id)
+                    .unwrap_or_else(|| panic!("can't find rule id {}", id));
                 pattern.count_bytes(line, rules)
             }
             Atom::Literal(prefix) if line.starts_with(prefix) => {
@@ -37,7 +39,7 @@ impl FromStr for Atom {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() > 2 && s.starts_with("\"") && s.ends_with("\"") {
+        if s.len() > 2 && s.starts_with('"') && s.ends_with('"') {
             Ok(Atom::Literal(s[1..(s.len() - 1)].to_owned()))
         } else {
             Ok(Atom::RuleId(s.parse()?))
@@ -110,9 +112,7 @@ impl Pattern {
     pub fn matches(&self, line: &str, rules: &RuleMap) -> bool {
         self.count_bytes(line, rules)
             .into_iter()
-            .filter(|&count| count == line.len())
-            .next()
-            .is_some()
+            .any(|count| count == line.len())
     }
 }
 
