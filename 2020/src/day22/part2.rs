@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use super::{deck, Card, Deck};
 use std::collections::HashSet;
 
