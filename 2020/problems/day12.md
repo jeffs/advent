@@ -20,7 +20,8 @@ them for a few minutes, you work out what they probably mean:
 * Action W means to move west by the given value.
 * Action L means to turn left the given number of degrees.
 * Action R means to turn right the given number of degrees.
-* Action F means to move forward by the given value in the direction the ship is currently facing.
+* Action F means to move forward by the given value in the direction the ship
+  is currently facing.
 
 The ship starts by facing east. Only the L and R actions change the direction
 the ship is facing. (That is, if the ship is facing east and the next
@@ -78,11 +79,20 @@ moves with it.
 
 For example, using the same instructions as above:
 
-* F10 moves the ship to the waypoint 10 times (a total of 100 units east and 10 units north), leaving the ship at east 100, north 10. The waypoint stays 10 units east and 1 unit north of the ship.
-* N3 moves the waypoint 3 units north to 10 units east and 4 units north of the ship. The ship remains at east 100, north 10.
-* F7 moves the ship to the waypoint 7 times (a total of 70 units east and 28 units north), leaving the ship at east 170, north 38. The waypoint stays 10 units east and 4 units north of the ship.
-* R90 rotates the waypoint around the ship clockwise 90 degrees, moving it to 4 units east and 10 units south of the ship. The ship remains at east 170, north 38.
-* F11 moves the ship to the waypoint 11 times (a total of 44 units east and 110 units south), leaving the ship at east 214, south 72. The waypoint stays 4 units east and 10 units south of the ship.
+* F10 moves the ship to the waypoint 10 times (a total of 100 units east and 10
+  units north), leaving the ship at east 100, north 10. The waypoint stays 10
+  units east and 1 unit north of the ship.
+* N3 moves the waypoint 3 units north to 10 units east and 4 units north of the
+  ship. The ship remains at east 100, north 10.
+* F7 moves the ship to the waypoint 7 times (a total of 70 units east and 28
+  units north), leaving the ship at east 170, north 38. The waypoint stays 10
+  units east and 4 units north of the ship.
+* R90 rotates the waypoint around the ship clockwise 90 degrees, moving it to 4
+  units east and 10 units south of the ship. The ship remains at east 170,
+  north 38.
+* F11 moves the ship to the waypoint 11 times (a total of 44 units east and 110
+  units south), leaving the ship at east 214, south 72. The waypoint stays 4
+  units east and 10 units south of the ship.
 
 After these operations, the ship's Manhattan distance from its starting
 position is 214 + 72 = 286.
