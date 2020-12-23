@@ -27,6 +27,7 @@ fn has_all_labels(cups: &[Cup], max: Cup) -> bool {
 
 pub struct Circle {
     cups: VecDeque<Cup>,
+    round: usize,
 }
 
 impl Circle {
@@ -40,20 +41,37 @@ impl Circle {
         }
         cups.extend((cups.len() as Cup + 1)..=max);
         assert!(has_all_labels(cups.make_contiguous(), max));
-        Circle { cups }
+        Circle { cups, round: 0 }
     }
 
-    pub fn solve1(digits: u64, moves: usize) -> u64 {
-        Circle::new(digits, 9).nth(moves).into_answer1()
+    pub fn solve1(digits: u64, max: Cup, count: usize) -> u64 {
+        Circle::new(digits, max).nth(count).into_answer1()
+    }
+
+    pub fn solve2(digits: u64, max: Cup, count: usize) -> u64 {
+        Circle::new(digits, max).nth(count).into_answer2()
     }
 
     fn insert_after(&mut self, mut index: usize, cups: [Cup; WINDOW]) {
         // TODO: Move all disturbed cups back by the WINDOW length a priori,
         // rather than shifting all disturbed cups repeated for each inserted
         // one.
-        for &cup in &cups {
-            index += 1;
-            self.cups.insert(index, cup);
+
+        if index + WINDOW < cups.len() {
+            // Grow the deque, push cups out of the way, and insert the new ones.
+            self.cups.extend(cups.iter().cloned());
+            for i in ((index + 1 + WINDOW)..self.cups.len()).rev() {
+                self.cups[i] = self.cups[i - WINDOW];
+            }
+            for &cup in &cups {
+                index += 1;
+                self.cups[index] = cup;
+            }
+        } else {
+            for &cup in &cups {
+                index += 1;
+                self.cups.insert(index, cup);
+            }
         }
     }
 
@@ -69,6 +87,10 @@ impl Circle {
     }
 
     fn next(mut self) -> Circle {
+        if self.round % 10000 == 0 {
+            println!("round {}", self.round);
+        }
+        self.round += 1;
         let max = self.cups.len() as Cup;
         let current = self.cups[0];
         let removed = self.shift();
@@ -91,6 +113,14 @@ impl Circle {
             .skip(1)
             .fold(0, |u, &cup| u * 10 + cup as u64)
     }
+
+    fn into_answer2(&self) -> u64 {
+        let length = self.cups.len();
+        let index = self.cups.iter().position(|&cup| cup == 1).unwrap();
+        let multiplicand = self.cups[(index + 1) % length] as u64;
+        let multiplier = self.cups[(index + 2) % length] as u64;
+        multiplicand * multiplier
+    }
 }
 
 #[cfg(test)]
@@ -106,13 +136,12 @@ mod test {
 
     #[test]
     fn solve1_sample1() {
-        assert_eq!(92658374, Circle::solve1(SAMPLE1, 10));
-        assert_eq!(67384529, Circle::solve1(SAMPLE1, 100));
+        assert_eq!(92658374, Circle::solve1(SAMPLE1, 9, 10));
+        assert_eq!(67384529, Circle::solve1(SAMPLE1, 9, 100));
     }
 
-    // #[test]
-    // fn solve_sample1_answer1() {
-    //     assert_eq!(92658374, solve(SAMPLE1, 10));
-    //     assert_eq!(67384529, solve(SAMPLE1, 100));
-    // }
+    #[test]
+    fn solve2_sample1() {
+        assert_eq!(149245887792, Circle::solve2(SAMPLE1, 999_999, 10_000_000));
+    }
 }
