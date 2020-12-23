@@ -1,5 +1,3 @@
-#![allow(dead_code, unused_variables)]
-
 const BASE: usize = 10;
 const BASE_U64: u64 = BASE as u64;
 
