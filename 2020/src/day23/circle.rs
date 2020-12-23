@@ -1,4 +1,31 @@
-use std::collections::VecDeque;
+//! I struggled with Part 2, trying to update the algo from part 1.  Finally,
+//! and for the first time ever, I looked at somebody else's Advent code before
+//! submitting a solution, and found it extremely helpful.  Thank you, Jonas
+//! Karlsson:
+//! https://github.com/karjonas/advent-of-code/blob/master/2020/day23/src/lib.rs
+//!
+//! The trick is to view the Circle as a directed graph in which each cup is a
+//! node having exactly one child---its right-most neighbor---and to represent
+//! that graph using an adjacency matrix.  Because the graph is so simple (each
+//! node having exactly one child), the "matrix" is simply an array.
+//!
+//! The performance of this approach is much better than something naive (like
+//! the VecDeque I tried earlier) for a couple of reasons:
+//!
+//! 1. We don't have to do a linear scan for the destination cup, which would
+//!    take O(N) comparisons on every move.
+//!
+//!    Cup labels are consecutive integers, so they can be indexes into the
+//!    "right neighbor" array (i.e., the adjacency matrix).  That blew my mind:
+//!    I was trying to preserve the order of the cups, but we really don't care
+//!    about the order except to know any given cup's right-most neighbor.
+//!    Each cup can sit forever at a fixed index.  It's a cleverly framed
+//!    problem.
+//!
+//! 2. Most cups' neighbors do not change on any given move, so we don't
+//!    have to touch them.  Inserting cups at arbitrary destinations in a deque
+//!    means pushing back all (~500K) subsequent cups, even when they had
+//!    nothing to do with the move.
 
 const WINDOW: usize = 3;
 
@@ -25,22 +52,25 @@ fn has_all_labels(cups: &[Cup], max: Cup) -> bool {
     (1..=max).eq(cups.iter().cloned())
 }
 
+/// A Circle is conceptually a circular linked list, and as such a trivial
+/// graph.  It represents that graph as a single-row adjacency matrix, in which
+/// indexes are cup label values (minus 1 so we can use 0-based indexes) an
 pub struct Circle {
-    cups: VecDeque<Cup>,
+    adjacent: Vec<Cup>,
     round: usize,
 }
 
 impl Circle {
     fn new(mut digits: u64, max: Cup) -> Circle {
-        // Input is base 10, but cup labels go much higheer.
-        let mut cups = VecDeque::new();
-        cups.reserve(max as usize);
+        let mut neighbors = VecDeque::new();
+        cups.reserve(max as usize - 1);
+        // Input is base 10, but cup labels go much higher.
         while digits > 0 {
-            cups.push_front((digits % 10) as Cup);
+            cups.push_front((digits % 10) - 1 as Cup);
             digits /= 10;
         }
         cups.extend((cups.len() as Cup + 1)..=max);
-        assert!(has_all_labels(cups.make_contiguous(), max));
+        debug_assert!(has_all_labels(cups.make_contiguous(), max));
         Circle { cups, round: 0 }
     }
 
@@ -48,6 +78,10 @@ impl Circle {
         Circle::new(digits, max).nth(count).into_answer1()
     }
 
+    // 733041926064 is too high
+    // 366520963032 is too high
+    // 183260481516 is too low
+    // 274890722274 is incorrect, and now I have to wait 5 minutes
     pub fn solve2(digits: u64, max: Cup, count: usize) -> u64 {
         Circle::new(digits, max).nth(count).into_answer2()
     }
@@ -88,7 +122,8 @@ impl Circle {
 
     fn next(mut self) -> Circle {
         if self.round % 10000 == 0 {
-            println!("round {}", self.round);
+            let prefix: Vec<_> = self.cups.iter().take(12).collect();
+            println!("round {}: {:?}", self.round, prefix);
         }
         self.round += 1;
         let max = self.cups.len() as Cup;
@@ -115,6 +150,8 @@ impl Circle {
     }
 
     fn into_answer2(&self) -> u64 {
+        let prefix: Vec<_> = self.cups.iter().take(12).collect();
+        println!("round {}: {:?}", self.round, prefix);
         let length = self.cups.len();
         let index = self.cups.iter().position(|&cup| cup == 1).unwrap();
         let multiplicand = self.cups[(index + 1) % length] as u64;
@@ -135,9 +172,19 @@ mod test {
     }
 
     #[test]
+    fn into_answer2() {
+        assert_eq!(18, Circle::new(583741926, 9).into_answer2());
+    }
+
+    #[test]
     fn solve1_sample1() {
         assert_eq!(92658374, Circle::solve1(SAMPLE1, 9, 10));
         assert_eq!(67384529, Circle::solve1(SAMPLE1, 9, 100));
+    }
+
+    #[test]
+    fn solve1_answer2() {
+        assert_eq!(18, Circle::new(SAMPLE1, 9).nth(10).into_answer2());
     }
 
     #[test]
