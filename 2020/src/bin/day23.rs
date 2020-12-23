@@ -26,19 +26,47 @@ impl Circle {
         Circle { cups }
     }
 
-    fn as_answer(self) -> u64 {
+    fn as_answer(&self) -> u64 {
         let mut cups = self.cups;
         while cups[0] != 1 {
             cups.rotate_left(1);
         }
-        cups[1..].iter().fold(0, |u, &cup| u * BASE_U64 + cup as u64)
+        cups[1..]
+            .iter()
+            .fold(0, |u, &cup| u * BASE_U64 + cup as u64)
+    }
+
+    fn next(self) -> Circle {
+        const LEN: usize = BASE - 1; // number of cups
+        const WINDOW: usize = 3;
+        let mut cups = self.cups;
+        eprintln!("{:?}", cups);
+        cups[1..].rotate_left(WINDOW);
+        eprintln!(
+            " => pick up: {:?} leaving {:?}",
+            &cups[(LEN - WINDOW)..],
+            &cups[0..(LEN - WINDOW)]
+        );
+        let destination_index = (1..=BASE)
+            .find_map(|subtrahend| {
+                let label = (cups[0] as usize + BASE - subtrahend) % BASE;
+                let r = cups[..(LEN - WINDOW)]
+                    .iter()
+                    .position(|&cup| cup == label as Cup);
+                if let Some(d) = r {
+                    eprintln!(" => destination: {}", cups[d]);
+                }
+                r
+            })
+            .unwrap();
+        cups[(destination_index + 1)..].rotate_right(WINDOW);
+        cups.rotate_left(1);
+        Circle { cups }
     }
 }
 
 fn solve(digits: u64, moves: usize) -> u64 {
-    let circle = (0..moves).fold(Circle::new(digits), |circle, _| {
-        circle // TODO
-    });
+    let circle = (0..moves).fold(Circle::new(digits), |circle, _| circle.next());
     circle.as_answer()
 }
 
