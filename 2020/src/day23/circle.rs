@@ -1,4 +1,3 @@
-#![allow(dead_code, unused_imports, unused_variables)]
 use std::collections::VecDeque;
 
 const WINDOW: usize = 3;
@@ -26,7 +25,7 @@ fn has_all_labels(cups: &[Cup], max: Cup) -> bool {
     (1..=max).eq(cups.iter().cloned())
 }
 
-struct Circle {
+pub struct Circle {
     cups: VecDeque<Cup>,
 }
 
@@ -42,6 +41,10 @@ impl Circle {
         cups.extend((cups.len() as Cup + 1)..=max);
         assert!(has_all_labels(cups.make_contiguous(), max));
         Circle { cups }
+    }
+
+    pub fn solve1(digits: u64, moves: usize) -> u64 {
+        Circle::new(digits, 9).nth(moves).into_answer1()
     }
 
     fn insert_after(&mut self, mut index: usize, cups: [Cup; WINDOW]) {
@@ -90,10 +93,6 @@ impl Circle {
     }
 }
 
-pub fn solve1(digits: u64, moves: usize) -> u64 {
-    Circle::new(digits, 9).nth(moves).into_answer1()
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -107,8 +106,8 @@ mod test {
 
     #[test]
     fn solve1_sample1() {
-        assert_eq!(92658374, solve1(389125467, 10));
-        assert_eq!(67384529, solve1(389125467, 100));
+        assert_eq!(92658374, Circle::solve1(SAMPLE1, 10));
+        assert_eq!(67384529, Circle::solve1(SAMPLE1, 100));
     }
 
     // #[test]
