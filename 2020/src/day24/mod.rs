@@ -11,7 +11,7 @@
 //! row means going diagonally south and west.
 
 mod direction;
+mod floor;
 mod latlon;
 
-pub mod part1;
-pub mod part2;
+pub use floor::Floor;
