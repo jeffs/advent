@@ -4,6 +4,6 @@ use std::fs;
 fn main() {
     let input_path = "tests/day24/input";
     let text = fs::read_to_string(input_path).unwrap();
-    println!("{}", part1::solve(&text).unwrap());
+    println!("{}", part1::solve(&text));
     println!("{}", part2::solve(&text).unwrap());
 }
