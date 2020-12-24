@@ -3,6 +3,7 @@ use super::latlon::LatLon;
 use std::collections::HashSet;
 
 use std::convert::Infallible;
+use std::mem;
 use std::str::FromStr;
 
 pub struct Floor {
@@ -14,16 +15,35 @@ impl Floor {
         self.black.len()
     }
 
-    //  allocate a buffer for the next state
-    //  for each of 100 days
-    //      clear the buffer
-    //      for each tile
-    //          for the tile and each of its six neighbors
-    //              count black adjacent tiles
-    //              conditionally insert in the buffer
-    //      swap state and buffer 
-    pub fn day(self, _n: usize) -> Floor {
-        todo!()
+    pub fn next_is_black(&self, tile: LatLon) -> bool {
+        let count = tile
+            .neighbors()
+            .filter(|adjacent| self.black.contains(adjacent))
+            .count();
+        count == 2 || (count == 1 && self.black.contains(&tile))
+    }
+
+    fn next_into(&self, next: &mut HashSet<LatLon>) {
+        next.clear();
+        for &tile in &self.black {
+            if self.next_is_black(tile) {
+                next.insert(tile);
+            }
+            for neighbor in tile.neighbors() {
+                if self.next_is_black(neighbor) {
+                    next.insert(neighbor);
+                }
+            }
+        }
+    }
+
+    pub fn day(mut self, day: usize) -> Floor {
+        let next = &mut HashSet::new();
+        for _ in 0..day {
+            self.next_into(next);
+            mem::swap(&mut self.black, next);
+        }
+        self
     }
 }
 
@@ -50,11 +70,25 @@ mod test {
     use super::*;
     use std::fs;
 
+    fn sample1() -> Floor {
+        fs::read_to_string("tests/day24/sample1")
+            .unwrap()
+            .parse()
+            .unwrap()
+    }
+
     #[test]
-    fn sample1() {
-        let text = fs::read_to_string("tests/day24/sample1").unwrap();
-        let floor: Floor = text.parse().unwrap();
-        assert_eq!(10, floor.count_black());
-        assert_eq!(2208, floor.day(100).count_black());
+    fn part1_sample1() {
+        assert_eq!(10, sample1().count_black());
+    }
+
+    #[test]
+    fn part2_sample1_day1() {
+        assert_eq!(15, sample1().day(1).count_black());
+    }
+
+    #[test]
+    fn part2_sample1_day100() {
+        assert_eq!(2208, sample1().day(100).count_black());
     }
 }
