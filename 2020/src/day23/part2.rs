@@ -1,4 +1,4 @@
-//! I struggled with Part 2, trying to update the algo from part 1.  Finally,
+//! I struggled with part 2, trying to update the algo from part 1.  Finally,
 //! and for the first time ever, I looked at somebody else's Advent code before
 //! submitting a solution, and found it extremely helpful.  Thank you, Jonas
 //! Karlsson:
@@ -13,19 +13,19 @@
 //! The performance of this approach is much better than something naive (like
 //! the VecDeque I tried earlier) for a couple of reasons:
 //!
-//! 1. We don't have to do a linear scan for the destination cup, which would
-//!    take O(N) comparisons on every move.
+//! * We don't have to do a linear scan for the destination cup, which would
+//!   take O(N) comparisons on every move.
 //!
-//!    Cup labels are consecutive integers, so they can be indexes into the
-//!    adjacency array.  That blew my mind: I was trying to preserve the order
-//!    of the cups, but we really don't care about the order except to know any
-//!    given cup's clockwise neighbor.  Each cup can sit forever at a fixed
-//!    index.  It's a cleverly framed problem.
+//!   Cup labels are consecutive integers, so they can be indexes into the
+//!   adjacency array.  That blew my mind: I was trying to preserve the order
+//!   of the cups, but we really don't care about the order except to know any
+//!   given cup's clockwise neighbor.  Each cup can sit forever at a fixed
+//!   index.  It's a cleverly framed problem.
 //!
-//! 2. Most cups' neighbors do not change on any given move, so we don't
-//!    have to touch them.  Inserting cups at arbitrary destinations in a deque
-//!    means pushing back all (~500k) subsequent cups, even when they had
-//!    nothing to do with the move.
+//! * Most cups' neighbors do not change on any given move, so we don't
+//!   have to touch them.  Inserting cups in the middle of a deque means
+//!   pushing back thousands of subsequent cups, even when they had nothing to
+//!   do with the move.
 
 const WINDOW: usize = 3; // number of cups moved at a time
 
@@ -41,7 +41,7 @@ pub struct Circle {
 
 impl Circle {
     fn from_digits(mut digits: u64, len: usize) -> Circle {
-        let mut prefix = Vec::new();    // in reverse order
+        let mut prefix = Vec::new(); // in reverse order
         prefix.reserve(9);
         while digits > 0 {
             prefix.push((digits % 10) as Cup - 1);
@@ -60,11 +60,9 @@ impl Circle {
             adjacent.push(cup);
             last = cup;
         }
-        adjacent[last as usize] = prefix[prefix.len() - 1];
-        Circle {
-            adjacent,
-            current: prefix[prefix.len() - 1],
-        }
+        let current = prefix[prefix.len() - 1];
+        adjacent[last as usize] = current;
+        Circle { adjacent, current }
     }
 
     fn remove(&mut self) -> [Cup; WINDOW] {
@@ -100,6 +98,13 @@ impl Circle {
         (0..n).fold(self, |circle, _| circle.next())
     }
 
+    fn as_answer(&self) -> u64 {
+        let multiplicand = self.adjacent[0] as u64;
+        let multiplier = self.adjacent[multiplicand as usize] as u64;
+        (multiplicand + 1) * (multiplier + 1)
+    }
+
+    /// Produces an answer of the form required for part 1.
     fn as_answer1(&self) -> u64 {
         let mut answer = 0;
         let mut cup: Cup = 0;
@@ -109,12 +114,6 @@ impl Circle {
         }
         answer
     }
-
-    fn as_answer(&self) -> u64 {
-        let multiplicand = self.adjacent[0] as u64;
-        let multiplier = self.adjacent[multiplicand as usize] as u64;
-        (multiplicand + 1) * (multiplier + 1)
-    }
 }
 
 pub fn solve(digits: u64) -> u64 {
@@ -123,13 +122,18 @@ pub fn solve(digits: u64) -> u64 {
         .as_answer()
 }
 
-
+/// Solves part 1 using the Circle implementation from part 2.  There are two
+/// big differences between part 1 and part 2:
+///
+/// 1. The sheer size of part 2 requires dynamic allocation and a clever
+///    algorithm.  Putting million-element arrays on the stack quickly
+///    overflows it.
+///
+/// 2. The circle for part 2 supports automatic insertion of more cups than
+///    were explicitly specified in the input.
 pub fn solve1(digits: u64) -> u64 {
-    Circle::from_digits(digits, 9)
-        .nth(100)
-        .as_answer1()
+    Circle::from_digits(digits, 9).nth(100).as_answer1()
 }
-
 
 #[cfg(test)]
 mod test {
