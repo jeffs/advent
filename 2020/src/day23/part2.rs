@@ -68,9 +68,9 @@ impl Circle {
     fn remove(&mut self) -> [Cup; WINDOW] {
         let mut removed = [0; WINDOW];
         let mut cup = self.current;
-        for i in 0..WINDOW {
+        for rem in removed.iter_mut().take(WINDOW) {
             cup = self.adjacent[cup as usize];
-            removed[i] = cup;
+            *rem = cup;
         }
         self.adjacent[self.current as usize] = self.adjacent[cup as usize];
         removed
