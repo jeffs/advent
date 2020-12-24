@@ -8,6 +8,7 @@ fn has_all_digits(cups: CupArray) -> bool {
     (1..BASE).all(|digit| cups.iter().any(|&cup| cup == digit as Cup))
 }
 
+#[derive(Clone)]
 struct Circle {
     cups: CupArray,
 }
@@ -69,13 +70,13 @@ mod test {
 
     #[test]
     fn as_answer_sample1() {
-        assert_eq!(92658374, Circle::new(583741926).as_answer());
+        assert_eq!(92658374, Circle::from_digits(583741926).as_answer());
     }
 
     #[test]
     fn nth_sample1() {
         let circle = Circle::from_digits(SAMPLE1);
-        assert_eq!(92658374, circle.clone().nth(10));
+        assert_eq!(92658374, circle.clone().nth(10).as_answer());
     }
 
     #[test]
