@@ -13,8 +13,11 @@ fn transform(size: u64, subject: u64) -> u64 {
 }
 
 fn find(key: u64, subject: u64) -> Result<u64, NoSolution> {
-    for size in 0..DIVISOR {
-        if key == transform(size, subject) {
+    let mut value = 1;
+    for size in 1.. {
+        value *= subject;
+        value %= DIVISOR;
+        if key == value {
             return Ok(size);
         }
     }
