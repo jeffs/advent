@@ -13,9 +13,17 @@ mod day1 {
     }
 
     pub mod part1 {
-        pub fn solve(depths: &[u32]) -> usize {
-            (1..depths.len())
-                .filter(|&i| depths[i] > depths[i - 1])
+        // O(N) time, O(1) space
+        pub fn solve<I>(depths: I) -> usize
+        where
+            I: IntoIterator<Item = u32>,
+        {
+            depths
+                .into_iter()
+                .scan(None, |old: &mut Option<u32>, new| {
+                    Some(old.replace(new).filter(|&old| new > old).is_some())
+                })
+                .filter(|&b| b)
                 .count()
         }
 
@@ -26,23 +34,20 @@ mod day1 {
 
             #[test]
             fn test_solve() {
-                assert_eq!(7, solve(&load_depths("tests/day1/sample").unwrap()));
+                let depths = load_depths("tests/day1/sample").unwrap();
+                assert_eq!(7, solve(depths.iter().cloned()));
             }
         }
     }
 
     pub mod part2 {
+        use super::part1;
+
         const WINDOW_SIZE: usize = 3;
 
+        // O(N) time, O(1) space; but requires input taking O(N) space
         pub fn solve(depths: &[u32]) -> usize {
-            (WINDOW_SIZE..depths.len())
-                .filter(|&i| {
-                    let j = i + 1;
-                    let old: u32 = depths[i - WINDOW_SIZE..i].iter().sum();
-                    let new: u32 = depths[j - WINDOW_SIZE..j].iter().sum();
-                    new > old
-                })
-                .count()
+            part1::solve(depths.windows(WINDOW_SIZE).map(|win| win.iter().sum()))
         }
 
         #[cfg(test)]
@@ -64,6 +69,6 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{}", day1::part1::solve(&depths));
+    println!("{}", day1::part1::solve(depths.iter().cloned()));
     println!("{}", day1::part2::solve(&depths));
 }
