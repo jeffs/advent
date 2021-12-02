@@ -5,12 +5,13 @@ mod day2 {
     use std::path::Path;
     use std::str::FromStr;
 
-    #[derive(Debug)]
+    #[derive(Clone, Debug)]
     pub enum Axis {
         Horizontal,
         Vertical,
     }
 
+    #[derive(Clone)]
     pub struct Command(Axis, i32);
 
     impl FromStr for Command {
@@ -82,13 +83,49 @@ mod day2 {
             }
         }
     }
+
+    pub mod part2 {
+        use super::{Axis, Command};
+
+        pub fn solve<I>(commands: I) -> i32
+        where
+            I: Iterator<Item = Command>,
+        {
+            let (mut aim, mut hpos, mut depth) = (0, 0, 0);
+            for Command(axis, offset) in commands {
+                match axis {
+                    Axis::Horizontal => {
+                        hpos += offset;
+                        depth += aim * offset;
+                    }
+                    Axis::Vertical => aim += offset,
+                }
+            }
+            hpos * depth
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::super::Commands;
+            use super::solve;
+
+            #[test]
+            fn test_solve() {
+                let commands = Commands::load("tests/day2/sample").unwrap();
+                assert_eq!(900, solve(commands));
+            }
+        }
+    }
 }
 
 fn main() {
     let input = "tests/day2/input";
-    let commands = day2::Commands::load(input).unwrap_or_else(|err| {
-        eprintln!("error: {}: {}", input, err);
-        std::process::exit(3);
-    });
-    println!("{}", day2::part1::solve(commands));
+    let commands: Vec<_> = day2::Commands::load(input)
+        .unwrap_or_else(|err| {
+            eprintln!("error: {}: {}", input, err);
+            std::process::exit(3);
+        })
+        .collect();
+    println!("{}", day2::part1::solve(commands.iter().cloned()));
+    println!("{}", day2::part2::solve(commands.into_iter()));
 }
