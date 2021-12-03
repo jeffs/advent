@@ -1,3 +1,3 @@
 mod error;
 
-pub use error::ParseError;
+pub use error::{NoSolution, ParseError};
