@@ -6,7 +6,7 @@ use std::path::Path;
 mod day3 {
     use super::*;
 
-    pub fn load_numbers<P: AsRef<Path>>(input: P) -> Result<Vec<String>, Box<io::Error>> {
+    pub fn load_numbers<P: AsRef<Path>>(input: P) -> Result<Vec<String>, io::Error> {
         let mut numbers = Vec::new();
         for line in BufReader::new(File::open(input)?).lines() {
             numbers.push(line?);
@@ -17,23 +17,34 @@ mod day3 {
     pub mod part1 {
         use super::*;
 
-        pub fn solve(numbers: &[String]) -> Result<u32, NoSolution> {
-            let width = numbers.first().ok_or(NoSolution)?.len();
-            let mut populations = vec![0; width]; // Count of 1 digits in each column.
+        /// Returns the count of 1 digits in each position.
+        pub fn popcount_columns(numbers: &[String], width: usize) -> Vec<usize> {
+            let mut counts = vec![0; width];
             for number in numbers {
                 for (column, digit) in number.bytes().enumerate() {
                     if digit == b'1' {
-                        populations[column] += 1;
+                        counts[column] += 1;
                     }
                 }
             }
+            counts
+        }
+
+        pub fn parse_gamma(counts: &[usize], min_count: usize) -> u32 {
             let mut gamma = 0;
-            for pop in populations {
+            for &count in counts {
                 gamma <<= 1;
-                if pop > numbers.len() / 2 {
+                if count >= min_count {
                     gamma |= 1;
                 }
             }
+            gamma
+        }
+
+        pub fn solve(numbers: &[String]) -> Result<u32, NoSolution> {
+            let width = numbers.first().ok_or(NoSolution)?.len();
+            let counts = popcount_columns(numbers, width);
+            let gamma = parse_gamma(&counts, numbers.len() / 2);
             let epsilon = !gamma & ((1 << width) - 1);
             Ok(gamma * epsilon)
         }
