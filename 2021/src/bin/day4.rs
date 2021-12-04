@@ -72,6 +72,14 @@ mod day4 {
                 .sum()
         }
 
+        fn reset(&mut self) {
+            for i in 0..BOARD_HEIGHT {
+                for j in 0..BOARD_WIDTH {
+                    self.0[i][j].stamp = false;
+                }
+            }
+        }
+
         fn try_parse<E: 'static, I>(lines: &mut I) -> Result<Option<Board>, Box<dyn Error>>
         where
             E: Error,
@@ -97,6 +105,14 @@ mod day4 {
     pub struct Game {
         values: Vec<u64>,
         boards: Vec<Board>,
+    }
+
+    impl Game {
+        pub fn reset(&mut self) {
+            for board in &mut self.boards {
+                board.reset();
+            }
+        }
     }
 
     fn parse_values(line: &str) -> Result<Vec<u64>, ParseIntError> {
@@ -148,9 +164,9 @@ mod day4 {
     pub mod part1 {
         use super::*;
 
-        pub fn solve(Game { values, mut boards }: Game) -> Result<u64, NoSolution> {
-            for value in values {
-                for board in &mut boards {
+        pub fn solve(game: &mut Game) -> Result<u64, NoSolution> {
+            for &value in &game.values {
+                for board in game.boards.iter_mut() {
                     board.stamp(value);
                     if board.has_won() {
                         return Ok(board.score() * value);
@@ -166,7 +182,37 @@ mod day4 {
 
             #[test]
             fn test_solve() {
-                assert_eq!(Ok(4512), solve(load_game("tests/day4/sample").unwrap()));
+                assert_eq!(Ok(4512), solve(&mut load_game("tests/day4/sample").unwrap()));
+            }
+        }
+    }
+
+    pub mod part2 {
+        use super::*;
+
+        pub fn solve(game: &mut Game) -> Result<u64, NoSolution> {
+            let mut last = None;
+            for &value in &game.values {
+                for board in game.boards.iter_mut() {
+                    if board.has_won() {
+                        continue;
+                    }
+                    board.stamp(value);
+                    if board.has_won() {
+                        last.replace(board.score() * value);
+                    }
+                }
+            }
+            last.ok_or(NoSolution)
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            #[test]
+            fn test_solve() {
+                assert_eq!(Ok(1924), solve(&mut load_game("tests/day4/sample").unwrap()));
             }
         }
     }
@@ -174,11 +220,19 @@ mod day4 {
 
 fn main() {
     let input = "tests/day4/input";
-    let game = day4::load_game("tests/day4/input").unwrap_or_else(|err| {
+    let mut game = day4::load_game("tests/day4/input").unwrap_or_else(|err| {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    match day4::part1::solve(game) {
+    match day4::part1::solve(&mut game) {
+        Ok(answer) => println!("{}", answer),
+        Err(err) => {
+            eprintln!("error: {}: {}", input, err);
+            std::process::exit(1);
+        }
+    }
+    game.reset();
+    match day4::part2::solve(&mut game) {
         Ok(answer) => println!("{}", answer),
         Err(err) => {
             eprintln!("error: {}: {}", input, err);
