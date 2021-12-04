@@ -10,19 +10,10 @@ use std::path::Path;
 mod day4 {
     use super::*;
 
-    #[derive(Clone, Copy, Debug)]
+    #[derive(Clone, Copy, Debug, Default)]
     struct Cell {
         value: u64,
         stamp: bool,
-    }
-
-    impl Default for Cell {
-        fn default() -> Cell {
-            Cell {
-                value: 0,
-                stamp: false,
-            }
-        }
     }
 
     const BOARD_WIDTH: usize = 5;
