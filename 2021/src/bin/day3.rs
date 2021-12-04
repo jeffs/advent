@@ -1,36 +1,43 @@
-use advent2021::NoSolution;
+use advent2021::{EmptyFile, NoSolution};
+use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead as _, BufReader};
+use std::io::{BufRead as _, BufReader};
 use std::path::Path;
 
 mod day3 {
     use super::*;
 
-    pub fn load_numbers<P: AsRef<Path>>(input: P) -> Result<Vec<String>, io::Error> {
-        let mut numbers = Vec::new();
-        for line in BufReader::new(File::open(input)?).lines() {
-            numbers.push(line?);
+    /// Reads, parses, and returns a sequence of binary numbers.  Although the
+    /// numbers are returned as u32, they may have any number of bits (up to
+    /// 32).  The second element of the returned tuple is the actual width of
+    /// the numbers.
+    pub fn load_numbers<P: AsRef<Path>>(input: P) -> Result<(Vec<u32>, usize), Box<dyn Error>> {
+        let mut lines = BufReader::new(File::open(&input)?).lines();
+        let first = lines.next().ok_or_else(|| EmptyFile::new(input))??;
+        let mut numbers = vec![u32::from_str_radix(&first, 2)?];
+        for line in lines {
+            numbers.push(u32::from_str_radix(&line?, 2)?);
         }
-        Ok(numbers)
+        Ok((numbers, first.len()))
+    }
+
+    /// Returns the count of 1 digits in each (big-endian) position.
+    pub fn popcount_columns(numbers: &[u32], width: usize) -> Vec<usize> {
+        let mut counts = vec![0; width];
+        for number in numbers {
+            for (column, shift) in (0..width).rev().enumerate() {
+                if number >> shift & 1 != 0 {
+                    counts[column] += 1
+                }
+            }
+        }
+        counts
     }
 
     pub mod part1 {
         use super::*;
 
-        /// Returns the count of 1 digits in each position.
-        pub fn popcount_columns(numbers: &[String], width: usize) -> Vec<usize> {
-            let mut counts = vec![0; width];
-            for number in numbers {
-                for (column, digit) in number.bytes().enumerate() {
-                    if digit == b'1' {
-                        counts[column] += 1;
-                    }
-                }
-            }
-            counts
-        }
-
-        pub fn parse_gamma(counts: &[usize], min_count: usize) -> u32 {
+        pub fn find_gamma(counts: &[usize], min_count: usize) -> u32 {
             let mut gamma = 0;
             for &count in counts {
                 gamma <<= 1;
@@ -41,12 +48,16 @@ mod day3 {
             gamma
         }
 
-        pub fn solve(numbers: &[String]) -> Result<u32, NoSolution> {
-            let width = numbers.first().ok_or(NoSolution)?.len();
+        pub fn find_gamma_and_epsilon(numbers: &[u32], width: usize) -> (u32, u32) {
             let counts = popcount_columns(numbers, width);
-            let gamma = parse_gamma(&counts, numbers.len() / 2);
+            let gamma = find_gamma(&counts, numbers.len() / 2);
             let epsilon = !gamma & ((1 << width) - 1);
-            Ok(gamma * epsilon)
+            (gamma, epsilon)
+        }
+
+        pub fn solve(numbers: &[u32], width: usize) -> u32 {
+            let (gamma, epsilon) = find_gamma_and_epsilon(numbers, width);
+            gamma * epsilon
         }
 
         #[cfg(test)]
@@ -55,7 +66,56 @@ mod day3 {
 
             #[test]
             fn test_solve() {
-                assert_eq!(Ok(198), solve(&load_numbers("tests/day3/sample").unwrap()));
+                let (numbers, width) = load_numbers("tests/day3/sample").unwrap();
+                assert_eq!(198, solve(&numbers, width));
+            }
+        }
+    }
+
+    pub mod part2 {
+        use super::*;
+
+        fn oxygen_generator_rating(numbers: &[u32], mut width: usize) -> u32 {
+            let mut numbers = numbers.to_vec();
+            while numbers.len() > 1 {
+                let bit = (popcount_columns(&numbers, width)[0] * 2 >= numbers.len()) as u32;
+                numbers.retain(|number| number >> (width - 1) & 1 == bit);
+                width -= 1;
+            }
+            numbers[0]
+        }
+
+        fn co2_generator_rating(numbers: &[u32], mut width: usize) -> u32 {
+            let mut numbers = numbers.to_vec();
+            while numbers.len() > 1 {
+                let bit = (popcount_columns(&numbers, width)[0] * 2 < numbers.len()) as u32;
+                numbers.retain(|number| number >> (width - 1) & 1 == bit);
+                width -= 1;
+            }
+            numbers[0]
+        }
+
+        pub fn solve(numbers: &[u32], width: usize) -> Result<u32, NoSolution> {
+            let oxygen = oxygen_generator_rating(numbers, width);
+            let co2 = co2_generator_rating(numbers, width);
+            Ok(oxygen * co2)
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            #[test]
+            fn test_oxygen_generator_rating() {
+                let (numbers, width) = load_numbers("tests/day3/sample").unwrap();
+                assert_eq!(23, oxygen_generator_rating(&numbers, width));
+
+            }
+
+            #[test]
+            fn test_solve() {
+                let (numbers, width) = load_numbers("tests/day3/sample").unwrap();
+                assert_eq!(Ok(230), solve(&numbers, width));
             }
         }
     }
@@ -63,11 +123,12 @@ mod day3 {
 
 fn main() {
     let input = "tests/day3/input";
-    let numbers = day3::load_numbers(input).unwrap_or_else(|err| {
+    let (numbers, width) = day3::load_numbers(input).unwrap_or_else(|err| {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    match day3::part1::solve(&numbers) {
+    println!("{}", day3::part1::solve(&numbers, width));
+    match day3::part2::solve(&numbers, width) {
         Ok(answer) => println!("{}", answer),
         Err(err) => {
             eprintln!("error: {}: {}", input, err);
