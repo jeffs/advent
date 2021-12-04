@@ -12,7 +12,7 @@ mod day4 {
 
     #[derive(Clone, Copy, Debug)]
     struct Cell {
-        value: u32,
+        value: u64,
         stamp: bool,
     }
 
@@ -48,6 +48,30 @@ mod day4 {
             Ok(())
         }
 
+        fn stamp(&mut self, value: u64) {
+            for i in 0..BOARD_HEIGHT {
+                for j in 0..BOARD_WIDTH {
+                    let cell = &mut self.0[i][j];
+                    cell.stamp |= cell.value == value;
+                }
+            }
+        }
+
+        fn has_won(&self) -> bool {
+            self.0.iter().any(|row| row.iter().all(|cell| cell.stamp))
+                || (0..BOARD_WIDTH).any(|j| self.0.iter().all(|row| row[j].stamp))
+        }
+
+        fn score(&self) -> u64 {
+            self.0
+                .iter()
+                .flat_map(|row| {
+                    row.iter()
+                        .filter_map(|cell| if cell.stamp { None } else { Some(cell.value) })
+                })
+                .sum()
+        }
+
         fn try_parse<E: 'static, I>(lines: &mut I) -> Result<Option<Board>, Box<dyn Error>>
         where
             E: Error,
@@ -71,11 +95,11 @@ mod day4 {
 
     #[derive(Debug)]
     pub struct Game {
-        values: Vec<u32>,
+        values: Vec<u64>,
         boards: Vec<Board>,
     }
 
-    fn parse_values(line: &str) -> Result<Vec<u32>, ParseIntError> {
+    fn parse_values(line: &str) -> Result<Vec<u64>, ParseIntError> {
         let mut values = Vec::new();
         for field in line.split(',') {
             values.push(field.parse()?);
@@ -124,9 +148,16 @@ mod day4 {
     pub mod part1 {
         use super::*;
 
-        pub fn solve(Game { values, boards }: Game) -> Result<u32, NoSolution> {
-            println!("{:#?}", boards);
-            todo!()
+        pub fn solve(Game { values, mut boards }: Game) -> Result<u64, NoSolution> {
+            for value in values {
+                for board in &mut boards {
+                    board.stamp(value);
+                    if board.has_won() {
+                        return Ok(board.score() * value);
+                    }
+                }
+            }
+            Err(NoSolution)
         }
 
         #[cfg(test)]
