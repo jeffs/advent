@@ -1,9 +1,7 @@
-#![allow(dead_code, unused_imports, unused_variables)]
-
 use advent2021::{EmptyFile, NoSolution, ParseError};
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead as _, BufReader, Lines};
+use std::io::{BufRead as _, BufReader};
 use std::num::ParseIntError;
 use std::path::Path;
 
@@ -27,8 +25,8 @@ mod day4 {
     impl Board {
         fn parse_row(line: &str, row: &mut BoardRow) -> Result<(), ParseError> {
             let mut fields = line.split_ascii_whitespace();
-            for j in 0..BOARD_WIDTH {
-                row[j].value = fields
+            for cell in row.iter_mut() {
+                cell.value = fields
                     .next()
                     .ok_or_else(|| ParseError::new(format!("too few values in row: {}", line)))?
                     .parse()?;
@@ -79,11 +77,11 @@ mod day4 {
             Ok(if let Some(line) = lines.next() {
                 let mut rows = [[Cell::default(); BOARD_WIDTH]; BOARD_HEIGHT];
                 Board::parse_row(&line?, &mut rows[0])?;
-                for i in 1..BOARD_HEIGHT {
+                for row in rows.iter_mut().skip(1) {
                     let line = lines
                         .next()
                         .ok_or_else(|| ParseError::new("too few rows"))?;
-                    Board::parse_row(&line?, &mut rows[i])?;
+                    Board::parse_row(&line?, row)?;
                 }
                 Some(Board(rows))
             } else {
