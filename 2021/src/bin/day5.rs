@@ -11,6 +11,7 @@ use std::str::FromStr;
 mod day5 {
     use super::*;
 
+    #[derive(Debug)]
     struct Point {
         x: usize,
         y: usize,
@@ -31,6 +32,7 @@ mod day5 {
         }
     }
 
+    #[derive(Debug)]
     pub struct Segment {
         p1: Point,
         p2: Point,
@@ -67,8 +69,8 @@ mod day5 {
     pub mod part1 {
         use super::*;
 
-        pub fn solve(segments: &[Segment]) -> Result<u64, NoSolution> {
-            Err(todo!())
+        pub fn solve(segments: &[Segment]) -> u32 {
+            todo!()
         }
 
         #[cfg(test)]
@@ -77,7 +79,9 @@ mod day5 {
 
             #[test]
             fn test_solve() {
-                assert_eq!(5, solve(load_segments("tests/day5/sample").unwrap()));
+                let segments = load_segments("tests/day5/sample").unwrap();
+                println!("{:#?}", segments);
+                assert_eq!(5, solve(&segments));
             }
         }
     }
@@ -89,11 +93,5 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    match day5::part1::solve(&segments) {
-        Ok(answer) => println!("{}", answer),
-        Err(err) => {
-            eprintln!("error: {}: {}", input, err);
-            std::process::exit(1);
-        }
-    }
+    println!("{}", day5::part1::solve(&segments));
 }
