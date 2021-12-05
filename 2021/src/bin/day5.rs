@@ -10,7 +10,7 @@ use std::path::Path;
 mod day5 {
     use super::*;
 
-    type Point = (usize, usize);
+    type Point = (isize, isize);
 
     fn parse_point(s: &str) -> Result<Point, ParseError> {
         if let Some((x, y)) = s.split_once(',') {
@@ -24,7 +24,7 @@ mod day5 {
 
     fn parse_segment(s: &str) -> Result<Segment, ParseError> {
         if let Some((p1, p2)) = s.split_once(" -> ") {
-            Ok((parse_point(&p1)?, parse_point(&p2)?))
+            Ok((parse_point(p1)?, parse_point(p2)?))
         } else {
             Err(ParseError::new(format!("bad segment: {}", s)))
         }
@@ -38,26 +38,44 @@ mod day5 {
         Ok(segments)
     }
 
+    pub fn solve(segments: &[Segment]) -> usize {
+        let mut floor: HashMap<(isize, isize), usize> = HashMap::new();
+        for &((x1, y1), (x2, y2)) in segments {
+            let (dx, dy) = ((x2 - x1).signum(), (y2 - y1).signum());
+            let (w, h) = ((x2 - x1).abs() + 1, (y2 - y1).abs() + 1);
+            for i in 0..w.max(h) {
+                let point = (x1 + i * dx, y1 + i * dy);
+                *floor.entry(point).or_default() += 1;
+            }
+        }
+        floor.into_values().filter(|&n| n > 1).count()
+    }
+
+    fn _print_floor(floor: &HashMap<(isize, isize), usize>) {
+        println!();
+        for i in 0..10 {
+            print!("  ");
+            for j in 0..10 {
+                let c = floor
+                    .get(&(i, j))
+                    .map_or('.', |&n| ('0' as usize + n) as u8 as char);
+                print!("{}", c);
+            }
+            println!();
+        }
+        println!();
+    }
+
     pub mod part1 {
         use super::*;
 
-        fn normalize(segment: &Segment) -> Segment {
-            let ((x1, y1), (x2, y2)) = *segment;
-            ((x1.min(x2), y1.min(y2)), (x1.max(x2), y1.max(y2)))
-        }
-
         pub fn solve(segments: &[Segment]) -> usize {
-            let mut floor: HashMap<(usize, usize), usize> = HashMap::new();
-            for ((x1, y1), (x2, y2)) in segments.iter().map(normalize) {
-                if x1 == x2 || y1 == y2 {
-                    for y in y1..=y2 {
-                        for x in x1..=x2 {
-                            *floor.entry((x, y)).or_default() += 1;
-                        }
-                    }
-                }
-            }
-            floor.into_values().filter(|&n| n > 1).count()
+            let segments: Vec<_> = segments
+                .iter()
+                .cloned()
+                .filter(|&((x1, y1), (x2, y2))| x1 == x2 || y1 == y2)
+                .collect();
+            super::solve(&segments)
         }
 
         #[cfg(test)]
@@ -71,6 +89,22 @@ mod day5 {
             }
         }
     }
+
+    pub mod part2 {
+        use super::load_segments;
+        pub use super::solve;
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            #[test]
+            fn test_solve() {
+                let segments = load_segments("tests/day5/sample").unwrap();
+                assert_eq!(12, solve(&segments));
+            }
+        }
+    }
 }
 
 fn main() {
@@ -80,4 +114,5 @@ fn main() {
         std::process::exit(3);
     });
     println!("{}", day5::part1::solve(&segments));
+    println!("{}", day5::part2::solve(&segments));
 }
