@@ -1,11 +1,11 @@
 #![allow(dead_code, unreachable_code, unused_imports, unused_variables)]
 
 use advent2021::{EmptyFile, NoSolution, ParseError};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
 use std::path::Path;
-use std::collections::HashMap;
 
 mod day5 {
     use super::*;
@@ -46,16 +46,18 @@ mod day5 {
             ((x1.min(x2), y1.min(y2)), (x1.max(x2), y1.max(y2)))
         }
 
-        pub fn solve(segments: &[Segment]) -> u32 {
-            let mut floor: HashMap<(usize, usize), u32> = HashMap::new();
+        pub fn solve(segments: &[Segment]) -> usize {
+            let mut floor: HashMap<(usize, usize), usize> = HashMap::new();
             for ((x1, y1), (x2, y2)) in segments.iter().map(normalize) {
-                for y in y1..=y2 {
-                    for x in x1..=x2 {
-                        *floor.entry((x, y)).or_default() += 1;
+                if x1 == x2 || y1 == y2 {
+                    for y in y1..=y2 {
+                        for x in x1..=x2 {
+                            *floor.entry((x, y)).or_default() += 1;
+                        }
                     }
                 }
             }
-            todo!()
+            floor.into_values().filter(|&n| n > 1).count()
         }
 
         #[cfg(test)]
@@ -65,7 +67,6 @@ mod day5 {
             #[test]
             fn test_solve() {
                 let segments = load_segments("tests/day5/sample").unwrap();
-                println!("{:?}", segments);
                 assert_eq!(5, solve(&segments));
             }
         }
