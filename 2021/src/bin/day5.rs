@@ -4,64 +4,36 @@ use advent2021::{EmptyFile, NoSolution, ParseError};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
-use std::num::ParseIntError;
 use std::path::Path;
-use std::str::FromStr;
+use std::collections::HashMap;
 
 mod day5 {
     use super::*;
 
-    #[derive(Debug)]
-    struct Point {
-        x: usize,
-        y: usize,
-    }
+    type Point = (usize, usize);
 
-    impl FromStr for Point {
-        type Err = ParseError;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            if let Some((x, y)) = s.split_once(',') {
-                Ok(Point {
-                    x: x.parse()?,
-                    y: y.parse()?,
-                })
-            } else {
-                Err(ParseError::new(format!("bad point: {}", s)))
-            }
+    fn parse_point(s: &str) -> Result<Point, ParseError> {
+        if let Some((x, y)) = s.split_once(',') {
+            Ok((x.parse()?, y.parse()?))
+        } else {
+            Err(ParseError::new(format!("bad point: {}", s)))
         }
     }
 
-    #[derive(Debug)]
-    pub struct Segment {
-        p1: Point,
-        p2: Point,
-    }
+    type Segment = (Point, Point);
 
-    impl FromStr for Segment {
-        type Err = ParseError;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            if let Some((p1, p2)) = s.split_once(" -> ") {
-                Ok(Segment {
-                    p1: p1.parse()?,
-                    p2: p2.parse()?,
-                })
-            } else {
-                Err(ParseError::new(format!("bad segment: {}", s)))
-            }
+    fn parse_segment(s: &str) -> Result<Segment, ParseError> {
+        if let Some((p1, p2)) = s.split_once(" -> ") {
+            Ok((parse_point(&p1)?, parse_point(&p2)?))
+        } else {
+            Err(ParseError::new(format!("bad segment: {}", s)))
         }
-    }
-
-    struct Floor {
-        counts: Vec<u32>, // number of overlapping vents at each point
-        width: usize,
     }
 
     pub fn load_segments<P: AsRef<Path>>(input: P) -> Result<Vec<Segment>, Box<dyn Error>> {
         let mut segments = Vec::new();
         for line in BufReader::new(File::open(&input)?).lines() {
-            segments.push(line?.parse()?);
+            segments.push(parse_segment(&line?)?);
         }
         Ok(segments)
     }
@@ -69,7 +41,20 @@ mod day5 {
     pub mod part1 {
         use super::*;
 
+        fn normalize(segment: &Segment) -> Segment {
+            let ((x1, y1), (x2, y2)) = *segment;
+            ((x1.min(x2), y1.min(y2)), (x1.max(x2), y1.max(y2)))
+        }
+
         pub fn solve(segments: &[Segment]) -> u32 {
+            let mut floor: HashMap<(usize, usize), u32> = HashMap::new();
+            for ((x1, y1), (x2, y2)) in segments.iter().map(normalize) {
+                for y in y1..=y2 {
+                    for x in x1..=x2 {
+                        *floor.entry((x, y)).or_default() += 1;
+                    }
+                }
+            }
             todo!()
         }
 
@@ -80,7 +65,7 @@ mod day5 {
             #[test]
             fn test_solve() {
                 let segments = load_segments("tests/day5/sample").unwrap();
-                println!("{:#?}", segments);
+                println!("{:?}", segments);
                 assert_eq!(5, solve(&segments));
             }
         }
