@@ -1,6 +1,4 @@
-#![allow(dead_code, unreachable_code, unused_imports, unused_variables)]
-
-use advent2021::{EmptyFile, NoSolution, ParseError};
+use advent2021::ParseError;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
@@ -91,8 +89,7 @@ mod day5 {
     }
 
     pub mod part2 {
-        use super::load_segments;
-        pub use super::solve;
+        pub use super::*;
 
         #[cfg(test)]
         mod tests {
