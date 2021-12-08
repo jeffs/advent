@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use advent2021::ParseError;
 use std::error::Error;
 use std::fs::File;
@@ -14,6 +16,35 @@ mod day8 {
             .split(' ')
             .zip(target)
             .for_each(|(s, t)| *t = s.to_string());
+    }
+
+    /// Returns all 7! = 5040 permutations of signals a..=g.
+    //fn make_permutations() -> Vec<[u8; 7]> {
+    fn make_permutations() -> [[u8; 7]; 5040] {
+        let mut buf = [b'a', b'b', b'c', b'd', b'e', b'f', b'g'];
+        let mut permutations = Vec::new();
+        permutations.reserve_exact(5040);
+        generate(7, &mut buf, &mut permutations);
+        let mut result = [[0; 7]; 5040];
+        permutations
+            .iter()
+            .zip(&mut result)
+            .for_each(|(s, t)| *t = *s);
+        result
+    }
+
+    /// Heap's Algorithm: https://en.wikipedia.org/wiki/Heap's_algorithm
+    fn generate(k: usize, a: &mut [u8; 7], output: &mut Vec<[u8; 7]>) {
+        if k == 1 {
+            output.push(*a);
+        } else {
+            generate(k - 1, a, output);
+            for i in 0..(k - 1) {
+                let j = if k % 2 == 0 { i } else { 0 };
+                a.swap(j, k - 1);
+                generate(k - 1, a, output);
+            }
+        }
     }
 
     #[derive(Debug, Default)]
@@ -57,6 +88,26 @@ mod day8 {
                     _ => false,
                 })
                 .count()
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            #[test]
+            fn test_solve() {
+                assert_eq!(26, solve(&load_entries("tests/day8/sample").unwrap()));
+            }
+        }
+    }
+
+    pub mod part2 {
+        use super::*;
+
+        pub fn solve(_entries: &[Entry]) -> usize {
+            let permutations = make_permutations();
+            println!("{:#?}", permutations);
+            todo!()
         }
 
         #[cfg(test)]
