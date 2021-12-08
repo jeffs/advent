@@ -19,24 +19,17 @@ mod day8 {
     }
 
     /// Returns all 7! = 5040 permutations of signals a..=g.
-    //fn make_permutations() -> Vec<[u8; 7]> {
     fn make_permutations() -> [[u8; 7]; 5040] {
-        let mut buf = [b'a', b'b', b'c', b'd', b'e', b'f', b'g'];
-        let mut permutations = Vec::new();
-        permutations.reserve_exact(5040);
-        generate(7, &mut buf, &mut permutations);
         let mut result = [[0; 7]; 5040];
-        permutations
-            .iter()
-            .zip(&mut result)
-            .for_each(|(s, t)| *t = *s);
+        let mut buffer = [b'a', b'b', b'c', b'd', b'e', b'f', b'g'];
+        generate(7, &mut buffer, &mut result.iter_mut());
         result
     }
 
     /// Heap's Algorithm: https://en.wikipedia.org/wiki/Heap's_algorithm
-    fn generate(k: usize, a: &mut [u8; 7], output: &mut Vec<[u8; 7]>) {
+    fn generate(k: usize, a: &mut [u8; 7], output: &mut std::slice::IterMut<[u8; 7]>) {
         if k == 1 {
-            output.push(*a);
+            *output.next().expect("buffer overrun") = *a;
         } else {
             generate(k - 1, a, output);
             for i in 0..(k - 1) {
@@ -106,7 +99,7 @@ mod day8 {
 
         pub fn solve(_entries: &[Entry]) -> usize {
             let permutations = make_permutations();
-            println!("{:#?}", permutations);
+            println!("{:#?}", permutations.iter().take(4).collect::<Vec<_>>());
             todo!()
         }
 
