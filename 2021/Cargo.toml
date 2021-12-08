@@ -2,4 +2,4 @@
 name = "advent2021"
 version = "0.1.0"
 authors = ["Jeff Schwab <jeff@unbuggy.com>"]
-edition = "2018"
+edition = "2021"
