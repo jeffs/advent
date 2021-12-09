@@ -7,15 +7,18 @@ use std::path::Path;
 mod day9 {
     use super::*;
 
+    type Point = (usize, usize);
+
     struct Neighbors {
-        places: [(usize, usize); 4],
+        places: [Point; 4],
         index: usize,
     }
 
     #[rustfmt::skip]
     impl Neighbors {
-        fn of(heights: &[Vec<u32>], i: usize, j: usize) -> Self {
-            assert!(i < heights.len() && j < heights[0].len());
+        fn of(heights: &[Vec<u32>], p: Point) -> Self {
+            assert!(p.0 < heights.len() && p.1 < heights[0].len());
+            let (i, j) = p;
             let (m, n) = (heights.len(), heights[0].len());
             let (y, x) = (m - 1, n - 1);
             let (mut places, mut index) = ([(0, 0); 4], 4);
@@ -28,19 +31,22 @@ mod day9 {
     }
 
     impl Iterator for Neighbors {
-        type Item = (usize, usize);
+        type Item = Point;
 
         fn next(&mut self) -> Option<Self::Item> {
-            if let Some(&(i, j)) = self.places.get(self.index) {
+            if let Some(&p) = self.places.get(self.index) {
                 self.index += 1;
-                Some((i, j))
+                Some(p)
             } else {
                 None
             }
         }
     }
 
-    pub fn load_heights<P: AsRef<Path>>(input: P) -> Result<Vec<Vec<u32>>, Box<dyn Error>> {
+    pub fn load_heights<P>(input: P) -> Result<Vec<Vec<u32>>, Box<dyn Error>>
+    where
+        P: AsRef<Path>,
+    {
         let mut heights = Vec::new();
         for line in BufReader::new(File::open(&input)?).lines() {
             heights.push(line?.bytes().map(|b| (b - b'0') as u32).collect());
@@ -48,15 +54,15 @@ mod day9 {
         Ok(heights)
     }
 
-    fn is_low_point(heights: &[Vec<u32>], i: usize, j: usize) -> bool {
-        let height = heights[i][j];
-        Neighbors::of(heights, i, j).all(|n| height < heights[n.0][n.1])
+    fn is_low_point(heights: &[Vec<u32>], p: Point) -> bool {
+        let height = heights[p.0][p.1];
+        Neighbors::of(heights, p).all(|q| height < heights[q.0][q.1])
     }
 
-    fn low_points(heights: &[Vec<u32>]) -> impl Iterator<Item = (usize, usize)> + '_ {
+    fn low_points(heights: &[Vec<u32>]) -> impl Iterator<Item = Point> + '_ {
         (0..heights.len())
             .flat_map(|i| (0..heights[i].len()).map(move |j| (i, j)))
-            .filter(|&(i, j)| is_low_point(heights, i, j))
+            .filter(|&p| is_low_point(heights, p))
     }
 
     pub mod part1 {
@@ -73,7 +79,8 @@ mod day9 {
 
             #[test]
             fn test_solve() {
-                assert_eq!(15, solve(&load_heights("tests/day9/sample").unwrap()));
+                let heights = load_heights("tests/day9/sample").unwrap();
+                assert_eq!(15, solve(&heights));
             }
         }
     }
@@ -81,31 +88,31 @@ mod day9 {
     pub mod part2 {
         use super::*;
 
-        fn basin_size(heights: &[Vec<u32>], i: usize, j: usize) -> usize {
-            let mut basin: HashSet<(usize, usize)> = HashSet::new();
-            let mut queue = VecDeque::from([(i, j)]);
-            while let Some((i, j)) = queue.pop_front() {
-                for neighbor in Neighbors::of(heights, i, j) {
-                    let height = heights[neighbor.0][neighbor.1];
-                    if height < 9 && !basin.contains(&neighbor) {
-                        basin.insert(neighbor);
-                        queue.push_back(neighbor);
+        fn basin_size(heights: &[Vec<u32>], p: Point) -> usize {
+            let mut basin: HashSet<Point> = HashSet::new();
+            let mut queue = VecDeque::from([p]);
+            while let Some(p) = queue.pop_front() {
+                for q in Neighbors::of(heights, p) {
+                    let height = heights[q.0][q.1];
+                    if height < 9 && !basin.contains(&q) {
+                        basin.insert(q);
+                        queue.push_back(q);
                     }
                 }
             }
             basin.len()
         }
 
-        pub fn solve_nth(heights: &[Vec<u32>], n: usize) -> usize {
+        pub fn solve_n(heights: &[Vec<u32>], n: usize) -> usize {
             let mut sizes: Vec<_> = low_points(heights)
-                .map(|(i, j)| basin_size(heights, i, j))
+                .map(|p| basin_size(heights, p))
                 .collect();
-            let (smaller, nth, _larger) = sizes.select_nth_unstable_by(n, |a, b| b.cmp(a));
-            smaller.iter().cloned().product::<usize>() * *nth
+            sizes.select_nth_unstable_by(n - 1, |a, b| b.cmp(a));
+            sizes[0..n].iter().product()
         }
 
         pub fn solve(heights: &[Vec<u32>]) -> usize {
-            solve_nth(heights, 2)
+            solve_n(heights, 3)
         }
 
         #[cfg(test)]
@@ -115,7 +122,8 @@ mod day9 {
 
             #[test]
             fn test_solve() {
-                assert_eq!(1134, solve(&load_heights("tests/day9/sample").unwrap()));
+                let got = solve(&load_heights("tests/day9/sample").unwrap());
+                assert_eq!(1134, got);
             }
         }
     }
@@ -127,10 +135,12 @@ mod day9 {
         #[test]
         fn test_is_low_point() {
             let heights = load_heights("tests/day9/sample").unwrap();
+            let lows = [(0, 1), (0, 9), (2, 2), (4, 6)];
             for i in 0..heights.len() {
                 for j in 0..heights[i].len() {
-                    let want = matches!((i, j), (0, 1) | (0, 9) | (2, 2) | (4, 6));
-                    let got = is_low_point(&heights, i, j);
+                    let p = (i, j);
+                    let want = lows.contains(&p);
+                    let got = is_low_point(&heights, p);
                     assert_eq!(want, got);
                 }
             }
