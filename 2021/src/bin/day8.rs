@@ -11,7 +11,6 @@ mod day8 {
 
     fn split_into(source: &str, target: &mut [String]) {
         source
-            .trim()
             .split(' ')
             .zip(target)
             .for_each(|(s, t)| *t = s.to_string());
@@ -29,7 +28,7 @@ mod day8 {
         fn from_str(s: &str) -> Result<Self, Self::Err> {
             let mut entry = Entry::default();
             let (patterns, digits) = s
-                .split_once('|')
+                .split_once(" | ")
                 .ok_or_else(|| ParseError::new(format!("bad entry: {}", s)))?;
             split_into(patterns, &mut entry.patterns);
             split_into(digits, &mut entry.digits);
