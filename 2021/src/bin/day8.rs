@@ -17,28 +17,6 @@ mod day8 {
             .for_each(|(s, t)| *t = s.to_string());
     }
 
-    /// Returns all 7! = 5040 permutations of signal patterns a..=g.
-    fn make_permutations() -> [[u8; 7]; 5040] {
-        let mut result = [[0; 7]; 5040];
-        let mut buffer = [b'a', b'b', b'c', b'd', b'e', b'f', b'g'];
-        generate(7, &mut buffer, &mut result.iter_mut());
-        result
-    }
-
-    /// Heap's Algorithm: https://en.wikipedia.org/wiki/Heap's_algorithm
-    fn generate(k: usize, a: &mut [u8; 7], output: &mut std::slice::IterMut<[u8; 7]>) {
-        if k == 1 {
-            *output.next().expect("buffer overrun") = *a;
-        } else {
-            generate(k - 1, a, output);
-            for i in 0..(k - 1) {
-                let j = if k % 2 == 0 { i } else { 0 };
-                a.swap(j, k - 1);
-                generate(k - 1, a, output);
-            }
-        }
-    }
-
     #[derive(Debug, Default)]
     pub struct Entry {
         patterns: [String; 10],
@@ -96,6 +74,28 @@ mod day8 {
         const PATTERNS: [&str; 10] = [
             "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
         ];
+
+        /// Returns all 7! = 5040 permutations of signal patterns a..=g.
+        fn make_permutations() -> [[u8; 7]; 5040] {
+            let mut result = [[0; 7]; 5040];
+            let mut buffer = [b'a', b'b', b'c', b'd', b'e', b'f', b'g'];
+            generate(7, &mut buffer, &mut result.iter_mut());
+            result
+        }
+
+        /// Heap's Algorithm: https://en.wikipedia.org/wiki/Heap's_algorithm
+        fn generate(k: usize, a: &mut [u8; 7], output: &mut std::slice::IterMut<[u8; 7]>) {
+            if k == 1 {
+                *output.next().expect("buffer overrun") = *a;
+            } else {
+                generate(k - 1, a, output);
+                for i in 0..(k - 1) {
+                    let j = if k % 2 == 0 { i } else { 0 };
+                    a.swap(j, k - 1);
+                    generate(k - 1, a, output);
+                }
+            }
+        }
 
         fn position(pattern: &str) -> Option<i32> {
             PATTERNS
