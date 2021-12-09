@@ -70,10 +70,6 @@ mod day8 {
     pub mod part2 {
         use super::*;
 
-        const PATTERNS: [&str; 10] = [
-            "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
-        ];
-
         /// Returns all 7! = 5040 permutations of signal patterns a..=g.
         fn make_permutations() -> [[u8; 7]; 5040] {
             let mut result = [[0; 7]; 5040];
@@ -96,11 +92,15 @@ mod day8 {
             }
         }
 
+        /// Returns the value represented by the specified signal pattern.
         fn position(pattern: &str) -> Option<i32> {
-            PATTERNS
-                .into_iter()
-                .position(|element| element == pattern)
-                .map(|index| index as i32)
+            [
+                "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg",
+                "abcdfg",
+            ]
+            .into_iter()
+            .position(|element| element == pattern)
+            .map(|index| index as i32)
         }
 
         fn to_key<I: Iterator<Item = u8>>(bytes: I) -> String {
