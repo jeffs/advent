@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use advent2021::{NoSolution, ParseError};
 use std::collections::HashMap;
 use std::error::Error;
@@ -74,13 +72,10 @@ mod day8 {
 
         pub fn solve(entries: &[Entry]) -> usize {
             entries
-                .into_iter()
+                .iter()
                 .flat_map(|entry| entry.digits.iter())
                 .map(|digits| digits.len())
-                .filter(|len| match len {
-                    2 | 4 | 3 | 7 => true,
-                    _ => false,
-                })
+                .filter(|len| matches!(len, 2 | 4 | 3 | 7))
                 .count()
         }
 
@@ -98,7 +93,7 @@ mod day8 {
     pub mod part2 {
         use super::*;
 
-        const PATTERNS: [&'static str; 10] = [
+        const PATTERNS: [&str; 10] = [
             "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
         ];
 
@@ -111,7 +106,7 @@ mod day8 {
 
         fn to_key<I: Iterator<Item = u8>>(bytes: I) -> String {
             let mut bytes: Vec<_> = bytes.collect();
-            bytes.sort();
+            bytes.sort_unstable();
             String::from_utf8_lossy(&bytes).to_string()
         }
 
