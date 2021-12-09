@@ -48,15 +48,9 @@ mod day9 {
         Ok(heights)
     }
 
-    #[rustfmt::skip]
     fn is_low_point(heights: &[Vec<u32>], i: usize, j: usize) -> bool {
-        assert!(i < heights.len() && j < heights[0].len());
-        let (m, n, h) = (heights.len(), heights[0].len(), heights[i][j]);
-        let (y, x) = (m - 1, n - 1);
-        (i == 0 || h < heights[i - 1][j]) &&
-        (i == y || h < heights[i + 1][j]) &&
-        (j == 0 || h < heights[i][j - 1]) &&
-        (j == x || h < heights[i][j + 1])
+        let height = heights[i][j];
+        Neighbors::of(heights, i, j).all(|n| height < heights[n.0][n.1])
     }
 
     fn low_points(heights: &[Vec<u32>]) -> impl Iterator<Item = (usize, usize)> + '_ {
