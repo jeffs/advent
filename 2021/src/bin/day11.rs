@@ -78,12 +78,8 @@ mod day11 {
                 news.clear();
                 news.extend(self.flashpoints().filter(|p| !seen.contains(p)));
             }
-            let mut count = 0;
-            for p in seen {
-                count += 1;
-                self.set(p, 0);
-            }
-            count
+            seen.iter().for_each(|&p| self.set(p, 0));
+            seen.len()
         }
     }
 
