@@ -122,6 +122,30 @@ mod day11 {
         }
     }
 
+    pub mod part2 {
+        use super::*;
+
+        pub fn solve(mut grid: Grid) -> usize {
+            let (m, n) = grid.dim();
+            let mut count = 1;
+            while grid.step() != m * n {
+                count += 1;
+            }
+            count
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            #[test]
+            fn test_solve() {
+                let grid = Grid::from_file("tests/day11/sample10x10").unwrap();
+                assert_eq!(195, solve(grid));
+            }
+        }
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -170,5 +194,6 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{}", day11::part1::solve(grid));
+    println!("{}", day11::part1::solve(grid.clone()));
+    println!("{}", day11::part2::solve(grid));
 }
