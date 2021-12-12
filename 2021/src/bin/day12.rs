@@ -98,9 +98,7 @@ mod day12 {
                     ParseError::new(what)
                 })?;
                 match caves {
-                    (START, END) | (END, START) => {
-                        map.connect(START, END);
-                    }
+                    (START, END) | (END, START) => map.connect(START, END),
                     (START, cave) => map.connect(START, cave),
                     (cave, START) => map.connect(START, cave),
                     (cave, END) => map.connect(cave, END),
@@ -207,12 +205,13 @@ mod day12 {
 
         #[test]
         fn test_cave_map_from_file() {
+            #[rustfmt::skip]
             let want = CaveMap::from_iter([
-                ("A", ["c", "end", "b"].iter()),
-                ("b", ["end", "A", "d"].iter()),
-                ("c", ["A"].iter()),
-                ("d", ["b"].iter()),
-                ("start", ["b", "A"].iter()),
+                (START, ["A", "b"     ].iter()),
+                (  "c", ["A"          ].iter()),
+                (  "d", ["b"          ].iter()),
+                (  "A", ["b", "c", END].iter()),
+                (  "b", ["A", "d", END].iter()),
             ]);
             let got = CaveMap::from_file("tests/day12/sample1").unwrap();
             assert_eq!(want, got);
