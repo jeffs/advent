@@ -53,7 +53,9 @@ mod day12 {
                     .iter()
                     .filter(|next| cave_is_big(next) || (self.can_add_small)(&path, next))
                     .for_each(|next| {
-                        let mut next_path = path.clone();
+                        let mut next_path = Vec::new();
+                        next_path.reserve_exact(path.len() + 1);
+                        next_path.extend(path.iter().cloned());
                         next_path.push(next.clone());
                         self.paths.push(next_path);
                     });
