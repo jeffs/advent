@@ -26,16 +26,16 @@ mod day12 {
 
     pub struct CavePaths<'a> {
         kids: &'a CaveGraph,
-        paths: Vec<CavePath>,
         can_add_small: CanAdd,
+        paths: Vec<CavePath>,
     }
 
     impl CavePaths<'_> {
-        fn from_graph(kids: &CaveGraph, can_add_small: CanAdd) -> CavePaths {
+        fn from_graph(kids: &CaveGraph, start: Cave, can_add_small: CanAdd) -> CavePaths {
             CavePaths {
                 kids,
-                paths: vec![vec![START.to_string()]],
                 can_add_small,
+                paths: vec![vec![start]],
             }
         }
     }
@@ -64,7 +64,7 @@ mod day12 {
         }
     }
 
-    #[derive(Debug)]
+    #[derive(Clone, Debug)]
     #[cfg_attr(test, derive(PartialEq))]
     pub struct CaveMap {
         kids: CaveGraph,
@@ -115,7 +115,11 @@ mod day12 {
         }
 
         pub fn paths(&self, can_add_small: CanAdd) -> CavePaths {
-            CavePaths::from_graph(&self.kids, can_add_small)
+            CavePaths::from_graph(&self.kids, START.to_string(), can_add_small)
+        }
+
+        pub fn paths_from(&self, start: Cave, can_add_small: CanAdd) -> CavePaths {
+            CavePaths::from_graph(&self.kids, start, can_add_small)
         }
     }
 
@@ -185,7 +189,18 @@ mod day12 {
         }
 
         pub fn solve(caves: &CaveMap) -> usize {
-            caves.paths(can_add_small).count()
+            let mut threads = Vec::new();
+            for entrance in &caves.kids[START] {
+                let entrance = entrance.clone();
+                let caves = caves.clone();
+                threads.push(std::thread::spawn(move || {
+                    caves.paths_from(entrance, can_add_small).count()
+                }));
+            }
+            threads
+                .into_iter()
+                .map(|t| t.join().expect("thread panic"))
+                .sum()
         }
 
         #[cfg(test)]
