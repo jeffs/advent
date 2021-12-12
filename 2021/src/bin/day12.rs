@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use advent2021::ParseError;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -14,12 +12,56 @@ mod day12 {
     const END: &str = "end";
 
     type Cave = String;
+    type CavePath = Vec<Cave>;
     type CaveSet = HashSet<Cave>;
+
+    // All edges are mirrored, are except for those from START or to END.
+    type CaveGraph = HashMap<Cave, CaveSet>;
+
+    fn cave_is_big(cave: &str) -> bool {
+        cave.as_bytes()[0].is_ascii_uppercase()
+    }
+
+    pub struct CavePaths<'a> {
+        kids: &'a CaveGraph,
+        paths: Vec<CavePath>,
+    }
+
+    impl CavePaths<'_> {
+        fn from_graph(kids: &CaveGraph) -> CavePaths {
+            CavePaths {
+                kids,
+                paths: vec![vec![START.to_string()]],
+            }
+        }
+    }
+
+    impl Iterator for CavePaths<'_> {
+        type Item = CavePath;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            while let Some(path) = self.paths.pop() {
+                let last = path.last().expect("empty path");
+                if END == last {
+                    return Some(path);
+                }
+                self.kids[last]
+                    .iter()
+                    .filter(|next| cave_is_big(next) || !path.contains(next))
+                    .for_each(|next| {
+                        let mut next_path = path.clone();
+                        next_path.push(next.clone());
+                        self.paths.push(next_path);
+                    });
+            }
+            None
+        }
+    }
 
     #[derive(Debug)]
     #[cfg_attr(test, derive(PartialEq))]
     pub struct CaveMap {
-        kids: HashMap<Cave, CaveSet>,
+        kids: CaveGraph,
     }
 
     impl CaveMap {
@@ -67,6 +109,10 @@ mod day12 {
             }
             Ok(map)
         }
+
+        pub fn paths(&self) -> CavePaths {
+            CavePaths::from_graph(&self.kids)
+        }
     }
 
     // CaveMapLiteralItem probably should be CaveMap::LiteralItem, but generic
@@ -95,8 +141,8 @@ mod day12 {
     pub mod part1 {
         use super::*;
 
-        pub fn solve(_caves: &CaveMap) -> usize {
-            todo!()
+        pub fn solve(caves: &CaveMap) -> usize {
+            caves.paths().count()
         }
 
         #[cfg(test)]
