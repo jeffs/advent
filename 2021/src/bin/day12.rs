@@ -22,23 +22,20 @@ mod day12 {
         cave.as_bytes()[0].is_ascii_uppercase()
     }
 
-    /// Returns the number of non-unique small caves in path.
-    fn count_duplicate_smalls(mut path: CavePath) -> usize {
-        path.retain(|cave| !cave_is_big(cave));
-        let distinct: HashSet<_> = path.iter().collect();
-        path.len() - distinct.len()
-    }
+    type CanAdd = fn(&CavePath, &Cave) -> bool;
 
     pub struct CavePaths<'a> {
         kids: &'a CaveGraph,
         paths: Vec<CavePath>,
+        can_add_small: CanAdd,
     }
 
     impl CavePaths<'_> {
-        fn from_graph(kids: &CaveGraph) -> CavePaths {
+        fn from_graph(kids: &CaveGraph, can_add_small: CanAdd) -> CavePaths {
             CavePaths {
                 kids,
                 paths: vec![vec![START.to_string()]],
+                can_add_small,
             }
         }
     }
@@ -54,7 +51,7 @@ mod day12 {
                 }
                 self.kids[last]
                     .iter()
-                    .filter(|next| cave_is_big(next) || count_duplicate_smalls(path.clone()) < 2)
+                    .filter(|next| cave_is_big(next) || (self.can_add_small)(&path, next))
                     .for_each(|next| {
                         let mut next_path = path.clone();
                         next_path.push(next.clone());
@@ -117,8 +114,8 @@ mod day12 {
             Ok(map)
         }
 
-        pub fn paths(&self) -> CavePaths {
-            CavePaths::from_graph(&self.kids)
+        pub fn paths(&self, can_add_small: CanAdd) -> CavePaths {
+            CavePaths::from_graph(&self.kids, can_add_small)
         }
     }
 
@@ -148,11 +145,12 @@ mod day12 {
     pub mod part1 {
         use super::*;
 
+        fn can_add_small(path: &CavePath, cave: &Cave) -> bool {
+            !path.contains(cave)
+        }
+
         pub fn solve(caves: &CaveMap) -> usize {
-            caves
-                .paths()
-                .filter(|path| count_duplicate_smalls(path.clone()) < 1)
-                .count()
+            caves.paths(can_add_small).count()
         }
 
         #[cfg(test)]
@@ -175,8 +173,19 @@ mod day12 {
     pub mod part2 {
         use super::*;
 
+        fn can_add_small(path: &CavePath, new: &Cave) -> bool {
+            let mut seen = HashSet::new();
+            for old in path.iter().filter(|cave| !cave_is_big(cave)).cloned() {
+                if seen.contains(&old) {
+                    return !path.contains(new);
+                }
+                seen.insert(old);
+            }
+            true
+        }
+
         pub fn solve(caves: &CaveMap) -> usize {
-            caves.paths().count()
+            caves.paths(can_add_small).count()
         }
 
         #[cfg(test)]
