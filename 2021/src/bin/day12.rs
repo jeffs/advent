@@ -12,53 +12,53 @@ mod day12 {
     const END: &str = "end";
 
     type Cave = String;
-    type CavePath = Vec<Cave>;
     type CaveSet = HashSet<Cave>;
 
     // All edges are mirrored, are except for those from START or to END.
     type CaveGraph = HashMap<Cave, CaveSet>;
 
+    type CavePath<'a> = Vec<&'a str>;
+
     fn cave_is_big(cave: &str) -> bool {
         cave.as_bytes()[0].is_ascii_uppercase()
     }
 
-    type CanAdd = fn(&CavePath, &Cave) -> bool;
+    type CanAdd = fn(&CavePath, &str) -> bool;
 
     pub struct CavePaths<'a> {
         kids: &'a CaveGraph,
-        paths: Vec<CavePath>,
+        paths: Vec<CavePath<'a>>,
         can_add_small: CanAdd,
     }
 
-    impl CavePaths<'_> {
-        fn from_graph(kids: &CaveGraph, can_add_small: CanAdd) -> CavePaths {
+    impl<'a> CavePaths<'a> {
+        fn from_graph(kids: &'a CaveGraph, can_add_small: CanAdd) -> CavePaths<'a> {
             CavePaths {
                 kids,
-                paths: vec![vec![START.to_string()]],
+                paths: vec![vec![START]],
                 can_add_small,
             }
         }
     }
 
-    impl Iterator for CavePaths<'_> {
-        type Item = CavePath;
+    impl<'a> Iterator for CavePaths<'a> {
+        type Item = CavePath<'a>;
 
         fn next(&mut self) -> Option<Self::Item> {
             while let Some(path) = self.paths.pop() {
-                let last = path.last().expect("empty path");
+                let last = *path.last().expect("empty path");
                 if END == last {
                     return Some(path);
                 }
-                self.kids[last]
-                    .iter()
-                    .filter(|next| cave_is_big(next) || (self.can_add_small)(&path, next))
-                    .for_each(|next| {
+                for next in &self.kids[last] {
+                    if cave_is_big(next) || (self.can_add_small)(&path, next) {
                         let mut next_path = Vec::new();
                         next_path.reserve_exact(path.len() + 1);
                         next_path.extend(path.iter().cloned());
-                        next_path.push(next.clone());
+                        next_path.push(next);
                         self.paths.push(next_path);
-                    });
+                    }
+                }
             }
             None
         }
@@ -114,7 +114,7 @@ mod day12 {
             Ok(map)
         }
 
-        pub fn paths(&self, can_add_small: CanAdd) -> CavePaths {
+        pub fn paths<'a>(&'a self, can_add_small: CanAdd) -> CavePaths<'a> {
             CavePaths::from_graph(&self.kids, can_add_small)
         }
     }
@@ -145,8 +145,8 @@ mod day12 {
     pub mod part1 {
         use super::*;
 
-        fn can_add_small(path: &CavePath, cave: &Cave) -> bool {
-            !path.contains(cave)
+        fn can_add_small(path: &CavePath, cave: &str) -> bool {
+            !path.contains(&cave)
         }
 
         pub fn solve(caves: &CaveMap) -> usize {
@@ -173,11 +173,11 @@ mod day12 {
     pub mod part2 {
         use super::*;
 
-        fn can_add_small(path: &CavePath, new: &Cave) -> bool {
+        fn can_add_small(path: &CavePath, new: &str) -> bool {
             let mut seen = HashSet::new();
             for old in path.iter().filter(|cave| !cave_is_big(cave)).cloned() {
                 if seen.contains(&old) {
-                    return !path.contains(new);
+                    return !path.contains(&new);
                 }
                 seen.insert(old);
             }
