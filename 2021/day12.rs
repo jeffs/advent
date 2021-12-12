@@ -8,10 +8,13 @@ use std::path::Path;
 mod day12 {
     use super::*;
 
-    type Cave = String;
+    struct Cave {
+        name: String,
+    }
+
     type CaveSet = HashSet<Cave>;
 
-    pub struct CaveMap {
+    struct CaveMap {
         // starts: CaveSet, // entrances to the cave system
         // ends: CaveSet,   // exits from the cave system
         neighbors: HashMap<Cave, CaveSet>,
@@ -29,19 +32,15 @@ mod day12 {
                 ParseError::new(what)
             })?;
             neighbors
-                .entry(left.to_string())
-                .and_modify(|set: &mut CaveSet| {
-                    set.insert(right.to_string());
-                })
-                .or_insert_with(|| CaveSet::from_iter([right.to_string()]));
+                .entry(left)
+                .and_modify(|set: &mut CaveSet| set.insert(right.to_string()))
+                .or_insert_with(|| [right].collect());
         }
         Ok(CaveMap { neighbors })
     }
 
     pub mod part1 {
-        use super::*;
-
-        pub fn solve(_caves: &CaveMap) -> usize {
+        pub fn solve(_caves: &[Vec<u8>]) -> usize {
             todo!()
         }
 
