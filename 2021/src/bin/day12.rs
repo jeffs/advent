@@ -149,12 +149,8 @@ mod day12 {
     pub mod part1 {
         use super::*;
 
-        fn can_add_small(path: &CavePath, cave: &Cave) -> bool {
-            !path.contains(cave)
-        }
-
         pub fn solve(caves: &CaveMap) -> usize {
-            caves.paths(can_add_small).count()
+            caves.paths(|path, cave| !path.contains(cave)).count()
         }
 
         #[cfg(test)]
