@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, BufRead as _, BufReader};
 use std::path::Path;
@@ -5,7 +6,10 @@ use std::path::Path;
 mod day12 {
     use super::*;
 
-    pub fn load_lines<P>(input: P) -> Result<Vec<Vec<u8>>, io::Error>
+    type Cave = String;
+    type Map = HashMap<Cave, HashSet<Cave>>;
+
+    pub fn load_caves<P>(input: P) -> Result<Vec<Vec<u8>>, io::Error>
     where
         P: AsRef<Path>,
     {
@@ -17,19 +21,23 @@ mod day12 {
     }
 
     pub mod part1 {
-        pub fn solve(_lines: &[Vec<u8>]) -> usize {
+        pub fn solve(_caves: &[Vec<u8>]) -> usize {
             todo!()
         }
 
         #[cfg(test)]
         mod tests {
-            use super::super::load_lines;
+            use super::super::load_caves;
             use super::solve;
 
             #[test]
             fn test_solve() {
-                let lines = load_lines("tests/day12/sample").unwrap();
-                assert_eq!(0xDeadBeef, solve(&lines));
+                let wants = [10, 19, 226];
+                for (index, want) in wants.into_iter().enumerate() {
+                    let file = format!("tests/day12/sample{}", index + 1);
+                    let caves = load_caves(file).unwrap();
+                    assert_eq!(want, solve(&caves));
+                }
             }
         }
     }
@@ -37,9 +45,9 @@ mod day12 {
 
 fn main() {
     let input = "tests/day12/input";
-    let lines = day12::load_lines(input).unwrap_or_else(|err| {
+    let caves = day12::load_caves(input).unwrap_or_else(|err| {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{}", day12::part1::solve(&lines));
+    println!("{}", day12::part1::solve(&caves));
 }
