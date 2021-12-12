@@ -22,6 +22,13 @@ mod day12 {
         cave.as_bytes()[0].is_ascii_uppercase()
     }
 
+    /// Returns the number of non-unique small caves in path.
+    fn count_duplicate_smalls(mut path: CavePath) -> usize {
+        path.retain(|cave| !cave_is_big(cave));
+        let distinct: HashSet<_> = path.iter().collect();
+        path.len() - distinct.len()
+    }
+
     pub struct CavePaths<'a> {
         kids: &'a CaveGraph,
         paths: Vec<CavePath>,
@@ -47,7 +54,7 @@ mod day12 {
                 }
                 self.kids[last]
                     .iter()
-                    .filter(|next| cave_is_big(next) || !path.contains(next))
+                    .filter(|next| cave_is_big(next) || count_duplicate_smalls(path.clone()) < 2)
                     .for_each(|next| {
                         let mut next_path = path.clone();
                         next_path.push(next.clone());
@@ -142,7 +149,10 @@ mod day12 {
         use super::*;
 
         pub fn solve(caves: &CaveMap) -> usize {
-            caves.paths().count()
+            caves
+                .paths()
+                .filter(|path| count_duplicate_smalls(path.clone()) < 1)
+                .count()
         }
 
         #[cfg(test)]
@@ -158,6 +168,26 @@ mod day12 {
                     let caves = CaveMap::from_file(sample).unwrap();
                     assert_eq!(want, solve(&caves));
                 }
+            }
+        }
+    }
+
+    pub mod part2 {
+        use super::*;
+
+        pub fn solve(caves: &CaveMap) -> usize {
+            caves.paths().count()
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::super::CaveMap;
+            use super::solve;
+
+            #[test]
+            fn test_solve() {
+                let caves = CaveMap::from_file("tests/day12/sample1").unwrap();
+                assert_eq!(36, solve(&caves));
             }
         }
     }
@@ -188,4 +218,5 @@ fn main() {
         std::process::exit(3);
     });
     println!("{}", day12::part1::solve(&caves));
+    println!("{}", day12::part2::solve(&caves));
 }
