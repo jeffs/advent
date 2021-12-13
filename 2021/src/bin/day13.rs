@@ -8,9 +8,12 @@ use std::str::FromStr;
 mod day13 {
     use super::*;
 
+    type Point = (usize, usize); // (x, y)
+
+    #[derive(Clone, Copy)]
     enum Fold {
-        X(usize),
-        Y(usize),
+        X(usize),   // fold left
+        Y(usize),   // fold up
     }
 
     impl FromStr for Fold {
@@ -34,7 +37,44 @@ mod day13 {
     }
 
     pub struct Page {
-        points: HashSet<(usize, usize)>,
+        points: HashSet<Point>,
+    }
+
+    impl Page {
+        fn fold_left(&mut self, vertical: usize) {
+            let olds: Vec<_> = self
+                .points
+                .iter()
+                .cloned()
+                .filter(|&(x, _)| x > vertical)
+                .collect();
+            for old @ (x, y) in olds {
+                let new = (vertical - (x - vertical), y);
+                self.points.insert(new);
+                self.points.remove(&old);
+            }
+        }
+
+        fn fold_up(&mut self, horizontal: usize) {
+            let olds: Vec<_> = self
+                .points
+                .iter()
+                .cloned()
+                .filter(|&(_, y)| y > horizontal)
+                .collect();
+            for old @ (x, y) in olds {
+                let new = (x, horizontal - (y - horizontal));
+                self.points.insert(new);
+                self.points.remove(&old);
+            }
+        }
+
+        fn fold(&mut self, fold: Fold) {
+            match fold {
+                Fold::X(index) => self.fold_left(index),
+                Fold::Y(index) => self.fold_up(index),
+            }
+        }
     }
 
     pub struct Puzzle {
@@ -93,7 +133,9 @@ mod day13 {
     pub mod part1 {
         use super::*;
 
-        pub fn solve(puzzle: &Puzzle) -> usize {
+        pub fn solve(mut puzzle: Puzzle) -> usize {
+            let first = *puzzle.folds.first().expect("missing fold");
+            puzzle.page.fold(first);
             puzzle.page.points.len()
         }
 
@@ -104,8 +146,8 @@ mod day13 {
 
             #[test]
             fn test_solve() {
-                let lines = load_puzzle("tests/day13/sample").unwrap();
-                assert_eq!(17, solve(&lines));
+                let puzzle = load_puzzle("tests/day13/sample").unwrap();
+                assert_eq!(17, solve(puzzle));
             }
         }
     }
@@ -117,5 +159,5 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{}", day13::part1::solve(&puzzle));
+    println!("{}", day13::part1::solve(puzzle));
 }
