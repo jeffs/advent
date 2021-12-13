@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter, Result};
+use std::io;
 use std::num::ParseIntError;
 use std::path::Path;
 
@@ -47,6 +48,12 @@ impl Error for ParseError {}
 
 impl From<ParseIntError> for ParseError {
     fn from(err: ParseIntError) -> Self {
+        Self::new(err.to_string())
+    }
+}
+
+impl From<io::Error> for ParseError {
+    fn from(err: io::Error) -> Self {
         Self::new(err.to_string())
     }
 }
