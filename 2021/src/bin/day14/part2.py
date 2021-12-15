@@ -1,15 +1,4 @@
 import json
-from collections import Counter
-from math import ceil
-
-from day14 import polymerism
-
-
-def solve(chain, rules, n):
-    for i in range(n):
-        chain = polymerism.insert(chain, rules)
-    counts = Counter(chain)
-    return max(counts.values()) - min(counts.values())
 
 
 def upsert(counts, key, count):
@@ -40,14 +29,14 @@ def dumps(counts):
     return json.dumps(items)
 
 
-def solve2(chain, rules, n):
+def solve(chain, rules, n):
     counts = count_pairs(chain)
     for i in range(n):
         counts = update(counts, rules)
 
-    c_counts = { }
+    c_counts = {}
     for (k, v) in counts.items():
         upsert(c_counts, k[0], v)
-        upsert(c_counts, k[1], v)
+    c_counts[chain[-1]] += 1
 
-    return ceil((max(c_counts.values()) - min(c_counts.values())) / 2)
+    return max(c_counts.values()) - min(c_counts.values())
