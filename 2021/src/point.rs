@@ -9,8 +9,8 @@ pub struct CardinalNeighbors {
 impl CardinalNeighbors {
     pub fn of<T>(grid: &[Vec<T>], p: Point) -> Self {
         assert!(p.0 < grid.len() && p.1 < grid[0].len());
-        let (i, j) = p;
         let (m, n) = (grid.len(), grid[0].len());
+        let (i, j) = p;
         let (y, x) = (m - 1, n - 1);
         let (mut places, mut index) = ([(0, 0); 4], 4);
         if j > 0 { index -= 1; places[index] = (i, j - 1); } // West
@@ -34,3 +34,14 @@ impl Iterator for CardinalNeighbors {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_01() {
+        let grid = [vec![0; 2], vec![0, 2]];
+        let neighbors: Vec<_> = CardinalNeighbors::of(&grid, (0, 1)).collect();
+        assert_eq!(vec![(1, 1), (0, 0)], neighbors);
+    }
+}

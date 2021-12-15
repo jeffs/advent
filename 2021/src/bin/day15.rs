@@ -1,4 +1,6 @@
-use advent2021::ParseError;
+#![allow(dead_code, unused_imports, unused_variables)]
+
+use advent2021::{CardinalNeighbors as Neighbors, ParseError, Point};
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
@@ -8,6 +10,32 @@ mod day15 {
     use super::*;
 
     type Cave = Vec<Vec<u8>>;
+
+    trait At {
+        fn at(&self, p: Point) -> usize;
+    }
+
+    trait Set {
+        fn set(&mut self, p: Point, x: usize);
+    }
+
+    impl At for Cave {
+        fn at(&self, p: Point) -> usize {
+            self[p.0][p.1] as usize
+        }
+    }
+
+    impl At for Vec<Vec<usize>> {
+        fn at(&self, p: Point) -> usize {
+            self[p.0][p.1]
+        }
+    }
+
+    impl Set for Vec<Vec<usize>> {
+        fn set(&mut self, p: Point, x: usize) {
+            self[p.0][p.1] = x;
+        }
+    }
 
     pub fn load_cave<P>(input: P) -> Result<Cave, ParseError>
     where
@@ -23,58 +51,40 @@ mod day15 {
     pub mod part1 {
         use super::*;
 
-        type Point = (usize, usize); // i, j
-
-        fn neighbors(cave: &Cave, start: Point) -> Vec<Point> {
-            let rows = (1.max(start.0) - 1)..cave.len().min(start.0 + 2);
-            rows.flat_map(|i| {
-                let columns = (1.max(start.1) - 1)..cave[i].len().min(start.1 + 2);
-                columns.map(move |j| (i, j))
-            })
-            .collect()
-        }
-
         type CavePath = Vec<Point>;
 
-        fn path_cost(cave: &Cave, path: &CavePath) -> usize {
-            path.iter().skip(1).map(|&(i, j)| cave[i][j] as usize).sum()
+        fn all_points(cave: &Cave) -> impl Iterator<Item = Point> + 'static {
+            let (m, n) = (cave.len(), cave[0].len());
+            (0..m).flat_map(move |i| (0..n).map(move |j| (i, j)))
         }
 
-        fn recur(cave: &Cave, path: &mut CavePath, here: Point, mut best: usize) -> Vec<CavePath> {
-            let mut paths = Vec::new();
-            path.push(here);
-            if here == (cave.len() - 1, cave[cave.len() - 1].len() - 1) {
-                // We've reached our goal, the bottom right corner.
-                paths.push(path.clone());
-            } else {
-                let cost = path_cost(cave, path);
-                let mut kids = neighbors(cave, here);
-                kids.retain(|p| !path.contains(p)); // avoid cycles
-                kids.retain(|&(i, j)| cost + (cave[i][j] as usize) < best); // prune expensive paths
-                for kid in kids {
-                    let news = recur(cave, path, kid, best);
-                    best = news
-                        .iter()
-                        .map(|new| path_cost(cave, new))
-                        .min()
-                        .unwrap_or(best);
-                    paths.extend(news.into_iter());
+        fn dijkstra(cave: &Cave, start: Point, end: Point) -> usize {
+            let (m, n) = (cave.len(), cave[0].len());
+            let mut unvisited: HashSet<_> = all_points(cave).collect();
+            let mut dist = vec![vec![usize::MAX; n]; m];
+            dist.set(start, 0);
+            let mut p = start; // current node
+            while p != end {
+                for q in Neighbors::of(cave, p).filter(|q| unvisited.contains(q)) {
+                    let d = dist.at(p) + cave.at(q);
+                    if d < dist.at(q) {
+                        dist.set(q, d);
+                    }
                 }
+                unvisited.remove(&p);
+                p = all_points(cave)
+                    .filter(|q| unvisited.contains(q))
+                    .min_by_key(|&q| dist.at(q))
+                    .expect("end is unreachable from start");
             }
-            path.pop();
-            paths
+
+            dist.at(end)
         }
 
         pub fn solve(cave: &Cave) -> usize {
-            let paths = recur(&cave, &mut Vec::new(), (0, 0), usize::MAX);
-            let distinct: HashSet<_> = paths.iter().collect();
-            assert_eq!(distinct.len(), paths.len());
-            let path = paths
-                .into_iter()
-                .min_by_key(|path| path_cost(cave, &path))
-                .expect("no solution");
-            println!("{:?}", path);
-            path_cost(cave, &path)
+            let (m, n) = (cave.len(), cave[0].len());
+            let start = (0, 0);
+            dijkstra(cave, start, (m - 1, n - 1))
         }
 
         #[cfg(test)]
@@ -84,7 +94,7 @@ mod day15 {
 
             #[test]
             fn test_solve_tiny() {
-                [(2, 4), (3, 14)].into_iter().for_each(|(size, want)| {
+                [(2, 6), (3, 20)].into_iter().for_each(|(size, want)| {
                     let file = format!("tests/day15/tiny{}", size);
                     let cave = load_cave(file).unwrap();
                     assert_eq!(want, solve(&cave));
