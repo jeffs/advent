@@ -26,39 +26,55 @@ mod day15 {
         type Point = (usize, usize); // i, j
 
         fn neighbors(cave: &Cave, start: Point) -> Vec<Point> {
-            let rows = (1.max(start.0) - 1)..cave.len().min(start.1 + 2);
+            let rows = (1.max(start.0) - 1)..cave.len().min(start.0 + 2);
             rows.flat_map(|i| {
                 let columns = (1.max(start.1) - 1)..cave[i].len().min(start.1 + 2);
                 columns.map(move |j| (i, j))
             })
-            //.filter(|(i, j)| (0..cave.len()).contains(i) && (0..cave[i].len()).contains(j))
             .collect()
         }
 
-        fn recur(cave: &Cave, start: Point, seen: &mut HashSet<Point>) -> Option<usize> {
-            assert!(!seen.contains(&start));
-            // let indent = " ".repeat(seen.len());
-            // println!("{} ({}, {})", indent, start.0, start.1);
-            let end = (cave.len() - 1, cave[cave.len() - 1].len() - 1);
-            if start == end {
-                println!("{:?}", seen);
-                Some(0)
+        type CavePath = Vec<Point>;
+
+        fn path_cost(cave: &Cave, path: &CavePath) -> usize {
+            path.iter().skip(1).map(|&(i, j)| cave[i][j] as usize).sum()
+        }
+
+        fn recur(cave: &Cave, path: &mut CavePath, here: Point, mut best: usize) -> Vec<CavePath> {
+            let mut paths = Vec::new();
+            path.push(here);
+            if here == (cave.len() - 1, cave[cave.len() - 1].len() - 1) {
+                // We've reached our goal, the bottom right corner.
+                paths.push(path.clone());
             } else {
-                seen.insert(start);
-                let mut kids = neighbors(cave, start);
-                kids.retain(|p| !seen.contains(p));
-                let result = kids
-                    .into_iter()
-                    .filter_map(|p| recur(cave, p, seen).map(|d| d + cave[p.0][p.1] as usize))
-                    .min();
-                seen.remove(&start);
-                result
+                let cost = path_cost(cave, path);
+                let mut kids = neighbors(cave, here);
+                kids.retain(|p| !path.contains(p)); // avoid cycles
+                kids.retain(|&(i, j)| cost + (cave[i][j] as usize) < best); // prune expensive paths
+                for kid in kids {
+                    let news = recur(cave, path, kid, best);
+                    best = news
+                        .iter()
+                        .map(|new| path_cost(cave, new))
+                        .min()
+                        .unwrap_or(best);
+                    paths.extend(news.into_iter());
+                }
             }
+            path.pop();
+            paths
         }
 
         pub fn solve(cave: &Cave) -> usize {
-            let mut seen = HashSet::new();
-            recur(&cave, (0, 0), &mut seen).expect("no solution")
+            let paths = recur(&cave, &mut Vec::new(), (0, 0), usize::MAX);
+            let distinct: HashSet<_> = paths.iter().collect();
+            assert_eq!(distinct.len(), paths.len());
+            let path = paths
+                .into_iter()
+                .min_by_key(|path| path_cost(cave, &path))
+                .expect("no solution");
+            println!("{:?}", path);
+            path_cost(cave, &path)
         }
 
         #[cfg(test)]
@@ -68,19 +84,18 @@ mod day15 {
 
             #[test]
             fn test_solve_tiny() {
-                //[(2, 4), (3, 14)].into_iter().for_each(|(size, want)| {
-                [(3, 14)].into_iter().for_each(|(size, want)| {
+                [(2, 4), (3, 14)].into_iter().for_each(|(size, want)| {
                     let file = format!("tests/day15/tiny{}", size);
                     let cave = load_cave(file).unwrap();
                     assert_eq!(want, solve(&cave));
                 });
             }
 
-            // #[test]
-            // fn test_solve() {
-            //     let cave = load_cave("tests/day15/sample").unwrap();
-            //     assert_eq!(40, solve(&cave));
-            // }
+            #[test]
+            fn test_solve() {
+                let cave = load_cave("tests/day15/sample").unwrap();
+                assert_eq!(40, solve(&cave));
+            }
         }
     }
 }
