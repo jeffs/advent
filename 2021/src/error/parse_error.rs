@@ -4,7 +4,7 @@ use std::io;
 use std::num::ParseIntError;
 use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ParseError {
     what: String,
 }
