@@ -39,7 +39,7 @@ mod day_nn {
             use super::super::load_puzzle;
             use super::solve;
 
-            #[test]
+            //#[test]
             fn test_solve() {
                 let puzzle = load_puzzle("tests/day_nn/sample").unwrap();
                 assert_eq!(17, solve(&puzzle));
