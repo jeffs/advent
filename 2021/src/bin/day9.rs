@@ -1,3 +1,4 @@
+use advent2021::{CardinalNeighbors as Neighbors, Point};
 use std::collections::{HashSet, VecDeque};
 use std::error::Error;
 use std::fs::File;
@@ -6,42 +7,6 @@ use std::path::Path;
 
 mod day9 {
     use super::*;
-
-    type Point = (usize, usize);
-
-    struct Neighbors {
-        places: [Point; 4],
-        index: usize,
-    }
-
-    #[rustfmt::skip]
-    impl Neighbors {
-        fn of(heights: &[Vec<u32>], p: Point) -> Self {
-            assert!(p.0 < heights.len() && p.1 < heights[0].len());
-            let (i, j) = p;
-            let (m, n) = (heights.len(), heights[0].len());
-            let (y, x) = (m - 1, n - 1);
-            let (mut places, mut index) = ([(0, 0); 4], 4);
-            if j > 0 { index -= 1; places[index] = (i, j - 1); } // West
-            if i < y { index -= 1; places[index] = (i + 1, j); } // South
-            if j < x { index -= 1; places[index] = (i, j + 1); } // East
-            if i > 0 { index -= 1; places[index] = (i - 1, j); } // North
-            Neighbors { places, index }
-        }
-    }
-
-    impl Iterator for Neighbors {
-        type Item = Point;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            if let Some(&p) = self.places.get(self.index) {
-                self.index += 1;
-                Some(p)
-            } else {
-                None
-            }
-        }
-    }
 
     pub fn load_heights<P>(input: P) -> Result<Vec<Vec<u32>>, Box<dyn Error>>
     where
