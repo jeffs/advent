@@ -86,13 +86,12 @@ pub mod part1 {
 }
 
 pub mod part2 {
-    use super::*;
-
     pub use super::solve;
 
     #[cfg(test)]
     mod tests {
-        use super::*;
+        use super::super::load_segments;
+        use super::solve;
 
         #[test]
         fn test_solve() {

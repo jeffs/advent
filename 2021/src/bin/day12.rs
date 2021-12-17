@@ -1,3 +1,5 @@
+#![allow(clippy::ptr_arg)]
+
 use advent2021::ParseError;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;

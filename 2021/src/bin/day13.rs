@@ -110,7 +110,7 @@ where
     I: Iterator<Item = Result<String, E>>,
 {
     let mut points = HashSet::new();
-    while let Some(line) = lines.next() {
+    for line in lines {
         let line = line.map_err(|e| e.into())?;
         if line.is_empty() {
             break;
@@ -130,7 +130,7 @@ where
 {
     const FOLD_PREFIX: &str = "fold along ";
     let mut folds = Vec::new();
-    while let Some(line) = lines.next() {
+    for line in lines {
         let line = line.map_err(|e| e.into())?;
         if !line.starts_with(FOLD_PREFIX) {
             let what = format!("expected fold; got: {}", line);
