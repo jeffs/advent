@@ -11,40 +11,41 @@ pub struct Puzzle {
     numbers: Vec<i32>,
 }
 
-fn load_puzzle<P>(input: P) -> Result<Puzzle, ParseError>
-where
-    P: AsRef<Path>,
-{
-    let mut numbers = Vec::new();
-    for line in BufReader::new(File::open(input)?).lines() {
-        numbers.push(line?.parse()?);
+impl Puzzle {
+    fn from_file<P>(input: P) -> Result<Puzzle, ParseError>
+    where
+        P: AsRef<Path>,
+    {
+        let mut numbers = Vec::new();
+        for line in BufReader::new(File::open(input)?).lines() {
+            numbers.push(line?.parse()?);
+        }
+        Ok(Puzzle { numbers })
     }
-    Ok(Puzzle { numbers })
 }
 
 pub mod part1 {
-    use super::*;
+    use super::Puzzle;
 
     pub fn solve(puzzle: &Puzzle) -> i32 {
-        puzzle.numbers.iter().sum()
+        puzzle.numbers.iter().sum() // TODO
     }
 
     #[cfg(test)]
     mod tests {
-        // use super::super::load_puzzle;
-        // use super::solve;
+        // use super::{solve, Puzzle};
 
         // #[test]
         // fn test_solve() {
-        //     let puzzle = load_puzzle("tests/day_nn/sample").unwrap();
-        //     assert_eq!(17, solve(&puzzle));
+        //     let puzzle = load_puzzle("tests/dayN/sample").unwrap();
+        //     assert_eq!(R, solve(&puzzle));
         // }
     }
 }
 
 fn main() {
     let input = "tests/day_nn/input";
-    let puzzle = load_puzzle(input).unwrap_or_else(|err| {
+    let puzzle = Puzzle::from_file(input).unwrap_or_else(|err| {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
