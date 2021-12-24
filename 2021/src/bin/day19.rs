@@ -1,6 +1,7 @@
 #![allow(dead_code, unused_mut, unused_variables)]
 
 use advent2021::ParseError;
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
 use std::ops::{Add, Sub};
@@ -129,54 +130,59 @@ impl Cube {
     }
 
     /// Attempts to identify beacons shared with the specified other cube.
-    fn marry_rotation(&self, cube: &Cube) -> bool {
+    /// Returns a copy of this cube's beacons on success, translated to be
+    /// relative to the other cube's origin, and None on failure.
+    fn marry_rotation(&self, cube: &Cube) -> Option<Vec<Beacon>> {
         self.beacons
             .iter()
             .flat_map(|ours| cube.beacons.iter().map(|theirs| theirs - ours))
-            .any(|offset| self.marry_beacons(cube, offset))
+            .find(|&offset| self.marry_beacons(cube, offset))
+            .map(|offset| self.beacons.iter().cloned().map(|b| b + offset).collect())
     }
 
     /// Attempts to orient this cube to align it with the specified other cube.
     /// The cubes are aligned if, after some rectilinear translation, the two
-    /// contain at least 12 beacons at the same positions.  Returns true on
-    /// success, and false on failure.  Even on failure, does not necessarily
-    /// leave this cube in its original orientation.
-    fn marry(&mut self, cube: &Cube) -> bool {
+    /// contain at least 12 beacons at the same positions.  Returns a copy of
+    /// this cubes's beacons on success, transformed to the other cube's frame
+    /// of reference, and None on failure.  This method may rotate this cube
+    /// (even on failure), but does not translate it.
+    #[rustfmt::skip]
+    fn marry(&mut self, cube: &Cube) -> Option<Vec<Beacon>> {
         // Head up, initially facing north
-        self.marry_rotation(cube)                               //  0 face north
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  1 face west
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  2 face south
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  3 face east
+        self.marry_rotation(cube)                                         //  0 face north
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  1 face west
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  2 face south
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  3 face east
 
             // Head north
-            || (self.fall_left(),  self.marry_rotation(cube)).1 //  4 face east
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  5 face down
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  6 face west
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  7 face up
+            .or_else(|| { self.fall_left();  self.marry_rotation(cube) }) //  4 face east
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  5 face down
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  6 face west
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  7 face up
 
             // Head east
-            || (self.fall_left(),  self.marry_rotation(cube)).1 //  8 face up
-            || (self.turn_left(),  self.marry_rotation(cube)).1 //  9 face south
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 10 face down
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 11 face north
+            .or_else(|| { self.fall_left();  self.marry_rotation(cube) }) //  8 face up
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) //  9 face south
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 10 face down
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 11 face north
 
             // Head down
-            || (self.fall_right(), self.marry_rotation(cube)).1 // 12 face north
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 13 face east
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 14 face south
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 15 face west
+            .or_else(|| { self.fall_right(); self.marry_rotation(cube) }) // 12 face north
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 13 face east
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 14 face south
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 15 face west
 
             // Head south
-            || (self.fall_right(), self.marry_rotation(cube)).1 // 16 face west
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 17 face down
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 18 face east
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 19 face up
+            .or_else(|| { self.fall_right(); self.marry_rotation(cube) }) // 16 face west
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 17 face down
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 18 face east
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 19 face up
 
             // Head west
-            || (self.fall_left(),  self.marry_rotation(cube)).1 // 16 face up
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 17 face north
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 18 face down
-            || (self.turn_left(),  self.marry_rotation(cube)).1 // 19 face south
+            .or_else(|| { self.fall_left();  self.marry_rotation(cube) }) // 16 face up
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 17 face north
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 18 face down
+            .or_else(|| { self.turn_left();  self.marry_rotation(cube) }) // 19 face south
     }
 
     fn fall_left(&mut self) {
@@ -233,6 +239,7 @@ pub mod part1 {
         //  There should be no more disoriented cubes.
         //  Return the number of unique beacons across all cubes.
         let n = cubes.len();
+        let mut beacons = HashSet::new();
         let mut tasks = vec![Orient; n];
         tasks[0] = Visit;
         while let Some(i) = tasks.iter().position(|&t| t == Visit) {
@@ -241,11 +248,14 @@ pub mod part1 {
             // same container at the same time.  Even though we can be sure
             // they're different cubes (since they have different Task values),
             // the Rust compiler sees only two conflicting attempts to borrow
-            // the same container.  Each cube will visited at most once.
+            // the same container.  Each cube is visited at most once.
             let a = cubes[i].clone();
             for j in 0..n {
-                if tasks[j] == Orient && cubes[j].marry(&a) {
-                    tasks[j] = Visit;
+                if tasks[j] == Orient {
+                    if let Some(transformed) = cubes[j].marry(&a) {
+                        beacons.extend(transformed);
+                        tasks[j] = Visit;
+                    }
                 }
             }
             tasks[i] = Retire;
@@ -253,9 +263,8 @@ pub mod part1 {
         if tasks.iter().any(|&t| t == Orient) {
             panic!("not all cubes overlap");
         }
-        // TODO This won't work.  You need to know how many _distinct_ beacons
-        // exist, account for translations to different scanner cubes.
-        cubes.iter().map(|cube| cube.beacons.len()).sum()
+        beacons.extend(cubes[0].beacons.iter());
+        beacons.len()
     }
 
     #[cfg(test)]
@@ -278,16 +287,17 @@ mod tests {
     fn test_marry_rotation() {
         let puzzle = Puzzle::from_file("tests/day19/sample").unwrap();
         let (cube0, cube1) = (&puzzle.cubes[0], &puzzle.cubes[1]);
-        assert!(cube0.marry_rotation(cube0));
-        assert!(!cube0.marry_rotation(cube1));
+        assert!(cube0.marry_rotation(cube0).is_some());
+        assert!(cube0.marry_rotation(cube1).is_none());
     }
 
     #[test]
     fn test_marry() {
         let puzzle = Puzzle::from_file("tests/day19/sample").unwrap();
         let (cube0, cube1) = (&mut puzzle.cubes[0].clone(), &puzzle.cubes[1]);
-        assert!(cube0.marry(&puzzle.cubes[0])); // head up, face north
-        assert!(cube0.marry(cube1)); // head south, face down
+        let orig0 = &puzzle.cubes[0];
+        assert!(cube0.marry(orig0).is_some()); // head up, face north
+        assert!(cube0.marry(cube1).is_some()); // head south, face down
     }
 }
 
