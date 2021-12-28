@@ -1,5 +1,3 @@
-#![allow(dead_code, unused_mut, unused_variables)]
-
 mod beacon;
 mod cube;
 

@@ -36,8 +36,7 @@ impl Cube {
     fn has_min_overlap(&self, beacons: &HashSet<Beacon>) -> bool {
         self.beacons()
             .filter(|b| beacons.contains(b))
-            .skip(MIN_OVERLAP - 1)
-            .next()
+            .nth(MIN_OVERLAP - 1)
             .is_some()
     }
 
