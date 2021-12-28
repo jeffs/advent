@@ -32,7 +32,10 @@ impl Cube {
                 return Err(ParseError::new("expected scanner"));
             }
             let beacons = parse_beacons(lines)?;
-            Ok(Some(Cube { beacons }))
+            Ok(Some(Cube {
+                beacons,
+                scanner: (0, 0, 0),
+            }))
         } else {
             Ok(None)
         }

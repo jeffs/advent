@@ -13,21 +13,24 @@ const MIN_OVERLAP: usize = 12;
 /// The detection cube of a single scanner.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Cube {
-    pub beacons: Vec<Beacon>,
+    beacons: Vec<Beacon>,
+    pub scanner: Offset,
 }
 
 impl Cube {
-    fn beacons(&self) -> impl Iterator<Item = Beacon> + '_ {
+    pub fn beacons(&self) -> impl Iterator<Item = Beacon> + '_ {
         self.beacons.iter().cloned()
     }
 
-    fn from_beacons<I>(beacons: I) -> Cube
-    where
-        I: Iterator<Item = Beacon>,
-    {
-        Cube {
-            beacons: beacons.collect(),
-        }
+    pub fn distance(&self, other: &Cube) -> usize {
+        // As of this writing, i32::abs_diff remains experimental.
+        // https://doc.rust-lang.org/std/primitive.i32.html#method.abs_diff
+        let (x0, y0, z0) = self.scanner;
+        let (x1, y1, z1) = other.scanner;
+        let dx = (x1 - x0).abs() as usize;
+        let dy = (y1 - y0).abs() as usize;
+        let dz = (z1 - z0).abs() as usize;
+        dx + dy + dz
     }
 
     fn has_min_overlap(&self, beacons: &HashSet<Beacon>) -> bool {
@@ -39,7 +42,8 @@ impl Cube {
     }
 
     fn rotations(&self) -> impl Iterator<Item = Cube> {
-        Rotations::of(&self.beacons).map(|beacons: Vec<Beacon>| Cube { beacons })
+        let scanner = self.scanner;
+        Rotations::of(&self.beacons).map(move |beacons: Vec<Beacon>| Cube { beacons, scanner })
     }
 
     /// Returns a transformation of the other cube into this cube's frame of
@@ -64,6 +68,11 @@ impl Cube {
     fn translated(&self, offset: Offset) -> Cube {
         Cube {
             beacons: self.beacons().map(|b| b + offset).collect(),
+            scanner: (
+                self.scanner.0 + offset.0,
+                self.scanner.1 + offset.1,
+                self.scanner.2 + offset.2,
+            ),
         }
     }
 }
@@ -73,7 +82,7 @@ mod tests {
     use super::*;
 
     /// Beacons shared by scanners 0 and 1 in the sample rotations.
-    const TEST_TRANSFORM01_WANT_BEACONS: [Beacon; 12] = [
+    const TEST_TRANSFORM01_WANT_BEACONS: [Beacon; MIN_OVERLAP] = [
         Beacon(-618, -824, -621),
         Beacon(-537, -823, -458),
         Beacon(-447, -329, 318),
@@ -89,7 +98,7 @@ mod tests {
     ];
 
     /// Beacons shared by scanners 1 and 4 in the sample rotations.
-    const TEST_TRANSFORM14_WANT_BEACONS: [Beacon; 12] = [
+    const TEST_TRANSFORM14_WANT_BEACONS: [Beacon; MIN_OVERLAP] = [
         Beacon(459, -707, 401),
         Beacon(-739, -1745, 668),
         Beacon(-485, -357, 347),
@@ -104,7 +113,7 @@ mod tests {
         Beacon(-635, -1737, 486),
     ];
 
-    fn assert_intersection(a: &Cube, b: &Cube, want: [Beacon; 12]) {
+    fn assert_intersection(a: &Cube, b: &Cube, want: [Beacon; MIN_OVERLAP]) {
         let a: HashSet<_> = a.beacons().collect();
         let b: HashSet<_> = b.beacons().collect();
         let want = HashSet::from(want);
@@ -126,6 +135,7 @@ mod tests {
         let cubes = cubes_from_file("tests/day19/sample-rotations").unwrap();
         let runt = Cube {
             beacons: cubes[0].beacons().skip(1).collect(),
+            scanner: (0, 0, 0),
         };
         for i in 0..cubes.len() {
             let got = cubes[i].rotations().find(|cube| cube == &runt);

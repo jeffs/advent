@@ -3,7 +3,6 @@
 mod beacon;
 mod cube;
 
-use beacon::Beacon;
 use cube::{cubes_from_file, Cube};
 use std::collections::HashSet;
 
@@ -21,50 +20,60 @@ impl Log {
         }
     }
 
-    fn progress(&mut self, u: &[&Cube], t: &[Cube], b: &HashSet<Beacon>) {
+    fn progress(&mut self, u: &[&Cube], t: &[Cube]) {
         if self.is_enabled {
-            let [u, t, b] = [u.len(), t.len(), b.len()];
-            eprintln!("{} unconnected, {} transformed, {} beacons", u, t, b);
+            eprintln!("{} unconnected, {} transformed", u.len(), t.len());
         }
     }
 }
 
-pub mod part1 {
+fn count_beacons(cubes: &[Cube]) -> usize {
+    let all_beacons: HashSet<_> = cubes.iter().flat_map(|c| c.beacons()).collect();
+    all_beacons.len()
+}
+
+fn max_scanner_distance(cubes: &[Cube]) -> usize {
+    cubes
+        .iter()
+        .flat_map(|a| cubes.iter().map(|b| a.distance(b)))
+        .max()
+        .expect("no scanners")
+}
+
+pub fn solve(cubes: &[Cube]) -> (usize, usize) {
+    let mut log = Log::new();
+    let mut unconnected = Vec::from_iter(cubes.iter().skip(1));
+    let mut transformed = vec![cubes[0].clone()]; // in scanner 0's frame of reference
+    let mut retired = Vec::new();
+    while let Some(old) = transformed.pop() {
+        let mut still_unconnected = Vec::new();
+        for new in unconnected {
+            if let Some(cube) = old.transform(new) {
+                transformed.push(cube);
+            } else {
+                still_unconnected.push(new);
+            }
+        }
+        unconnected = still_unconnected;
+        retired.push(old);
+        log.progress(&unconnected, &transformed);
+    }
+    if !unconnected.is_empty() {
+        panic!("couldn't connect all cubes");
+    }
+    (count_beacons(&retired), max_scanner_distance(&retired))
+}
+
+#[cfg(test)]
+mod tests {
     use super::*;
 
-    pub fn solve(cubes: &[Cube]) -> usize {
-        let mut log = Log::new();
-        let mut unconnected = Vec::from_iter(cubes.iter().skip(1));
-        let mut transformed = vec![cubes[0].clone()]; // in scanner 0's frame of reference
-        let mut all_beacons = HashSet::new();
-        while let Some(old) = transformed.pop() {
-            let mut still_unconnected = Vec::new();
-            for new in unconnected {
-                if let Some(cube) = old.transform(new) {
-                    transformed.push(cube);
-                } else {
-                    still_unconnected.push(new);
-                }
-            }
-            unconnected = still_unconnected;
-            all_beacons.extend(old.beacons.into_iter());
-            log.progress(&unconnected, &transformed, &all_beacons);
-        }
-        if !unconnected.is_empty() {
-            panic!("couldn't connect all cubes");
-        }
-        all_beacons.len()
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        #[test]
-        fn test_solve() {
-            let cubes = cubes_from_file("tests/day19/sample").unwrap();
-            assert_eq!(79, solve(&cubes));
-        }
+    #[test]
+    fn test_solve() {
+        let cubes = cubes_from_file("tests/day19/sample").unwrap();
+        let (answer1, answer2) = solve(&cubes);
+        assert_eq!(79, answer1);
+        assert_eq!(3621, answer2);
     }
 }
 
@@ -74,5 +83,7 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{}", part1::solve(&cubes));
+    let (answer1, answer2) = solve(&cubes);
+    println!("{}", answer1);
+    println!("{}", answer2);
 }
