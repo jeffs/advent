@@ -1,6 +1,7 @@
 use crate::algorithm::Algorithm;
 use crate::image::Image;
 use advent2021::ParseError;
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Lines};
 use std::path::Path;
@@ -13,13 +14,14 @@ fn load_algo<T: BufRead>(lines: &mut Lines<T>) -> Result<Algorithm, ParseError> 
 }
 
 fn load_image<T: BufRead>(lines: &mut Lines<T>) -> Result<Image, io::Error> {
-    let mut image = Image::new();
+    let mut lights = HashSet::new();
     for (i, line) in lines.enumerate() {
         for (j, _) in line?.bytes().enumerate().filter(|&(_, c)| c == b'#') {
-            image.insert((i as i32, j as i32));
+            lights.insert((i as i32, j as i32));
         }
     }
-    Ok(image)
+    let background = false; // dark by default
+    Ok(Image::new(background, lights))
 }
 
 fn skip_blank_line<T: BufRead>(lines: &mut Lines<T>) -> Result<(), ParseError> {

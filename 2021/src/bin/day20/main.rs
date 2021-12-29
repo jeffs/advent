@@ -7,10 +7,11 @@ use crate::puzzle::Puzzle;
 pub mod part1 {
     use super::*;
 
-    pub fn solve(puzzle: &Puzzle) -> usize {
+    pub fn solve(puzzle: &Puzzle) -> Result<usize, &'static str> {
         let algo = &puzzle.algo;
-        let image = algo.enhance(&algo.enhance(&puzzle.image));
-        image.len()
+        let image = algo.enhance(&puzzle.image);
+        let image = algo.enhance(&image);
+        image.count_lights()
     }
 
     #[cfg(test)]
@@ -20,7 +21,7 @@ pub mod part1 {
         #[test]
         fn test_solve() {
             let puzzle = Puzzle::from_file("tests/day20/sample").unwrap();
-            assert_eq!(35, solve(&puzzle));
+            assert_eq!(35, solve(&puzzle).unwrap());
         }
     }
 }
@@ -31,5 +32,11 @@ fn main() {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
     });
-    println!("{}", part1::solve(&puzzle));
+    match part1::solve(&puzzle) {
+        Ok(answer) => println!("{}", answer),
+        Err(err) => {
+            eprintln!("error: {}", err);
+            std::process::exit(1);
+        }
+    }
 }

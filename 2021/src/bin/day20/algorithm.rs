@@ -1,8 +1,7 @@
-#![allow(dead_code)]
-
-use crate::image::{Image, Point};
+use crate::image::Image;
 use advent2021::ParseError;
-use std::collections::HashMap;
+use std::collections::HashSet;
+use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 
 const TABLE_SIZE: usize = 512;
@@ -13,26 +12,39 @@ pub struct Algorithm {
 }
 
 impl Algorithm {
+    #[allow(clippy::identity_op)]
+    #[rustfmt::skip]
     pub fn enhance(&self, old: &Image) -> Image {
-        let mut map: HashMap<Point, u16> = HashMap::new();
-        for (i, j) in old {
-            *map.entry((i - 1, j - 1)).or_default() |= 1 << 0;
-            *map.entry((i - 1, j - 0)).or_default() |= 1 << 1;
-            *map.entry((i - 1, j + 1)).or_default() |= 1 << 2;
-            *map.entry((i - 0, j - 1)).or_default() |= 1 << 3;
-            *map.entry((i - 0, j - 0)).or_default() |= 1 << 4;
-            *map.entry((i - 0, j + 1)).or_default() |= 1 << 5;
-            *map.entry((i + 1, j - 1)).or_default() |= 1 << 6;
-            *map.entry((i + 1, j - 0)).or_default() |= 1 << 7;
-            *map.entry((i + 1, j + 1)).or_default() |= 1 << 8;
-        }
-        let mut new = Image::new();
-        for (k, v) in map {
-            if self.table[v as usize] {
-                new.insert(k);
+        let mut special = HashSet::new();
+        let bg_index = if old.background() { TABLE_SIZE - 1 } else { 0 };
+        let default = self.table[bg_index];
+        for i in (old.min_i() - 1)..(old.max_i() + 2) {
+            for j in (old.min_j() - 1)..(old.max_j() + 2) {
+                let key = (old.at(i - 1, j - 1) as usize) << 8
+                        | (old.at(i - 1, j - 0) as usize) << 7
+                        | (old.at(i - 1, j + 1) as usize) << 6
+                        | (old.at(i - 0, j - 1) as usize) << 5
+                        | (old.at(i - 0, j - 0) as usize) << 4
+                        | (old.at(i - 0, j + 1) as usize) << 3
+                        | (old.at(i + 1, j - 1) as usize) << 2
+                        | (old.at(i + 1, j - 0) as usize) << 1
+                        | (old.at(i + 1, j + 1) as usize) << 0;
+                if self.table[key] != default {
+                    special.insert((i, j));
+                }
             }
         }
-        new
+        Image::new(default, special)
+    }
+}
+
+impl Display for Algorithm {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        for b in self.table {
+            let c = if b { '#' } else { '.' };
+            write!(f, "{}", c)?;
+        }
+        Ok(())
     }
 }
 
