@@ -44,7 +44,7 @@ pub mod part1 {
 }
 
 fn main() {
-    let input = "tests/day_nn/input";
+    let input = "tests/dayN/input";
     let puzzle = Puzzle::from_file(input).unwrap_or_else(|err| {
         eprintln!("error: {}: {}", input, err);
         std::process::exit(3);
