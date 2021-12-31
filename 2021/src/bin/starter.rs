@@ -37,7 +37,7 @@ pub mod part1 {
 
         // #[test]
         // fn test_solve() {
-        //     let puzzle = load_puzzle("tests/dayN/sample").unwrap();
+        //     let puzzle = Puzzle::from_file("tests/dayN/sample").unwrap();
         //     assert_eq!(R, solve(&puzzle));
         // }
     }
