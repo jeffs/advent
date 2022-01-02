@@ -24,6 +24,13 @@ impl FromStr for State {
     }
 }
 
+#[derive(Debug)]
+struct Cuboid {
+    xs: Range<i32>,
+    ys: Range<i32>,
+    zs: Range<i32>,
+}
+
 fn constrain_range(range: &Range<i32>, max: i32) -> Range<i32> {
     range.start.max(-max)..range.end.min(max + 1)
 }
@@ -42,27 +49,27 @@ fn parse_range(s: &str) -> Result<Range<i32>, ParseError> {
 #[derive(Debug)]
 struct Step {
     state: State,
-    x_range: Range<i32>,
-    y_range: Range<i32>,
-    z_range: Range<i32>,
+    cubes: Cuboid,
 }
 
 impl Step {
     fn constrain(&self, max: i32) -> Step {
         Step {
             state: self.state.clone(),
-            x_range: constrain_range(&self.x_range, max),
-            y_range: constrain_range(&self.y_range, max),
-            z_range: constrain_range(&self.z_range, max),
+            cubes: Cuboid {
+                xs: constrain_range(&self.cubes.xs, max),
+                ys: constrain_range(&self.cubes.ys, max),
+                zs: constrain_range(&self.cubes.zs, max),
+            },
         }
     }
 
     fn cubes(&self) -> impl Iterator<Item = (i32, i32, i32)> + '_ {
-        let xs = self.x_range.clone();
+        let xs = self.cubes.xs.clone();
         xs.flat_map(move |x| {
-            let ys = self.y_range.clone();
+            let ys = self.cubes.ys.clone();
             ys.flat_map(move |y| {
-                let zs = self.z_range.clone();
+                let zs = self.cubes.zs.clone();
                 zs.map(move |z| (x, y, z))
             })
         })
@@ -82,9 +89,11 @@ impl FromStr for Step {
         }
         let step = Step {
             state: s[..3].parse()?,
-            x_range: parse_range(ranges[0].trim())?,
-            y_range: parse_range(ranges[1].trim())?,
-            z_range: parse_range(ranges[2].trim())?,
+            cubes: Cuboid {
+                xs: parse_range(ranges[0].trim())?,
+                ys: parse_range(ranges[1].trim())?,
+                zs: parse_range(ranges[2].trim())?,
+            },
         };
         Ok(step)
     }
