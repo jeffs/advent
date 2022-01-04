@@ -18,7 +18,7 @@ pub fn parse(s: &str) -> Result<Range<i32>, ParseError> {
 
 /// Returns an integer summarizing the relation between new ranges.
 ///
-///     return   new vs old:
+///     return   old vs new:
 ///     value   start     end
 ///     0         -        -   (no overlap)
 ///     1         <        <
@@ -39,8 +39,8 @@ pub fn relation(old: &Range<i32>, new: &Range<i32>) -> usize {
         0 // no overlap
     } else {
         let (s0, e0, s1, e1) = (old.start, old.end, new.start, new.end);
-        let m = 1 + (s1 - s0).signum();
-        let n = 1 + (e1 - e0).signum();
+        let m = 1 + (s0 - s1).signum();
+        let n = 1 + (e0 - e1).signum();
         (m * 3 + n + 1) as usize
     }
 }

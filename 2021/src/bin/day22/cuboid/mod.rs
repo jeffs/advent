@@ -14,27 +14,15 @@ pub struct Cuboid {
 }
 
 impl Cuboid {
-    /// Inclusive
-    fn above(&self, z: i32) -> Cuboid {
-        let zs = z..self.zs.end;
-        Cuboid { zs, ..self.clone() }
-    }
-
-    /// Exclusive
-    fn below(&self, z: i32) -> Cuboid {
-        let zs = self.zs.start..z;
-        Cuboid { zs, ..self.clone() }
-    }
-
     /// Returns boxes representing portions of self not overlapped by that.
-    pub fn receive(self, that: &Cuboid) -> impl Iterator<Item = Cuboid> {
+    pub fn receive(self, new: &Cuboid) -> impl Iterator<Item = Cuboid> {
         #[rustfmt::skip]
-        let Cuboid { xs, ys, zs } = that;
+        let Cuboid { xs, ys, zs } = new;
         let rx = range::relation(&self.xs, xs);
         let ry = range::relation(&self.ys, ys);
         let rz = range::relation(&self.zs, zs);
         let index = rx * 100 + ry + 10 + rz;
-        RECEIVERS[index](self).into_iter()
+        RECEIVERS[index](self, new).into_iter()
     }
 
     pub fn volume(&self) -> usize {
