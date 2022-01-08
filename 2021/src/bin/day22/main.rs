@@ -45,12 +45,12 @@ pub mod part2 {
     pub fn solve(puzzle: &Puzzle) -> usize {
         let mut on: Vec<Cuboid> = Vec::new();
         for step in puzzle.steps.iter() {
+            // Replace each existing cuboid overlapped by the new one (from the
+            // current step) with a set of non-overlapped sub-cuboids.
             on = on
                 .into_iter()
-                .flat_map(|block| block.receive(&step.block))
+                .flat_map(|block| block.minus(&step.block))
                 .collect();
-            // TODO: Replace all existing cuboids overlapped by this one with
-            // sets of non-overlapped subcuboids.
             if let State::On = step.state {
                 on.push(step.block.clone());
             }

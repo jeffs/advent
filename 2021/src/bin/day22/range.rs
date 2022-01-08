@@ -15,32 +15,3 @@ pub fn parse(s: &str) -> Result<Range<i32>, ParseError> {
     let max: i32 = max.parse()?;
     Ok(min.parse()?..(max + 1))
 }
-
-/// Returns an integer summarizing the relation between new ranges.
-///
-///     return   old vs new:
-///     value   start     end
-///     0         -        -   (no overlap)
-///     1         <        <
-///     2         <        =
-///     3         <        >
-///     4         =        <
-///     5         =        =
-///     6         =        >
-///     7         >        <
-///     8         >        =
-///     9         >        >
-///
-/// An enum would arguably be the most Rustic way to represent these ten
-/// distinct possibilities; but upon experimentation, I found the ergonomics of
-/// single-digit integers compellingly better.
-pub fn relation(old: &Range<i32>, new: &Range<i32>) -> usize {
-    if old.start >= new.end || old.end <= new.start {
-        0 // no overlap
-    } else {
-        let (s0, e0, s1, e1) = (old.start, old.end, new.start, new.end);
-        let m = 1 + (s0 - s1).signum();
-        let n = 1 + (e0 - e1).signum();
-        (m * 3 + n + 1) as usize
-    }
-}
