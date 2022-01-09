@@ -53,9 +53,33 @@ impl Cuboid {
     }
 
     pub fn volume(&self) -> usize {
-        let dx = (self.xs.end - self.xs.start) as usize;
-        let dy = (self.ys.end - self.ys.start) as usize;
-        let dz = (self.zs.end - self.zs.start) as usize;
+        let dx = self.xs.clone().count() as usize;
+        let dy = self.ys.clone().count() as usize;
+        let dz = self.zs.clone().count() as usize;
         dx * dy * dz
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const INNER: Cuboid = Cuboid {
+        xs: -100..100,
+        ys: -200..200,
+        zs: -300..300,
+    };
+
+    const OUTER: Cuboid = Cuboid {
+        xs: -101..101,
+        ys: -201..201,
+        zs: -301..301,
+    };
+
+    #[test]
+    fn minus() {
+        assert_eq!(0, INNER.minus(&INNER).count());
+        assert_eq!(0, INNER.minus(&OUTER).count());
+        assert_eq!(6, OUTER.minus(&INNER).count());
     }
 }
