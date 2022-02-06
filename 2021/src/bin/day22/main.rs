@@ -44,7 +44,8 @@ pub mod part2 {
 
     pub fn solve(puzzle: &Puzzle) -> usize {
         let mut on: Vec<Cuboid> = Vec::new();
-        for step in puzzle.steps.iter() {
+        for (i, step) in puzzle.steps.iter().enumerate() {
+            eprintln!("step {:2}/{}", i, puzzle.steps.len());
             // Replace each existing cuboid overlapped by the new one (from the
             // current step) with a set of non-overlapped sub-cuboids.
             on = on
@@ -77,4 +78,5 @@ fn main() {
         std::process::exit(3);
     });
     println!("{}", part1::solve(&puzzle));
+    println!("{}", part2::solve(&puzzle));
 }

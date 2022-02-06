@@ -12,6 +12,8 @@ pub fn parse(s: &str) -> Result<Range<i32>, ParseError> {
     let (min, max) = s[2..]
         .split_once("..")
         .ok_or_else(|| ParseError::new("bad range: expected '..'"))?;
+    let min: i32 = min.parse()?;
     let max: i32 = max.parse()?;
-    Ok(min.parse()?..(max + 1))
+    assert!(min <= max);
+    Ok(min..(max + 1))
 }
