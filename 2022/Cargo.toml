@@ -1,0 +1,6 @@
+[package]
+name = "advent2021"
+version = "0.1.0"
+authors = ["Jeff Schwab <jeff@unbuggy.com>"]
+edition = "2021"
+rust-version = "1.65"
