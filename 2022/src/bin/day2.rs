@@ -2,9 +2,8 @@ use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::exit;
-use std::str::FromStr;
 
 type BoxedError = Box<dyn Error>;
 
@@ -94,37 +93,35 @@ impl Puzzle {
     fn from_path(path: impl Into<PathBuf>) -> Puzzle {
         Puzzle { path: path.into() }
     }
-
-    fn rounds(&self) -> Result<impl Iterator<Item = Result<Round, BoxedError>>, BoxedError> {
-        let file = File::open(&self.path)?;
-        let lines = BufReader::new(file).lines();
-        Ok(lines.map(|res| res?.parse()))
-    }
 }
 
 pub mod part1 {
     use super::*;
 
-    impl FromStr for Round {
-        type Err = BoxedError;
+    fn round_from_str(s: &str) -> Result<Round, BoxedError> {
+        let (byte1, byte2) = to_bytes(s)?;
+        let player1 = Shape::from_player1(byte1)?;
+        let player2 = match byte2 {
+            b'X' => Shape::Rock,
+            b'Y' => Shape::Paper,
+            b'Z' => Shape::Scissors,
+            _ => {
+                return Err(StaticError::boxed("bad Round::player2 value"));
+            }
+        };
+        Ok(Round { player1, player2 })
+    }
 
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            let (byte1, byte2) = to_bytes(s)?;
-            let player1 = Shape::from_player1(byte1)?;
-            let player2 = match byte2 {
-                b'X' => Shape::Rock,
-                b'Y' => Shape::Paper,
-                b'Z' => Shape::Scissors,
-                _ => {
-                    return Err(StaticError::boxed("bad Round::player2 value"));
-                }
-            };
-            Ok(Round { player1, player2 })
-        }
+    fn rounds_from_path(
+        path: &Path,
+    ) -> Result<impl Iterator<Item = Result<Round, BoxedError>>, BoxedError> {
+        let file = File::open(path)?;
+        let lines = BufReader::new(file).lines();
+        Ok(lines.map(|res| round_from_str(&res?)))
     }
 
     pub fn solve(puzzle: Puzzle) -> Result<u64, BoxedError> {
-        let rounds = puzzle.rounds()?;
+        let rounds = rounds_from_path(&puzzle.path)?;
         let scores = rounds.map(|res| res.map(|round| round.score()));
         let mut sum = 0;
         for score in scores {
@@ -140,22 +137,85 @@ pub mod part1 {
         #[test]
         fn test_solve_sample() {
             let puzzle = Puzzle::from_path("tests/day2/sample");
-            let answer = solve(puzzle).expect("part 1: sample should be solvable");
+            let answer = solve(puzzle).expect("sample should be solvable");
             assert_eq!(15, answer);
         }
 
         #[test]
         fn test_solve_input() {
             let puzzle = Puzzle::from_path("tests/day2/input");
-            let answer = solve(puzzle).expect("part 1: input should be solvable");
+            let answer = solve(puzzle).expect("input should be solvable");
             assert_eq!(11767, answer);
+        }
+    }
+}
+
+pub mod part2 {
+    use super::*;
+
+    fn round_from_str(s: &str) -> Result<Round, BoxedError> {
+        let (byte1, byte2) = to_bytes(s)?;
+        let player1 = Shape::from_player1(byte1)?;
+        let player2 = match (player1, byte2) {
+            // Lose
+            (Shape::Rock, b'X') => Shape::Scissors,
+            (Shape::Paper, b'X') => Shape::Rock,
+            (Shape::Scissors, b'X') => Shape::Paper,
+            // Draw
+            (_, b'Y') => player1,
+            // Win
+            // Lose
+            (Shape::Rock, b'Z') => Shape::Paper,
+            (Shape::Paper, b'Z') => Shape::Scissors,
+            (Shape::Scissors, b'Z') => Shape::Rock,
+            _ => {
+                return Err(StaticError::boxed("bad Round::player2 value"));
+            }
+        };
+        Ok(Round { player1, player2 })
+    }
+
+    fn rounds_from_path(
+        path: &Path,
+    ) -> Result<impl Iterator<Item = Result<Round, BoxedError>>, BoxedError> {
+        let file = File::open(path)?;
+        let lines = BufReader::new(file).lines();
+        Ok(lines.map(|res| round_from_str(&res?)))
+    }
+
+    pub fn solve(puzzle: Puzzle) -> Result<u64, BoxedError> {
+        let rounds = rounds_from_path(&puzzle.path)?;
+        let scores = rounds.map(|res| res.map(|round| round.score()));
+        let mut sum = 0;
+        for score in scores {
+            sum += score?;
+        }
+        Ok(sum)
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_solve_sample() {
+            let puzzle = Puzzle::from_path("tests/day2/sample");
+            let answer = solve(puzzle).expect("sample should be solvable");
+            assert_eq!(12, answer);
+        }
+
+        #[test]
+        fn test_solve_input() {
+            let puzzle = Puzzle::from_path("tests/day2/input");
+            let answer = solve(puzzle).expect("input should be solvable");
+            assert_eq!(13886, answer);
         }
     }
 }
 
 fn main() {
     let input = "tests/day2/input";
-    for solve in [part1::solve] {
+    for solve in [part1::solve, part2::solve] {
         let puzzle = Puzzle::from_path(input);
         let answer = solve(puzzle).unwrap_or_else(|err| {
             eprintln!("error: {err}");
