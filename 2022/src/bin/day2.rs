@@ -35,9 +35,32 @@ enum Shape {
 }
 
 impl Shape {
+    fn from_player1(byte: u8) -> Result<Shape, BoxedError> {
+        match byte {
+            b'A' => Ok(Shape::Rock),
+            b'B' => Ok(Shape::Paper),
+            b'C' => Ok(Shape::Scissors),
+            _ => Err(StaticError::boxed("bad Round::player1 value")),
+        }
+    }
+
     fn score(self) -> u64 {
         self as u64 + 1
     }
+}
+
+/// Returns bytes from the specified line representing the moves of both
+/// players.
+fn to_bytes(line: &str) -> Result<(u8, u8), BoxedError> {
+    let bytes = line.as_bytes();
+    if bytes.len() < 3
+        || bytes.len() > 4
+        || (bytes[1] != b' ')
+        || (bytes.len() == 4 && bytes[3] != b'\n')
+    {
+        return Err(StaticError::boxed("bad Round"));
+    }
+    Ok((bytes[0], bytes[2]))
 }
 
 struct Round {
@@ -63,38 +86,6 @@ impl Round {
     }
 }
 
-impl FromStr for Round {
-    type Err = BoxedError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = s.as_bytes();
-        if bytes.len() < 3
-            || bytes.len() > 4
-            || (bytes[1] != b' ')
-            || (bytes.len() == 4 && bytes[3] != b'\n')
-        {
-            return Err(StaticError::boxed("bad Round"));
-        }
-        let player1 = match bytes[0] {
-            b'A' => Shape::Rock,
-            b'B' => Shape::Paper,
-            b'C' => Shape::Scissors,
-            _ => {
-                return Err(StaticError::boxed("bad Round::player1 value"));
-            }
-        };
-        let player2 = match bytes[2] {
-            b'X' => Shape::Rock,
-            b'Y' => Shape::Paper,
-            b'Z' => Shape::Scissors,
-            _ => {
-                return Err(StaticError::boxed("bad Round::player2 value"));
-            }
-        };
-        Ok(Round { player1, player2 })
-    }
-}
-
 pub struct Puzzle {
     path: PathBuf,
 }
@@ -113,6 +104,24 @@ impl Puzzle {
 
 pub mod part1 {
     use super::*;
+
+    impl FromStr for Round {
+        type Err = BoxedError;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            let (byte1, byte2) = to_bytes(s)?;
+            let player1 = Shape::from_player1(byte1)?;
+            let player2 = match byte2 {
+                b'X' => Shape::Rock,
+                b'Y' => Shape::Paper,
+                b'Z' => Shape::Scissors,
+                _ => {
+                    return Err(StaticError::boxed("bad Round::player2 value"));
+                }
+            };
+            Ok(Round { player1, player2 })
+        }
+    }
 
     pub fn solve(puzzle: Puzzle) -> Result<u64, BoxedError> {
         let rounds = puzzle.rounds()?;
