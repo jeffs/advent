@@ -1,30 +1,8 @@
-use std::error::Error;
-use std::fmt;
+use advent2022::{BoxedError, StaticError};
 use std::fs::File;
 use std::io::{BufRead as _, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::exit;
-
-type BoxedError = Box<dyn Error>;
-
-#[derive(Debug)]
-struct StaticError {
-    what: &'static str,
-}
-
-impl StaticError {
-    fn boxed(what: &'static str) -> BoxedError {
-        Box::new(StaticError { what })
-    }
-}
-
-impl fmt::Display for StaticError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.what)
-    }
-}
-
-impl Error for StaticError {}
 
 #[derive(Clone, Copy)]
 enum Shape {

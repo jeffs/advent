@@ -1,10 +1,8 @@
-use std::error::Error;
+use advent2022::BoxedError;
 use std::fs::File;
 use std::io::{BufRead as _, BufReader, Lines};
 use std::path::Path;
 use std::process::exit;
-
-type BoxedError = Box<dyn Error>;
 
 // An iterator over elves' total calorie counts.
 struct Elves {
