@@ -46,4 +46,11 @@ impl Game {
             samples: samples.split(';').filter_map(Sample::parse).collect(),
         }
     }
+
+    pub fn product(&self) -> u32 {
+        let maxes = self.samples.iter().fold((0, 0, 0), |old, new| {
+            (old.0.max(new.0), old.1.max(new.1), old.2.max(new.2))
+        });
+        maxes.0 * maxes.1 * maxes.2
+    }
 }
