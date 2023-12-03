@@ -1,39 +1,39 @@
 #[derive(Debug)]
-struct Match {
+struct Span {
     begin: usize,
     end: usize,
 }
 
-impl Match {
+impl Span {
     fn chars<'a>(&self, row: &'a str) -> impl Iterator<Item = char> + 'a {
         let span = (self.begin.max(1) - 1)..(self.end.min(row.len() - 1) + 1);
         row.chars().take(span.end).skip(span.start)
     }
 }
 
-struct Matches<'a> {
+struct Spans<'a> {
     orig_len: usize,
     rest: &'a str,
 }
 
-impl Matches<'_> {
-    fn from(orig: &str) -> Matches {
-        Matches {
+impl Spans<'_> {
+    fn from(orig: &str) -> Spans {
+        Spans {
             orig_len: orig.len(),
             rest: orig,
         }
     }
 }
 
-impl Iterator for Matches<'_> {
-    type Item = Match;
+impl Iterator for Spans<'_> {
+    type Item = Span;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.rest = self.rest.trim_start_matches(|c: char| !c.is_numeric());
         let begin = self.orig_len - self.rest.len();
         self.rest = self.rest.trim_start_matches(char::is_numeric);
         let end = self.orig_len - self.rest.len();
-        (begin != end).then_some(Match { begin, end })
+        (begin != end).then_some(Span { begin, end })
     }
 }
 
@@ -41,7 +41,7 @@ fn is_symbol(c: char) -> bool {
     c != '.' && !c.is_numeric()
 }
 
-fn matched_value(rows: &[&str], i: usize, m: &Match) -> Option<u32> {
+fn matched_value(rows: &[&str], i: usize, m: &Span) -> Option<u32> {
     // When checking whether adjacent row indexes are in range, we use 1-based
     // indexes to avoid computing k=i-1, since that would cause underflow from
     // the top row (when i=0).
@@ -60,7 +60,7 @@ fn matched_value(rows: &[&str], i: usize, m: &Match) -> Option<u32> {
 
 /// Returns the values of all matches in rows[i] having adjacent symbols.
 fn matched_values<'a>(rows: &'a [&'a str], i: usize) -> impl Iterator<Item = u32> + 'a {
-    Matches::from(rows[i]).filter_map(move |m| matched_value(rows, i, &m))
+    Spans::from(rows[i]).filter_map(move |m| matched_value(rows, i, &m))
 }
 
 pub fn solve(text: &str) -> u32 {
