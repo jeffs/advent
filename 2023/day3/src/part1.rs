@@ -41,32 +41,31 @@ fn is_symbol(c: char) -> bool {
     c != '.' && !c.is_numeric()
 }
 
-pub fn solve(text: &str) -> u32 {
-    // Check each row for matches, then parse and return each match only if it
-    // has an adjacent symbol.  When checking whether adjacent row indexes are
-    // in range, we use 1-based indexes to avoid computing -1 for the "index"
-    // above the top row, since that would cause underflow of the index type
-    // (which is unsigned).
-    let rows: Vec<&str> = text.lines().collect();
-    rows.iter()
-        .enumerate()
-        .flat_map(|(i, row)| {
-            let rows = &rows;
-            Matches::from(row).filter_map(move |match_| {
-                let has_symbol = |&s| match_.chars(s).any(is_symbol);
-                (0..3)
-                    .any(|di| {
-                        let k = i + di; // Index of row to check for symbol, plus one.
-                        (1..rows.len() + 1).contains(&k) && has_symbol(&rows[k - 1])
-                    })
-                    .then(|| {
-                        row[match_.begin..match_.end]
-                            .parse::<u32>()
-                            .expect("matches are base 10 numbers")
-                    })
-            })
+fn matched_value(rows: &[&str], i: usize, m: &Match) -> Option<u32> {
+    // When checking whether adjacent row indexes are in range, we use 1-based
+    // indexes to avoid computing k=i-1, since that would cause underflow from
+    // the top row (when i=0).
+    let has_symbol = |&s| m.chars(s).any(is_symbol);
+    (0..3)
+        .any(|di| {
+            let k = i + di; // Index of row to check for symbol, plus one.
+            (1..rows.len() + 1).contains(&k) && has_symbol(&rows[k - 1])
         })
-        .sum()
+        .then(|| {
+            rows[i][m.begin..m.end]
+                .parse::<u32>()
+                .expect("matches are base 10 numbers")
+        })
+}
+
+/// Returns the values of all matches in rows[i] having adjacent symbols.
+fn matched_values<'a>(rows: &'a [&'a str], i: usize) -> impl Iterator<Item = u32> + 'a {
+    Matches::from(&rows[i]).filter_map(move |m| matched_value(&rows, i, &m))
+}
+
+pub fn solve(text: &str) -> u32 {
+    let rows: Vec<&str> = text.lines().collect();
+    (0..rows.len()).flat_map(|i| matched_values(&rows, i)).sum()
 }
 
 #[cfg(test)]
