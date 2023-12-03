@@ -60,7 +60,7 @@ fn matched_value(rows: &[&str], i: usize, m: &Match) -> Option<u32> {
 
 /// Returns the values of all matches in rows[i] having adjacent symbols.
 fn matched_values<'a>(rows: &'a [&'a str], i: usize) -> impl Iterator<Item = u32> + 'a {
-    Matches::from(&rows[i]).filter_map(move |m| matched_value(&rows, i, &m))
+    Matches::from(rows[i]).filter_map(move |m| matched_value(rows, i, &m))
 }
 
 pub fn solve(text: &str) -> u32 {
