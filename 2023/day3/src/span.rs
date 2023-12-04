@@ -50,25 +50,30 @@ pub fn parse(row: &[u8], span: Range<usize>) -> u32 {
         .expect("number spans are digits")
 }
 
+/// Returns index ranges of all digit sequences in the specified row.
+fn row_spans(row: &[u8]) -> Vec<Range<usize>> {
+    // Loop through all bytes in the row, pushing index ranges (of digit
+    // sequences) into row_spans as we go.  When we're inside a number, start is
+    // Some(j), where j is the index of the first digit in the number.  When
+    // we're not inside a number, start is None.
+    let mut row_spans = Vec::new();
+    let mut start = None;
+    for (i, c) in row.iter().enumerate() {
+        if c.is_ascii_digit() {
+            if start.is_none() {
+                start = Some(i);
+            }
+        } else if let Some(start) = start.take() {
+            row_spans.push(start..i);
+        }
+    }
+    if let Some(start) = start {
+        row_spans.push(start..row.len());
+    }
+    row_spans
+}
+
 /// Returns index ranges of all digit sequences in each row.
 pub fn spans(rows: &[Vec<u8>]) -> Vec<Vec<Range<usize>>> {
-    rows.iter()
-        .map(|row| {
-            let mut row_spans = Vec::new();
-            let mut start = None;
-            for (i, c) in row.iter().enumerate() {
-                if c.is_ascii_digit() {
-                    if start.is_none() {
-                        start = Some(i);
-                    }
-                } else if let Some(start) = start.take() {
-                    row_spans.push(start..i);
-                }
-            }
-            if let Some(start) = start {
-                row_spans.push(start..row.len());
-            }
-            row_spans
-        })
-        .collect()
+    rows.iter().map(|row| row_spans(row)).collect()
 }
