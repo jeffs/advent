@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-/// Returns an index range for each sequence of digits in rows[i].
+/// Returns all (row, column) coordinates adjacent to rows[i][*span].
 pub fn adjacencies(
     rows: &[Vec<u8>],
     i: usize,
@@ -50,6 +50,7 @@ pub fn parse(row: &[u8], span: Range<usize>) -> u32 {
         .expect("number spans are digits")
 }
 
+/// Returns index ranges of all digit sequences in each row.
 pub fn spans(rows: &[Vec<u8>]) -> Vec<Vec<Range<usize>>> {
     rows.iter()
         .map(|row| {
