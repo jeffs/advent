@@ -17,7 +17,7 @@ pub fn solve(text: &str) -> u32 {
 
     // Parse the remaining spans into numbers, and sum them.
     rows.into_iter()
-        .zip(spans.into_iter())
+        .zip(spans)
         .flat_map(|(row, spans)| spans.into_iter().map(move |span| parse(&row, span)))
         .sum()
 }
