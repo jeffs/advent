@@ -1,3 +1,4 @@
 fn main() {
-    println!("Hello, world!");
+    let text = include_str!("input.txt");
+    println!("{}", day5::part1::solve(text));
 }
