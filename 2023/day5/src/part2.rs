@@ -12,6 +12,7 @@ fn parse_seeds(line: &str) -> Vec<i64> {
             let &[start, len] = chunk else {
                 panic!("seed line should have an even number of values");
             };
+            dbg!(start, len);
             start..start + len
         })
         .collect()
@@ -21,9 +22,19 @@ pub fn solve(text: &str) -> i64 {
     let mut paragraphs = text.split("\n\n");
     let seeds = parse_seeds(paragraphs.next().expect("seeds on first line"));
     let maps: Vec<Map> = paragraphs.map(|s| s.parse().expect("map")).collect();
+    let n = seeds.len();
+    let mut last_percent = 0;
     seeds
         .into_iter()
-        .map(|seed| maps.iter().fold(seed, |source, map| map.apply(source)))
+        .enumerate()
+        .map(|(i, seed)| {
+            let percent = i * 100 / n;
+            if percent > last_percent {
+                dbg!(percent);
+                last_percent = percent;
+            }
+            maps.iter().fold(seed, |source, map| map.apply(source))
+        })
         .min()
         .expect("at least one seed")
 }
