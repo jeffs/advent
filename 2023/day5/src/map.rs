@@ -5,13 +5,17 @@ struct MapLine {
     target_delta: i64,
 }
 
+// For part 1.
 impl MapLine {
     fn try_apply(&self, source: i64) -> Option<i64> {
         self.source_range
             .contains(&source)
             .then_some(source + self.target_delta)
     }
+}
 
+// For part 2.
+impl MapLine {
     fn shift(&self, source: Range<i64>) -> Range<i64> {
         source.start + self.target_delta..source.end + self.target_delta
     }
@@ -55,7 +59,7 @@ impl MapLine {
             mapped_sources.extend(new_sources);
             targets.extend(target);
         }
-        (mapped_sources, targets) // TODO: Coalesce?
+        (mapped_sources, targets) // TODO: Coalesce adjacent ranges?
     }
 }
 
@@ -90,6 +94,7 @@ pub struct Map {
     lines: Vec<MapLine>,
 }
 
+// For part 1.
 impl Map {
     pub fn apply(&self, source: i64) -> i64 {
         for line in &self.lines {
@@ -99,7 +104,10 @@ impl Map {
         }
         source
     }
+}
 
+// For part 2.
+impl Map {
     pub fn apply_ranges(&self, mut sources: Vec<Range<i64>>) -> Vec<Range<i64>> {
         let mut targets = Vec::new();
         for line in &self.lines {
