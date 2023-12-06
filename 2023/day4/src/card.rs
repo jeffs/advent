@@ -14,7 +14,7 @@ pub struct Card {
 impl Card {
     pub fn from_line(line: &str) -> Card {
         let (head, body) = line.split_once(':').expect("colon");
-        let (want, got) = body.split_once("|").expect("pipe");
+        let (want, got) = body.split_once('|').expect("pipe");
         let id = head[head.find(char::is_numeric).expect("card ID")..]
             .parse()
             .expect("card ID to be a number");
