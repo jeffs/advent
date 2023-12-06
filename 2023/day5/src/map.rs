@@ -1,8 +1,8 @@
 use std::{ops::Range, str::FromStr};
 
 struct MapLine {
-    target_delta: i64,
     source_range: Range<i64>,
+    target_delta: i64,
 }
 
 impl MapLine {
