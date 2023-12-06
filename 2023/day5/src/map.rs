@@ -9,13 +9,14 @@ impl MapLine {
     fn try_apply(&self, source: i64) -> Option<i64> {
         self.source_range
             .contains(&source)
-            .then(|| source + self.target_delta)
+            .then_some(source + self.target_delta)
     }
 
     fn shift(&self, source: Range<i64>) -> Range<i64> {
         source.start + self.target_delta..source.end + self.target_delta
     }
 
+    #[allow(clippy::single_range_in_vec_init)]
     fn apply_range(&self, source: Range<i64>) -> (Vec<Range<i64>>, Option<Range<i64>>) {
         if source.is_empty() {
             return (Vec::new(), None);
@@ -106,7 +107,7 @@ impl Map {
             sources = new_sources;
             targets.extend(new_targets);
         }
-        targets.extend(sources.into_iter());
+        targets.extend(sources);
         targets
     }
 }
