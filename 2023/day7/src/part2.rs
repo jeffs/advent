@@ -1,6 +1,6 @@
 use std::{convert::Infallible, str::FromStr};
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum HandType {
     HighCard,
     OnePair,
@@ -30,7 +30,7 @@ impl Hand {
         counts.sort();
         counts.reverse();
 
-        match counts {
+        let before_jokers = match counts {
             [5, 0, 0, 0, 0] => HandType::FiveOfAKind,
             [4, 1, 0, 0, 0] => HandType::FourOfAKind,
             [3, 2, 0, 0, 0] => HandType::FullHouse,
@@ -38,6 +38,33 @@ impl Hand {
             [2, 2, 1, 0, 0] => HandType::TwoPair,
             [2, 1, 1, 1, 0] => HandType::OnePair,
             [1, 1, 1, 1, 1] => HandType::HighCard,
+            _ => unreachable!(),
+        };
+
+        let joker_count = self.0.into_iter().filter(|&c| c == 0).count();
+
+        match (before_jokers, joker_count) {
+            (_, 0) => before_jokers,
+
+            (HandType::FiveOfAKind, 5) => HandType::FiveOfAKind,
+
+            (HandType::FourOfAKind, 4) => HandType::FiveOfAKind,
+            (HandType::FourOfAKind, 1) => HandType::FiveOfAKind,
+
+            (HandType::FullHouse, 3) => HandType::FiveOfAKind,
+            (HandType::FullHouse, 2) => HandType::FiveOfAKind,
+
+            (HandType::ThreeOfAKind, 3) => HandType::FourOfAKind,
+            (HandType::ThreeOfAKind, 1) => HandType::FourOfAKind,
+
+            (HandType::TwoPair, 2) => HandType::FourOfAKind,
+            (HandType::TwoPair, 1) => HandType::FullHouse,
+
+            (HandType::OnePair, 2) => HandType::ThreeOfAKind,
+            (HandType::OnePair, 1) => HandType::ThreeOfAKind,
+
+            (HandType::HighCard, 1) => HandType::OnePair,
+
             _ => unreachable!(),
         }
     }
@@ -52,7 +79,7 @@ impl FromStr for Hand {
         let mut hand = [0; 5];
         hand.copy_from_slice(s.as_bytes());
         for card in hand.iter_mut() {
-            *card = b"23456789TJQKA"
+            *card = b"J23456789TQKA"
                 .iter()
                 .position(|c| c == card)
                 .expect("valid card") as u8;
@@ -135,16 +162,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn hand_from_str() {
-        for (cards, want) in [("32T3K", [1, 0, 8, 1, 11]), ("T55J5", [8, 3, 3, 9, 3])] {
-            let hand: Hand = cards.parse().expect("infallible");
-            assert_eq!(hand.0, want);
-        }
-    }
-
-    #[test]
     fn hand_cmp() {
-        let hands: [Hand; 5] = ["32T3K", "KTJJT", "KK677", "T55J5", "QQQJA"]
+        let hands: [Hand; 5] = ["32T3K", "KK677", "T55J5", "QQQJA", "KTJJT"]
             .map(|cards| cards.parse().expect("infallible"));
         for (index, hand) in hands.iter().enumerate() {
             assert_eq!(hand, hand);
@@ -159,9 +178,9 @@ mod tests {
         for (cards, want) in [
             ("32T3K", HandType::OnePair),
             ("KK677", HandType::TwoPair),
-            ("KTJJT", HandType::TwoPair),
-            ("T55J5", HandType::ThreeOfAKind),
-            ("QQQJA", HandType::ThreeOfAKind),
+            ("KTJJT", HandType::FourOfAKind),
+            ("T55J5", HandType::FourOfAKind),
+            ("QQQJA", HandType::FourOfAKind),
         ] {
             let hand: Hand = cards.parse().expect("infallible");
             assert_eq!(hand.hand_type(), want);
@@ -170,6 +189,6 @@ mod tests {
 
     #[test]
     fn sample() {
-        assert_eq!(solve(include_str!("sample.txt")), 6440);
+        assert_eq!(solve(include_str!("sample.txt")), 5905);
     }
 }
