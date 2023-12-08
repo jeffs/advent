@@ -18,7 +18,7 @@ pub fn solve(text: &str) -> usize {
     let map = NodeMap::from_str(text);
     map.nodes
         .iter()
-        .map(|node| &node.name)
+        .map(|node| node.name)
         .filter(|name| name.ends_with('A'))
         .map(|start| map.distance(start, |name| name.ends_with('Z')))
         .filter(|&distance| distance != 0)

@@ -16,43 +16,43 @@ impl Direction {
     }
 }
 
-pub struct Node {
-    pub name: String,
-    left: String,
-    right: String,
+pub struct Node<'a> {
+    pub name: &'a str,
+    left: &'a str,
+    right: &'a str,
 }
 
-impl Node {
+impl Node<'_> {
     pub fn next(&self, direction: Direction) -> &str {
         match direction {
-            Direction::Left => &self.left,
-            Direction::Right => &self.right,
+            Direction::Left => self.left,
+            Direction::Right => self.right,
         }
     }
 }
 
-pub struct NodeMap {
+pub struct NodeMap<'a> {
     directions: Vec<Direction>,
-    pub nodes: Vec<Node>,
-    indexes: HashMap<String, usize>,
+    pub nodes: Vec<Node<'a>>,
+    indexes: HashMap<&'a str, usize>,
 }
 
-impl NodeMap {
+impl NodeMap<'_> {
     pub fn from_str(s: &str) -> NodeMap {
         let (first, rest) = s.split_once("\n\n").expect("the second line to be blank");
         let directions: Vec<Direction> = first.bytes().map(Direction::from_ascii).collect();
         let nodes: Vec<Node> = rest
             .lines()
             .map(|line| Node {
-                name: line[..3].to_string(),
-                left: line[7..10].to_string(),
-                right: line[12..15].to_string(),
+                name: &line[..3],
+                left: &line[7..10],
+                right: &line[12..15],
             })
             .collect();
-        let indexes: HashMap<String, usize> = nodes
+        let indexes: HashMap<&str, usize> = nodes
             .iter()
             .enumerate()
-            .map(|(index, node)| (node.name.clone(), index))
+            .map(|(index, node)| (node.name, index))
             .collect();
         NodeMap {
             directions,
@@ -67,7 +67,7 @@ impl NodeMap {
         let mut index = self.indexes[node];
         for (count, &direction) in self.directions.iter().cycle().enumerate() {
             let node = &self.nodes[index];
-            if is_final(&node.name) {
+            if is_final(node.name) {
                 return count;
             }
             let next = node.next(direction);
