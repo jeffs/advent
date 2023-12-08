@@ -32,9 +32,9 @@ impl Node {
 }
 
 pub struct NodeMap {
-    pub directions: Vec<Direction>,
+    directions: Vec<Direction>,
     pub nodes: Vec<Node>,
-    pub indexes: HashMap<String, usize>,
+    indexes: HashMap<String, usize>,
 }
 
 impl NodeMap {
@@ -59,5 +59,20 @@ impl NodeMap {
             nodes,
             indexes,
         }
+    }
+
+    /// Returns the path length from the specified start node to node for which
+    /// the specified is_final predicate returns true.
+    pub fn distance<F: Fn(&str) -> bool>(&self, node: &str, is_final: F) -> usize {
+        let mut index = self.indexes[node];
+        for (count, &direction) in self.directions.iter().cycle().enumerate() {
+            let node = &self.nodes[index];
+            if is_final(&node.name) {
+                return count;
+            }
+            let next = node.next(direction);
+            index = self.indexes[next];
+        }
+        unreachable!()
     }
 }
