@@ -61,17 +61,16 @@ impl NodeMap<'_> {
         }
     }
 
-    /// Returns the path length from the specified start node to node for which
-    /// the specified is_final predicate returns true.
-    pub fn distance<F: Fn(&str) -> bool>(&self, node: &str, is_final: F) -> usize {
-        let mut index = self.indexes[node];
+    /// Returns the path length from the specified start node to the first node
+    /// for which the specified is_final predicate returns true.
+    pub fn distance<F: Fn(&str) -> bool>(&self, start: &str, is_final: F) -> usize {
+        let mut index = self.indexes[start];
         for (count, &direction) in self.directions.iter().cycle().enumerate() {
             let node = &self.nodes[index];
             if is_final(node.name) {
                 return count;
             }
-            let next = node.next(direction);
-            index = self.indexes[next];
+            index = self.indexes[node.next(direction)];
         }
         unreachable!()
     }
