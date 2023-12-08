@@ -21,7 +21,6 @@ pub fn solve(text: &str) -> usize {
         .map(|node| node.name)
         .filter(|name| name.ends_with('A'))
         .map(|start| map.distance(start, |name| name.ends_with('Z')))
-        .filter(|&distance| distance != 0)
         .fold(1, lcm)
 }
 
