@@ -1,12 +1,11 @@
 use crate::node::NodeMap;
 
 /// Returns the Greatest Common Divisor of a and b.
-fn gcd(a: usize, b: usize) -> usize {
-    if a == 0 {
-        b
-    } else {
-        gcd(b % a, a)
+fn gcd(mut a: usize, mut b: usize) -> usize {
+    while a != 0 {
+        (a, b) = (b % a, a);
     }
+    b
 }
 
 /// Returns the Least Common Multiple of a and b.
