@@ -1,5 +1,18 @@
 pub struct Row(Vec<i32>);
 
+fn all_zeroes(values: &[i32]) -> bool {
+    values.iter().all(|&value| value == 0)
+}
+
+/// Returns the differences between consecutive values, and the last value.
+fn into_deltas(mut values: Vec<i32>) -> (Vec<i32>, Option<i32>) {
+    for index in 1..values.len() {
+        values[index - 1] = values[index] - values[index - 1];
+    }
+    let last = values.pop();
+    (values, last)
+}
+
 impl Row {
     pub fn from_line(line: &str) -> Row {
         Row(line
@@ -15,11 +28,10 @@ impl Row {
 
     pub fn solve(mut self) -> i32 {
         let mut sum = 0;
-        while !self.0.iter().all(|&value| value == 0) {
-            for i in 1..self.0.len() {
-                self.0[i - 1] = self.0[i] - self.0[i - 1];
-            }
-            sum += self.0.pop().expect("loop to end if vec is empty");
+        while !all_zeroes(&self.0) {
+            let last;
+            (self.0, last) = into_deltas(self.0);
+            sum += last.expect("loop to have ended if vec was empty");
         }
         sum
     }
