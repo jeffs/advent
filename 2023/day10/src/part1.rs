@@ -28,7 +28,7 @@ mod tests {
 
     #[test]
     fn sample() {
-        for (text, want) in include_str!("samples.txt").split("\n\n").zip([4, 4, 8, 8]) {
+        for (text, want) in include_str!("sample1.txt").split("\n\n").zip([4, 4, 8, 8]) {
             assert_eq!(solve(text), want);
         }
     }

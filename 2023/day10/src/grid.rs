@@ -22,7 +22,7 @@ impl Grid {
         panic!("expected start tile)")
     }
 
-    fn at(&self, pos: Position) -> Option<Tile> {
+    pub fn at(&self, pos: Position) -> Option<Tile> {
         self.0.get(pos.0).and_then(|row| row.get(pos.1)).cloned()
     }
 
@@ -42,5 +42,13 @@ impl Grid {
                     .is_some_and(|tile| tile.is_open_to(dir.reverse()))
             })
         })
+    }
+
+    pub fn ground_len(&self) -> usize {
+        self.0
+            .iter()
+            .flatten()
+            .filter(|&&tile| tile == Tile::Ground)
+            .count()
     }
 }

@@ -1,6 +1,6 @@
 use crate::direction::Direction;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum Tile {
     Vertical,
