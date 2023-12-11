@@ -19,10 +19,6 @@ impl Tile {
     fn is_empty(&self) -> bool {
         matches!(*self, Tile::Empty)
     }
-
-    fn is_galaxy(&self) -> bool {
-        matches!(*self, Tile::Galaxy)
-    }
 }
 
 pub struct Grid(Vec<Vec<Tile>>);
@@ -77,7 +73,7 @@ impl Grid {
             .collect();
 
         self.enumerate()
-            .filter(move |(_, t)| t.is_galaxy())
+            .filter(move |(_, t)| !t.is_empty())
             .map(move |(Position(i, j), _)| Position(i + row_gaps[i], j + column_gaps[j]))
     }
 
