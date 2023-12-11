@@ -70,7 +70,7 @@ impl Grid {
             .map(|p| (p, self.0[p.0][p.1]))
     }
 
-    fn galaxies(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
+    fn galaxies_with_expansion(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
         let row_offsets = offsets(self.rows(), expansion);
         let column_offsets = offsets(self.columns(), expansion);
         self.enumerate()
@@ -78,8 +78,8 @@ impl Grid {
             .map(move |(Position(i, j), _)| Position(i + row_offsets[i], j + column_offsets[j]))
     }
 
-    pub fn distance(&self, expansion: usize) -> usize {
-        let galaxies: Vec<Position> = self.galaxies(expansion).collect();
+    pub fn distance_with_expansion(&self, expansion: usize) -> usize {
+        let galaxies: Vec<Position> = self.galaxies_with_expansion(expansion).collect();
         galaxies
             .iter()
             .enumerate()
@@ -99,8 +99,8 @@ mod tests {
     #[test]
     fn sample() {
         let grid = Grid::parse(include_str!("sample.txt"));
-        assert_eq!(grid.distance(2), 374);
-        assert_eq!(grid.distance(10), 1030);
-        assert_eq!(grid.distance(100), 8410);
+        assert_eq!(grid.distance_with_expansion(2), 374);
+        assert_eq!(grid.distance_with_expansion(10), 1030);
+        assert_eq!(grid.distance_with_expansion(100), 8410);
     }
 }
