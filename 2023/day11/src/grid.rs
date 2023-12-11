@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display};
 
 #[derive(Clone, Copy)]
-pub struct Position(pub usize, pub usize);
+struct Position(usize, usize);
 
 impl Debug for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -16,7 +16,7 @@ impl Display for Position {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Tile {
+enum Tile {
     Empty,
     Galaxy,
 }
@@ -72,7 +72,7 @@ impl Grid {
             .map(|p| (p, self.0[p.0][p.1]))
     }
 
-    pub fn galaxies(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
+    fn galaxies(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
         // Cumulative expansion
         let row_gaps: Vec<usize> = self
             .0
