@@ -1,7 +1,5 @@
-#[derive(Clone, Copy)]
 struct Position(usize, usize);
 
-#[derive(Clone, Copy)]
 enum Tile {
     Empty,
     Galaxy,
@@ -63,11 +61,11 @@ impl Grid {
         self.0.first().map(|row| row.len()).unwrap_or_default()
     }
 
-    fn enumerate(&self) -> impl Iterator<Item = (Position, Tile)> + '_ {
+    fn enumerate(&self) -> impl Iterator<Item = (Position, &Tile)> + '_ {
         let (h, w) = (self.height(), self.width());
         (0..h)
             .flat_map(move |i| (0..w).map(move |j| Position(i, j)))
-            .map(|p| (p, self.0[p.0][p.1]))
+            .map(|p @ Position(i, j)| (p, &self.0[i][j]))
     }
 
     fn galaxies_with_expansion(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
