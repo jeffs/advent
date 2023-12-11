@@ -1,21 +1,7 @@
-use std::fmt::{Debug, Display};
-
 #[derive(Clone, Copy)]
 struct Position(usize, usize);
 
-impl Debug for Position {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Position({}, {})", self.0, self.1)
-    }
-}
-
-impl Display for Position {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy)]
 enum Tile {
     Empty,
     Galaxy,
@@ -31,14 +17,11 @@ impl Tile {
     }
 
     fn is_empty(&self) -> bool {
-        *self == Tile::Empty
+        matches!(*self, Tile::Empty)
     }
 
-    fn to_ascii(self) -> u8 {
-        match self {
-            Tile::Empty => b'.',
-            Tile::Galaxy => b'#',
-        }
+    fn is_galaxy(&self) -> bool {
+        matches!(*self, Tile::Galaxy)
     }
 }
 
@@ -94,7 +77,7 @@ impl Grid {
             .collect();
 
         self.enumerate()
-            .filter(move |(_, t)| (*t == Tile::Galaxy))
+            .filter(move |(_, t)| t.is_galaxy())
             .map(move |(Position(i, j), _)| Position(i + row_gaps[i], j + column_gaps[j]))
     }
 
@@ -109,18 +92,6 @@ impl Grid {
                     .map(|q| p.0.abs_diff(q.0) + p.1.abs_diff(q.1))
             })
             .sum()
-    }
-}
-
-impl Display for Grid {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in &self.0 {
-            for c in row.iter().cloned().map(Tile::to_ascii) {
-                write!(f, "{}", c as char)?;
-            }
-            writeln!(f)?;
-        }
-        Ok(())
     }
 }
 
