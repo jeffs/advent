@@ -52,8 +52,7 @@ impl Grid {
     }
 
     fn galaxies(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
-        // Cumulative expansion
-        let row_gaps: Vec<usize> = self
+        let row_offsets: Vec<usize> = self
             .0
             .iter()
             .scan(0, |gap, row| {
@@ -63,7 +62,7 @@ impl Grid {
                 Some(*gap)
             })
             .collect();
-        let column_gaps: Vec<usize> = (0..self.width())
+        let column_offsets: Vec<usize> = (0..self.width())
             .scan(0, |gap, j| {
                 if self.0.iter().all(|row| row[j].is_empty()) {
                     *gap = *gap + expansion - 1;
@@ -71,10 +70,9 @@ impl Grid {
                 Some(*gap)
             })
             .collect();
-
         self.enumerate()
             .filter(move |(_, t)| !t.is_empty())
-            .map(move |(Position(i, j), _)| Position(i + row_gaps[i], j + column_gaps[j]))
+            .map(move |(Position(i, j), _)| Position(i + row_offsets[i], j + column_offsets[j]))
     }
 
     pub fn distance(&self, expansion: usize) -> usize {
