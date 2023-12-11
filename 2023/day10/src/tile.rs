@@ -3,12 +3,12 @@ use crate::direction::Direction;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum Tile {
-    Vertical,
-    Horizontal,
-    NorthEast,
-    NorthWest,
-    SouthWest,
-    SouthEast,
+    VerticalPipe,
+    HorizontalPipe,
+    NorthEastBend,
+    NorthWestBend,
+    SouthWestBend,
+    SouthEastBend,
     Ground,
     Start,
 }
@@ -16,16 +16,32 @@ pub enum Tile {
 impl Tile {
     pub fn from_ascii(c: u8) -> Tile {
         match c {
-            b'|' => Tile::Vertical,
-            b'-' => Tile::Horizontal,
-            b'L' => Tile::NorthEast,
-            b'J' => Tile::NorthWest,
-            b'7' => Tile::SouthWest,
-            b'F' => Tile::SouthEast,
+            b'|' => Tile::VerticalPipe,
+            b'-' => Tile::HorizontalPipe,
+            b'L' => Tile::NorthEastBend,
+            b'J' => Tile::NorthWestBend,
+            b'7' => Tile::SouthWestBend,
+            b'F' => Tile::SouthEastBend,
             b'.' => Tile::Ground,
             b'S' => Tile::Start,
             _ => panic!("{}: bad tile", c as char),
         }
+    }
+    pub fn to_ascii(self) -> u8 {
+        match self {
+            Tile::VerticalPipe => b'|',
+            Tile::HorizontalPipe => b'-',
+            Tile::NorthEastBend => b'L',
+            Tile::NorthWestBend => b'J',
+            Tile::SouthWestBend => b'7',
+            Tile::SouthEastBend => b'F',
+            Tile::Ground => b'.',
+            Tile::Start => b'S',
+        }
+    }
+
+    pub fn is_ground(self) -> bool {
+        self == Tile::Ground
     }
 
     pub fn is_open_to(self, dir: Direction) -> bool {
@@ -39,35 +55,35 @@ mod tests {
 
     #[test]
     fn tile_is_open_to() {
-        assert!(Tile::Vertical.is_open_to(Direction::North));
-        assert!(!Tile::Vertical.is_open_to(Direction::East));
-        assert!(Tile::Vertical.is_open_to(Direction::South));
-        assert!(!Tile::Vertical.is_open_to(Direction::West));
+        assert!(Tile::VerticalPipe.is_open_to(Direction::North));
+        assert!(!Tile::VerticalPipe.is_open_to(Direction::East));
+        assert!(Tile::VerticalPipe.is_open_to(Direction::South));
+        assert!(!Tile::VerticalPipe.is_open_to(Direction::West));
 
-        assert!(!Tile::Horizontal.is_open_to(Direction::North));
-        assert!(Tile::Horizontal.is_open_to(Direction::East));
-        assert!(!Tile::Horizontal.is_open_to(Direction::South));
-        assert!(Tile::Horizontal.is_open_to(Direction::West));
+        assert!(!Tile::HorizontalPipe.is_open_to(Direction::North));
+        assert!(Tile::HorizontalPipe.is_open_to(Direction::East));
+        assert!(!Tile::HorizontalPipe.is_open_to(Direction::South));
+        assert!(Tile::HorizontalPipe.is_open_to(Direction::West));
 
-        assert!(Tile::NorthEast.is_open_to(Direction::North));
-        assert!(Tile::NorthEast.is_open_to(Direction::East));
-        assert!(!Tile::NorthEast.is_open_to(Direction::South));
-        assert!(!Tile::NorthEast.is_open_to(Direction::West));
+        assert!(Tile::NorthEastBend.is_open_to(Direction::North));
+        assert!(Tile::NorthEastBend.is_open_to(Direction::East));
+        assert!(!Tile::NorthEastBend.is_open_to(Direction::South));
+        assert!(!Tile::NorthEastBend.is_open_to(Direction::West));
 
-        assert!(Tile::NorthWest.is_open_to(Direction::North));
-        assert!(!Tile::NorthWest.is_open_to(Direction::East));
-        assert!(!Tile::NorthWest.is_open_to(Direction::South));
-        assert!(Tile::NorthWest.is_open_to(Direction::West));
+        assert!(Tile::NorthWestBend.is_open_to(Direction::North));
+        assert!(!Tile::NorthWestBend.is_open_to(Direction::East));
+        assert!(!Tile::NorthWestBend.is_open_to(Direction::South));
+        assert!(Tile::NorthWestBend.is_open_to(Direction::West));
 
-        assert!(!Tile::SouthWest.is_open_to(Direction::North));
-        assert!(!Tile::SouthWest.is_open_to(Direction::East));
-        assert!(Tile::SouthWest.is_open_to(Direction::South));
-        assert!(Tile::SouthWest.is_open_to(Direction::West));
+        assert!(!Tile::SouthWestBend.is_open_to(Direction::North));
+        assert!(!Tile::SouthWestBend.is_open_to(Direction::East));
+        assert!(Tile::SouthWestBend.is_open_to(Direction::South));
+        assert!(Tile::SouthWestBend.is_open_to(Direction::West));
 
-        assert!(!Tile::SouthEast.is_open_to(Direction::North));
-        assert!(Tile::SouthEast.is_open_to(Direction::East));
-        assert!(Tile::SouthEast.is_open_to(Direction::South));
-        assert!(!Tile::SouthEast.is_open_to(Direction::West));
+        assert!(!Tile::SouthEastBend.is_open_to(Direction::North));
+        assert!(Tile::SouthEastBend.is_open_to(Direction::East));
+        assert!(Tile::SouthEastBend.is_open_to(Direction::South));
+        assert!(!Tile::SouthEastBend.is_open_to(Direction::West));
 
         assert!(!Tile::Ground.is_open_to(Direction::North));
         assert!(!Tile::Ground.is_open_to(Direction::East));

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::{direction::Direction, position::Position, tile::Tile};
 
 pub struct Grid(Vec<Vec<Tile>>);
@@ -28,27 +30,44 @@ impl Grid {
 
     pub fn exits(&self, from: Position) -> impl Iterator<Item = Position> + '_ {
         let tile = self.at(from).expect("valid from position");
-        [
-            Direction::North,
-            Direction::East,
-            Direction::South,
-            Direction::West,
-        ]
-        .into_iter()
-        .filter(move |&dir| tile.is_open_to(dir))
-        .flat_map(move |dir| {
-            from.go(dir).filter(|&pos| {
-                self.at(pos)
-                    .is_some_and(|tile| tile.is_open_to(dir.reverse()))
+        Direction::iter()
+            .filter(move |&dir| tile.is_open_to(dir))
+            .flat_map(move |dir| {
+                from.go(dir).filter(|&pos| {
+                    self.at(pos)
+                        .is_some_and(|tile| tile.is_open_to(dir.reverse()))
+                })
             })
+    }
+
+    pub fn is_ground(&self, pos: Position) -> bool {
+        self.at(pos).is_some_and(Tile::is_ground)
+    }
+
+    pub fn enumerate(&self) -> impl Iterator<Item = (Position, Tile)> + '_ {
+        self.0.iter().enumerate().flat_map(|(i, row)| {
+            row.iter()
+                .enumerate()
+                .map(move |(j, tile)| (Position(i, j), *tile))
         })
     }
 
-    pub fn ground_len(&self) -> usize {
+    pub fn iter(&self) -> impl Iterator<Item = Tile> + '_ {
+        self.0.iter().flat_map(|row| row.iter()).cloned()
+    }
+
+    pub fn height(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn width(&self) -> usize {
+        self.0.get(0).map(|row| row.len()).unwrap_or_default()
+    }
+
+    pub fn to_ascii(&self) -> Vec<Vec<u8>> {
         self.0
             .iter()
-            .flatten()
-            .filter(|&&tile| tile == Tile::Ground)
-            .count()
+            .map(|row| row.iter().map(|tile| tile.to_ascii()).collect())
+            .collect()
     }
 }

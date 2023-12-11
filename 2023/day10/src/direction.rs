@@ -8,6 +8,16 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub fn iter() -> impl Iterator<Item = Direction> {
+        [
+            Direction::North,
+            Direction::East,
+            Direction::South,
+            Direction::West,
+        ]
+        .into_iter()
+    }
+
     pub fn reverse(self) -> Direction {
         match self {
             Direction::North => Direction::South,
