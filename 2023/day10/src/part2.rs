@@ -94,20 +94,21 @@ pub fn solve(text: &str) -> usize {
         .map(|(pos, _)| pos)
         .collect();
 
-    let mut ascii = grid.to_ascii();
-    for &pos in seen.iter() {
-        ascii[pos.0][pos.1] = b'O';
-    }
-    for &pos in interior.iter() {
-        ascii[pos.0][pos.1] = b'I';
-    }
-
-    let lines: Vec<String> = ascii
-        .into_iter()
-        .map(|row| String::from_utf8_lossy(&row).into_owned())
-        .collect();
-
-    eprintln!("\n{}\n", lines.join("\n"));
+    #[cfg(test)]
+    {
+        let mut ascii = grid.to_ascii();
+        for &pos in seen.iter() {
+            ascii[pos.0][pos.1] = b'O';
+        }
+        for &pos in interior.iter() {
+            ascii[pos.0][pos.1] = b'I';
+        }
+        let lines: Vec<String> = ascii
+            .into_iter()
+            .map(|row| String::from_utf8_lossy(&row).into_owned())
+            .collect();
+        eprintln!("{}\n", lines.join("\n"));
+    };
 
     interior.len()
 }

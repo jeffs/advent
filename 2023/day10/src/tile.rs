@@ -50,6 +50,7 @@ impl Tile {
         }
     }
 
+    #[cfg(test)]
     pub fn to_ascii(self) -> u8 {
         match self {
             Tile::VerticalPipe => b'|',

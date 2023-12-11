@@ -84,6 +84,7 @@ impl Grid {
         self.0.get(0).map(|row| row.len()).unwrap_or_default()
     }
 
+    #[cfg(test)]
     pub fn to_ascii(&self) -> Vec<Vec<u8>> {
         self.0
             .iter()
