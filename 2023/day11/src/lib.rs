@@ -62,9 +62,8 @@ impl Grid {
     }
 
     fn enumerate(&self) -> impl Iterator<Item = (Position, &Tile)> + '_ {
-        let (h, w) = (self.height(), self.width());
-        (0..h)
-            .flat_map(move |i| (0..w).map(move |j| Position(i, j)))
+        (0..self.height())
+            .flat_map(|i| (0..self.width()).map(move |j| Position(i, j)))
             .map(|p @ Position(i, j)| (p, &self.0[i][j]))
     }
 
