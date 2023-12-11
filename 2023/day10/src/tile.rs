@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::direction::Direction;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -22,11 +23,34 @@ impl Tile {
             b'J' => Tile::NorthWestBend,
             b'7' => Tile::SouthWestBend,
             b'F' => Tile::SouthEastBend,
-            b'.' => Tile::Ground,
+            b'.' | b'I' | b'O' => Tile::Ground,
             b'S' => Tile::Start,
             _ => panic!("{}: bad tile", c as char),
         }
     }
+
+    pub fn from_exits(exits: impl IntoIterator<Item = Direction>) -> Tile {
+        let mut exits = exits.into_iter();
+        let mut dirs = [
+            exits.next().expect("an exit"),
+            exits.next().expect("another exit"),
+        ];
+        if let Some(exit) = exits.next() {
+            panic!("{exit:?}: unexpected third exit")
+        }
+        dirs.sort();
+        match dirs {
+            [dir1, dir2] if dir1 == dir2 => panic!("exits should differ"),
+            [Direction::North, Direction::East] => Tile::NorthEastBend,
+            [Direction::North, Direction::South] => Tile::VerticalPipe,
+            [Direction::North, Direction::West] => Tile::NorthWestBend,
+            [Direction::East, Direction::South] => Tile::SouthEastBend,
+            [Direction::East, Direction::West] => Tile::HorizontalPipe,
+            [Direction::South, Direction::West] => Tile::SouthWestBend,
+            _ => unreachable!(),
+        }
+    }
+
     pub fn to_ascii(self) -> u8 {
         match self {
             Tile::VerticalPipe => b'|',
@@ -37,6 +61,32 @@ impl Tile {
             Tile::SouthEastBend => b'F',
             Tile::Ground => b'.',
             Tile::Start => b'S',
+        }
+    }
+
+    pub fn expand_east(self) -> Tile {
+        match self {
+            Tile::VerticalPipe => Tile::Ground,
+            Tile::HorizontalPipe => Tile::HorizontalPipe,
+            Tile::NorthEastBend => Tile::HorizontalPipe,
+            Tile::NorthWestBend => Tile::Ground,
+            Tile::SouthWestBend => Tile::Ground,
+            Tile::SouthEastBend => Tile::HorizontalPipe,
+            Tile::Ground => Tile::Ground,
+            Tile::Start => panic!("can't expand start tile"),
+        }
+    }
+
+    pub fn expand_south(self) -> Tile {
+        match self {
+            Tile::VerticalPipe => Tile::VerticalPipe,
+            Tile::HorizontalPipe => Tile::Ground,
+            Tile::NorthEastBend => Tile::Ground,
+            Tile::NorthWestBend => Tile::Ground,
+            Tile::SouthWestBend => Tile::VerticalPipe,
+            Tile::SouthEastBend => Tile::VerticalPipe,
+            Tile::Ground => Tile::Ground,
+            Tile::Start => panic!("can't expand start tile"),
         }
     }
 

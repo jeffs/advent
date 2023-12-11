@@ -4,6 +4,17 @@ use crate::{direction::Direction, position::Position, tile::Tile};
 
 pub struct Grid(Vec<Vec<Tile>>);
 
+fn expand_east(row: Vec<Tile>) -> Vec<Tile> {
+    row.into_iter()
+        .flat_map(|tile| [tile, tile.expand_east()])
+        .collect()
+}
+
+fn expand_south(row: Vec<Tile>) -> [Vec<Tile>; 2] {
+    let new_row = row.iter().cloned().map(Tile::expand_south).collect();
+    [row, new_row]
+}
+
 impl Grid {
     pub fn from_str(text: &str) -> Grid {
         Grid(
@@ -22,6 +33,10 @@ impl Grid {
             }
         }
         panic!("expected start tile)")
+    }
+
+    pub fn set(&mut self, pos: Position, tile: Tile) {
+        self.0[pos.0][pos.1] = tile;
     }
 
     pub fn at(&self, pos: Position) -> Option<Tile> {
@@ -50,6 +65,24 @@ impl Grid {
                 .enumerate()
                 .map(move |(j, tile)| (Position(i, j), *tile))
         })
+    }
+
+    pub fn enumerate_mut(&mut self) -> impl Iterator<Item = (Position, &mut Tile)> + '_ {
+        self.0.iter_mut().enumerate().flat_map(|(i, row)| {
+            row.iter_mut()
+                .enumerate()
+                .map(move |(j, tile)| (Position(i, j), tile))
+        })
+    }
+
+    pub fn expand(self) -> Grid {
+        Grid(
+            self.0
+                .into_iter()
+                .map(expand_east)
+                .flat_map(expand_south)
+                .collect(),
+        )
     }
 
     pub fn iter(&self) -> impl Iterator<Item = Tile> + '_ {

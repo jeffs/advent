@@ -1,51 +1,45 @@
 use std::collections::HashSet;
 
-use crate::{direction::Direction, grid::Grid};
+use crate::{grid::Grid, tile::Tile};
 
 pub fn solve(text: &str) -> usize {
-    let grid = Grid::from_str(text);
+    // Remove junk pipe.
+    // Expand the grid, so passages become ground.
+    // From border ground, infect all exterior.  Infection my be diagonal.
+    // Collapse the grid, removing all expanded cells.
+    // Count uninfected ground cells.
+
+    let mut grid = Grid::from_str(text);
     let start = grid.start();
 
-    // As we proceed clockwise through the loop, mark anything on the left
-    // "outside."  Then, from each outer square, infect its entire contiguous
-    // region with outerness.  Finally, count all the outer squares, and
-    // subtract from the total number of ground squares.
-
+    let mut main = HashSet::from([start]);
     let mut old = start;
     let mut new = grid
         .exits(start)
         .next()
         .expect("somewhere reachable from the start position");
-    let mut outside = Vec::new();
+
     while new != start {
+        main.insert(new);
         let pos = grid
             .exits(new)
             .find(|&pos| pos != old)
             .expect("somewhere reachable from each reachable position");
-        if let Some(left) = pos
-            .go(new.dir(pos).left())
-            .filter(|&left| grid.is_ground(left))
-        {
-            outside.push(left);
-        }
         (old, new) = (new, pos);
     }
 
-    let mut seen = HashSet::new();
-    while let Some(pos) = outside.pop() {
-        seen.insert(pos);
-        outside.extend(
-            Direction::iter()
-                .flat_map(|dir| pos.go(dir))
-                .filter(|&next| grid.is_ground(next))
-                .filter(|&next| seen.insert(next)),
-        );
-    }
+    // To expand the start node, the grid needs to know what kind of pipe it is.
+    grid.set(
+        start,
+        Tile::from_exits(grid.exits(start).map(|exit| start.dir(exit))),
+    );
 
-    let mut ascii = grid.to_ascii();
-    for &pos in seen.iter() {
-        ascii[pos.0][pos.1] = b'O';
-    }
+    let grid = grid.expand();
+
+    let ascii = grid.to_ascii();
+    // for &pos in seen.iter() {
+    //     ascii[pos.0][pos.1] = b'O';
+    // }
 
     let lines: Vec<String> = ascii
         .into_iter()
@@ -53,8 +47,7 @@ pub fn solve(text: &str) -> usize {
         .collect();
     eprintln!("\n{}\n", lines.join("\n"));
 
-    let ground_len = grid.iter().filter(|tile| tile.is_ground()).count();
-    ground_len - seen.len()
+    4
 }
 
 #[cfg(test)]
@@ -63,8 +56,8 @@ mod tests {
 
     #[test]
     fn sample() {
-        for (text, want) in include_str!("sample2.txt").split("\n\n").zip([4, 8]) {
-            //, 8, 10]) {
+        let samples = include_str!("sample2.txt").split("\n\n");
+        for (text, want) in samples.zip([4, 8, 10]) {
             assert_eq!(solve(text), want);
         }
     }
