@@ -63,12 +63,8 @@ impl Grid {
         self.0.first().map(|row| row.len()).unwrap_or_default()
     }
 
-    fn dim(&self) -> (usize, usize) {
-        (self.height(), self.width())
-    }
-
     fn enumerate(&self) -> impl Iterator<Item = (Position, Tile)> + '_ {
-        let (h, w) = self.dim();
+        let (h, w) = (self.height(), self.width());
         (0..h)
             .flat_map(move |i| (0..w).map(move |j| Position(i, j)))
             .map(|p| (p, self.0[p.0][p.1]))
