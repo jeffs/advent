@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::{direction::Direction, position::Position, tile::Tile};
 
 #[derive(Clone)]
@@ -68,14 +66,6 @@ impl Grid {
         })
     }
 
-    pub fn enumerate_mut(&mut self) -> impl Iterator<Item = (Position, &mut Tile)> + '_ {
-        self.0.iter_mut().enumerate().flat_map(|(i, row)| {
-            row.iter_mut()
-                .enumerate()
-                .map(move |(j, tile)| (Position(i, j), tile))
-        })
-    }
-
     pub fn expand(self) -> Grid {
         Grid(
             self.0
@@ -84,27 +74,6 @@ impl Grid {
                 .flat_map(expand_south)
                 .collect(),
         )
-    }
-
-    pub fn collapse(self) -> Grid {
-        Grid(
-            self.0
-                .into_iter()
-                .enumerate()
-                .flat_map(|(i, row)| {
-                    (i % 2 == 0).then(|| {
-                        row.into_iter()
-                            .enumerate()
-                            .flat_map(|(j, tile)| (j % 2 == 0).then_some(tile))
-                            .collect()
-                    })
-                })
-                .collect(),
-        )
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = Tile> + '_ {
-        self.0.iter().flat_map(|row| row.iter()).cloned()
     }
 
     pub fn height(&self) -> usize {

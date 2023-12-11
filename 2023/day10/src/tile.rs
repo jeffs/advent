@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::direction::Direction;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
