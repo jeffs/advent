@@ -2,6 +2,7 @@
 
 use crate::{direction::Direction, position::Position, tile::Tile};
 
+#[derive(Clone)]
 pub struct Grid(Vec<Vec<Tile>>);
 
 fn expand_east(row: Vec<Tile>) -> Vec<Tile> {
@@ -81,6 +82,23 @@ impl Grid {
                 .into_iter()
                 .map(expand_east)
                 .flat_map(expand_south)
+                .collect(),
+        )
+    }
+
+    pub fn collapse(self) -> Grid {
+        Grid(
+            self.0
+                .into_iter()
+                .enumerate()
+                .flat_map(|(i, row)| {
+                    (i % 2 == 0).then(|| {
+                        row.into_iter()
+                            .enumerate()
+                            .flat_map(|(j, tile)| (j % 2 == 0).then_some(tile))
+                            .collect()
+                    })
+                })
                 .collect(),
         )
     }
