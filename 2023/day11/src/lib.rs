@@ -21,6 +21,21 @@ impl Tile {
     }
 }
 
+fn offsets<'a, I, J>(tileses: I, expansion: usize) -> Vec<usize>
+where
+    I: Iterator<Item = J>,
+    J: IntoIterator<Item = &'a Tile>,
+{
+    tileses
+        .scan(0, |gap, tiles| {
+            if tiles.into_iter().all(Tile::is_empty) {
+                *gap = *gap + expansion - 1;
+            }
+            Some(*gap)
+        })
+        .collect()
+}
+
 pub struct Grid(Vec<Vec<Tile>>);
 
 impl Grid {
@@ -30,6 +45,14 @@ impl Grid {
                 .map(|line| line.bytes().map(Tile::from_ascii).collect())
                 .collect(),
         )
+    }
+
+    fn rows(&self) -> impl Iterator<Item = &Vec<Tile>> {
+        self.0.iter()
+    }
+
+    fn columns(&self) -> impl Iterator<Item = impl Iterator<Item = &Tile>> {
+        (0..self.width()).map(move |j| self.rows().map(move |row| &row[j]))
     }
 
     fn height(&self) -> usize {
@@ -52,24 +75,8 @@ impl Grid {
     }
 
     fn galaxies(&self, expansion: usize) -> impl Iterator<Item = Position> + '_ {
-        let row_offsets: Vec<usize> = self
-            .0
-            .iter()
-            .scan(0, |gap, row| {
-                if row.iter().all(Tile::is_empty) {
-                    *gap = *gap + expansion - 1;
-                }
-                Some(*gap)
-            })
-            .collect();
-        let column_offsets: Vec<usize> = (0..self.width())
-            .scan(0, |gap, j| {
-                if self.0.iter().all(|row| row[j].is_empty()) {
-                    *gap = *gap + expansion - 1;
-                }
-                Some(*gap)
-            })
-            .collect();
+        let row_offsets = offsets(self.rows(), expansion);
+        let column_offsets = offsets(self.columns(), expansion);
         self.enumerate()
             .filter(move |(_, t)| !t.is_empty())
             .map(move |(Position(i, j), _)| Position(i + row_offsets[i], j + column_offsets[j]))
