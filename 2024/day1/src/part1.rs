@@ -1,33 +1,12 @@
-#[derive(Debug)]
-pub enum Error {
-    BadLine,
-}
-
-type Result<T> = std::result::Result<T, Error>;
-
-pub fn distance(xs: impl Into<Vec<u32>>, ys: impl Into<Vec<u32>>) -> u32 {
-    let (mut xs, mut ys) = (xs.into(), ys.into());
+pub fn distance(xs: impl IntoIterator<Item = u32>, ys: impl IntoIterator<Item = u32>) -> u32 {
+    let (mut xs, mut ys) = (
+        xs.into_iter().collect::<Vec<_>>(),
+        ys.into_iter().collect::<Vec<_>>(),
+    );
     debug_assert_eq!(xs.len(), ys.len());
-    xs.sort();
-    ys.sort();
+    xs.sort_unstable();
+    ys.sort_unstable();
     xs.iter().zip(ys.iter()).map(|(x, y)| x.abs_diff(*y)).sum()
-}
-
-pub fn solve(input: &str) -> Result<u32> {
-    let mut xs = Vec::new();
-    let mut ys = Vec::new();
-    for line in input.lines() {
-        let mut parts = line.split_ascii_whitespace();
-        let (Some(x), Some(y), None) = (parts.next(), parts.next(), parts.next()) else {
-            return Err(Error::BadLine);
-        };
-        let (Ok(x), Ok(y)) = (x.parse::<u32>(), y.parse::<u32>()) else {
-            return Err(Error::BadLine);
-        };
-        xs.push(x);
-        ys.push(y);
-    }
-    Ok(distance(xs, ys))
 }
 
 #[cfg(test)]
