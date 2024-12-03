@@ -3,7 +3,7 @@ use crate::input::{Input, Report};
 pub type Error = crate::input::LevelError;
 pub type Result<T> = std::result::Result<T, Error>;
 
-fn is_safe(Report(levels): &Report) -> bool {
+pub fn is_safe(Report(levels): &Report) -> bool {
     let is_increasing = levels[0] < levels[1];
     levels[0..levels.len() - 1]
         .iter()
@@ -20,21 +20,8 @@ pub fn count_safe(Input(reports): &Input) -> usize {
 mod tests {
     use super::*;
 
-    const INPUT: &str = "
-        7 6 4 2 1
-        1 2 7 8 9
-        9 7 6 2 1
-        1 3 2 4 5
-        8 6 4 4 1
-        1 3 6 7 9
-    ";
-
-    fn input() -> Input {
-        INPUT.parse().expect("sample input")
-    }
-
     #[test]
     fn test_count_safe() {
-        assert_eq!(count_safe(&input()), 2);
+        assert_eq!(count_safe(&Input::sample()), 2);
     }
 }
