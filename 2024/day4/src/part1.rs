@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn test_solve() -> Result<()> {
-        assert_eq!(solve(SAMPLE)?, 8);
+        assert_eq!(solve(SAMPLE)?, 18);
         Ok(())
     }
 }
