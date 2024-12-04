@@ -114,6 +114,9 @@ impl FromStr for Grid {
     }
 }
 
+/// # Errors
+///
+/// Will return `Err` if any two rows  in the specified input have different lengths.
 pub fn solve(input: &str) -> Result<usize> {
     let grid: Grid = input.parse()?;
     let mut sum = 0;
@@ -127,7 +130,7 @@ pub fn solve(input: &str) -> Result<usize> {
             ]
             .into_iter()
             .filter(|&b| b)
-            .count()
+            .count();
         }
     }
     Ok(sum) // TODO
