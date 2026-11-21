@@ -10,7 +10,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Empty => f.write_str("input is empty"),
+            Error::Empty => f.write_str("The input is empty."),
         }
     }
 }

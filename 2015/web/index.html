@@ -21,6 +21,13 @@
       textarea { box-sizing: border-box; font-family: ui-monospace, monospace; width: 100%; }
       button { padding: 0.25rem 0.75rem; }
       .error { color: var(--error); }
+      .days { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 1rem; }
+      .days a[aria-current="page"] { color: var(--text); font-weight: bold; text-decoration: none; }
+      label { display: block; }
+      label textarea { display: block; margin-top: 0.5rem; padding: 0.5rem; }
+      button { cursor: pointer; font: inherit; }
+      dl { column-gap: 1rem; display: grid; grid-template-columns: max-content 1fr; row-gap: 0.25rem; }
+      dd { font-family: ui-monospace, monospace; font-weight: bold; margin: 0; }
     </style>
   </head>
   <body></body>

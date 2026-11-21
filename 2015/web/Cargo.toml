@@ -8,3 +8,5 @@ day1 = { path = "../day1" }
 day2 = { path = "../day2" }
 leptos.workspace = true
 leptos_router.workspace = true
+puzzle = { path = "../puzzle" }
+web-sys = { version = "0.3", features = ["Storage", "Window"] }
