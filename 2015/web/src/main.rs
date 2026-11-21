@@ -4,7 +4,6 @@ mod day1;
 mod day2;
 mod days;
 
-use days::{DAYS, Day};
 use leptos::{
     html::{a, h1, header, li, main as main_element, nav, p, ul},
     prelude::*,
@@ -41,8 +40,8 @@ fn link(path: &str, text: String) -> impl IntoView + use<> {
         .build())
 }
 
-fn day_link(day: &Day) -> impl IntoView + use<> {
-    link(&day.path(), format!("Day {}", day.number))
+fn day_link(day: usize) -> impl IntoView + use<> {
+    link(&format!("/day/{day}"), format!("Day {day}"))
 }
 
 /// Lists the solvable days.
@@ -52,7 +51,7 @@ fn index() -> impl IntoView {
     (
         h1().child(TITLE),
         ul().child(
-            DAYS.iter()
+            days::numbers()
                 .map(|day| li().child(day_link(day)))
                 .collect_view(),
         ),
@@ -65,20 +64,20 @@ fn not_found() -> impl IntoView {
     h1().child("Page not found")
 }
 
-/// Returns the day links, puzzle link, and puzzle page for `day`.
-fn day_page(day: &'static Day) -> impl IntoView {
-    set_title(&format!("Day {}", day.number));
+/// Returns the day links, puzzle link, and `page` for the day numbered `day`.
+fn day_page(day: usize, page: fn() -> AnyView) -> impl IntoView {
+    set_title(&format!("Day {day}"));
 
     let puzzle = a()
-        .href(format!("https://adventofcode.com/2015{}", day.path()))
+        .href(format!("https://adventofcode.com/2015/day/{day}"))
         .child("Puzzle description");
 
     (
         nav()
             .class("days")
-            .child(DAYS.iter().map(day_link).collect_view()),
+            .child(days::numbers().map(day_link).collect_view()),
         p().child(puzzle),
-        (day.page)(),
+        page(),
     )
 }
 
@@ -90,10 +89,10 @@ fn day_route() -> impl IntoView {
         let day = params
             .read()
             .get("day")
-            .and_then(|number| number.parse().ok())
-            .and_then(days::find);
+            .and_then(|day| day.parse::<usize>().ok())
+            .and_then(|day| Some((day, days::page(day)?)));
         match day {
-            Some(day) => day_page(day).into_any(),
+            Some((day, page)) => day_page(day, page).into_any(),
             None => not_found().into_any(),
         }
     }
