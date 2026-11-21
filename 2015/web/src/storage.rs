@@ -1,3 +1,5 @@
+//! Keeps text in the browser's local storage on the core's behalf.
+
 use leptos::prelude::window;
 use puzzle::Key;
 use web_sys::Storage;

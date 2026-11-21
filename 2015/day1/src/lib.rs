@@ -1,3 +1,5 @@
+//! The 2015 day 1 puzzle.
+
 pub mod solution;
 
 use std::fmt::Display;
@@ -8,6 +10,8 @@ use solution::Input;
 pub struct Day1;
 
 impl Puzzle for Day1 {
+    const YEAR: u16 = 2015;
+
     const DAY: u8 = 1;
 
     type Input = Input;

@@ -1,3 +1,5 @@
+//! The page for one puzzle: an input form and answers, driven by a Crux core.
+
 use std::rc::Rc;
 
 use leptos::{

@@ -1,3 +1,5 @@
+//! The operations by which the core asks the shell to keep text between visits.
+
 use crux_core::capability::Operation;
 
 /// Names a value in the shell's persistent storage.

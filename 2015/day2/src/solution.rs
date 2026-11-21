@@ -1,3 +1,5 @@
+//! Parses the day 2 input and computes its answers.
+
 use std::{fmt, str::FromStr};
 
 pub struct Input(String);

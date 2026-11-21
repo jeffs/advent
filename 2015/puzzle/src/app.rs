@@ -1,3 +1,5 @@
+//! The Crux app: its events, effects, model, and view model.
+
 use std::marker::PhantomData;
 
 use crux_core::{
@@ -73,7 +75,7 @@ impl<P> Default for App<P> {
 
 impl<P: Puzzle> App<P> {
     fn input_key() -> Key {
-        Key::new(format!("advent/2015/day/{}/input", P::DAY))
+        Key::new(format!("advent/{}/day/{}/input", P::YEAR, P::DAY))
     }
 }
 
@@ -132,6 +134,8 @@ mod tests {
     struct Sums;
 
     impl Puzzle for Sums {
+        const YEAR: u16 = 2015;
+
         const DAY: u8 = 7;
 
         type Input = u32;
