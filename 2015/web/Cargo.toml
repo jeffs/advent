@@ -1,0 +1,10 @@
+[package]
+name = "web"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+day1 = { path = "../day1" }
+day2 = { path = "../day2" }
+leptos.workspace = true
+leptos_router.workspace = true

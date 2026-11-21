@@ -1,0 +1,11 @@
+[workspace]
+resolver = "3"
+members = ["day1", "day2", "web"]
+
+[workspace.package]
+edition = "2024"
+
+[workspace.dependencies]
+crux_core = { git = "https://github.com/redbadger/crux", rev = "16b9177756b0e54ae4b3fbd90705b8ec9b5fb063" }
+leptos = { version = "0.8", features = ["csr"] }
+leptos_router = "0.8"
