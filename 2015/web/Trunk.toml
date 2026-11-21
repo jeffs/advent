@@ -1,7 +1,7 @@
 trunk-version = "^0.22"
 
 [build]
-public_url = "/advent/"
+public_url = "/advent/2015/"
 
 [watch]
 watch = [".."]
