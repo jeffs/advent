@@ -67,8 +67,12 @@ fn outcome(outcome: Outcome) -> AnyView {
     }
 }
 
-/// Returns the input form and answers for the puzzle `P`.
-pub fn page<P: Puzzle>() -> impl IntoView {
+/// Draws a visualization of the puzzle input it is given.
+pub type Visual = fn(Signal<String>) -> AnyView;
+
+/// Returns the input form and answers for the puzzle `P`, followed by
+/// `visual`, if any.
+pub fn page<P: Puzzle>(visual: Option<Visual>) -> impl IntoView {
     let (view, render) = signal(ViewModel::default());
     let shell = Shell::<P> {
         core: Rc::new(Core::new()),
@@ -104,5 +108,6 @@ pub fn page<P: Puzzle>() -> impl IntoView {
                 p().child(button().attr("type", "submit").child("Solve")),
             )),
         move || outcome(view.get().outcome),
+        visual.map(|visual| visual(Memo::new(move |_| view.get().input).into())),
     )
 }

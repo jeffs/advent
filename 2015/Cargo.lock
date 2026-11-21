@@ -349,6 +349,7 @@ dependencies = [
 name = "day1"
 version = "0.1.0"
 dependencies = [
+ "crux_core",
  "puzzle",
 ]
 

@@ -1,6 +1,8 @@
 //! The 2015 day 1 puzzle.
 
+pub mod elevator;
 pub mod solution;
+pub mod walk;
 
 use std::fmt::Display;
 

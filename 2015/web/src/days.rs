@@ -3,13 +3,17 @@
 use leptos::prelude::*;
 use puzzle::Puzzle;
 
-use crate::page::page;
+use crate::{
+    elevator::elevator,
+    page::{Visual, page},
+};
 
 /// A day whose puzzle the site can solve.
 pub struct Day {
     pub year: u16,
     pub number: u8,
-    pub page: fn() -> AnyView,
+    page: fn(Option<Visual>) -> AnyView,
+    visual: Option<Visual>,
 }
 
 impl Day {
@@ -18,7 +22,20 @@ impl Day {
             year: P::YEAR,
             number: P::DAY,
             page: any_page::<P>,
+            visual: None,
         }
+    }
+
+    /// Adds a visualization of the puzzle input to the day's page.
+    const fn with_visual(self, visual: Visual) -> Self {
+        Day {
+            visual: Some(visual),
+            ..self
+        }
+    }
+
+    pub fn page(&self) -> AnyView {
+        (self.page)(self.visual)
     }
 
     pub fn path(&self) -> String {
@@ -26,12 +43,15 @@ impl Day {
     }
 }
 
-fn any_page<P: Puzzle>() -> AnyView {
-    page::<P>().into_any()
+fn any_page<P: Puzzle>(visual: Option<Visual>) -> AnyView {
+    page::<P>(visual).into_any()
 }
 
 /// Every solvable day, ordered by year and then by day.
-const DAYS: &[Day] = &[Day::of::<day1::Day1>(), Day::of::<day2::Day2>()];
+const DAYS: &[Day] = &[
+    Day::of::<day1::Day1>().with_visual(elevator),
+    Day::of::<day2::Day2>(),
+];
 
 pub fn year_path(year: u16) -> String {
     format!("/{year}")

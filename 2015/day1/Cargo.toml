@@ -4,4 +4,8 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
+crux_core.workspace = true
 puzzle = { path = "../puzzle" }
+
+[dev-dependencies]
+crux_core = { workspace = true, features = ["testing"] }

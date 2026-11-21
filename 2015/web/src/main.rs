@@ -1,6 +1,7 @@
 //! The web shell: a client-side Leptos app that routes to each year and day.
 
 mod days;
+mod elevator;
 mod page;
 mod storage;
 
@@ -96,7 +97,7 @@ fn day_page(day: &'static Day) -> impl IntoView {
         .href(format!("https://adventofcode.com{}", day.path()))
         .child("Puzzle description");
 
-    (day_links(day), p().child(puzzle), (day.page)())
+    (day_links(day), p().child(puzzle), day.page())
 }
 
 /// Returns the route parameter `name`, parsed, if the route has it and it
