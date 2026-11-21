@@ -4,7 +4,10 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
+console_error_panic_hook = "0.1"
+console_log = "1"
 day1 = { path = "../day1" }
 day2 = { path = "../day2" }
 leptos.workspace = true
 leptos_router.workspace = true
+log = "0.4"

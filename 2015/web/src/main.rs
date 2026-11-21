@@ -140,5 +140,12 @@ fn app() -> impl IntoView {
 }
 
 fn main() {
+    let level = if cfg!(debug_assertions) {
+        log::Level::Debug
+    } else {
+        log::Level::Info
+    };
+    console_log::init_with_level(level).expect("initializing console logger");
+    console_error_panic_hook::set_once();
     leptos::mount::mount_to_body(app);
 }

@@ -68,6 +68,8 @@ fn shaft(current: i32) -> impl IntoView {
 }
 
 pub fn page() -> AnyView {
+    log::debug!("Mounting day 1");
+
     let core = Rc::new(Core::<Day1>::new());
     let (view, render) = signal(core.view());
     let playing = RwSignal::new(false);

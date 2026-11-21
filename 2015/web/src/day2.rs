@@ -17,6 +17,8 @@ fn update(core: &Core<Day2>, event: Event, render: WriteSignal<ViewModel>) {
 }
 
 pub fn page() -> AnyView {
+    log::debug!("Mounting day 2");
+
     let core = Core::<Day2>::new();
     let (view, render) = signal(core.view());
 
