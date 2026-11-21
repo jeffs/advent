@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Advent of Code 2015</title>
     <link data-trunk rel="rust">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
     <style>
-      body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 40rem; padding: 0 1rem; }
+      :root {
+        color-scheme: light dark;
+        --background: light-dark(#ffffff, #16181c);
+        --text: light-dark(#1a1a1a, #e6e6e6);
+        --link: light-dark(#0b57d0, #8ab4f8);
+        --error: light-dark(#b00020, #ff8a80);
+        --border: light-dark(#8a8a8a, #6b7078);
+      }
+      body { background: var(--background); color: var(--text); font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 40rem; padding: 0 1rem; }
+      a { color: var(--link); }
+      textarea, button { background: var(--background); border: 1px solid var(--border); border-radius: 4px; color: var(--text); }
       textarea { box-sizing: border-box; font-family: ui-monospace, monospace; width: 100%; }
-      .error { color: #b00020; }
+      button { padding: 0.25rem 0.75rem; }
+      .error { color: var(--error); }
     </style>
   </head>
   <body></body>

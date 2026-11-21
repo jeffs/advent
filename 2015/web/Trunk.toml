@@ -1,2 +1,7 @@
+trunk-version = "^0.22"
+
 [build]
 public_url = "/advent/"
+
+[watch]
+watch = [".."]

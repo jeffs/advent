@@ -1,0 +1,4 @@
+# Serve the web app at http://127.0.0.1:8080/advent/; pass `trunk serve` flags, e.g. `just dev --address 0.0.0.0`
+[working-directory('web')]
+dev *args:
+    trunk serve {{ args }}
