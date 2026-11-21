@@ -350,14 +350,13 @@ name = "day1"
 version = "0.1.0"
 dependencies = [
  "crux_core",
- "puzzle",
 ]
 
 [[package]]
 name = "day2"
 version = "0.1.0"
 dependencies = [
- "puzzle",
+ "crux_core",
 ]
 
 [[package]]
@@ -1268,13 +1267,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "puzzle"
-version = "0.1.0"
-dependencies = [
- "crux_core",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2006,8 +1998,6 @@ dependencies = [
  "day2",
  "leptos",
  "leptos_router",
- "puzzle",
- "web-sys",
 ]
 
 [[package]]

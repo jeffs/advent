@@ -12,7 +12,6 @@
         --background: light-dark(#ffffff, #16181c);
         --text: light-dark(#1a1a1a, #e6e6e6);
         --link: light-dark(#0b57d0, #8ab4f8);
-        --error: light-dark(#b00020, #ff8a80);
         --border: light-dark(#8a8a8a, #6b7078);
       }
       body { background: var(--background); color: var(--text); font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 40rem; padding: 0 1rem; }
@@ -20,7 +19,6 @@
       textarea, button { background: var(--background); border: 1px solid var(--border); border-radius: 4px; color: var(--text); }
       textarea { box-sizing: border-box; font-family: ui-monospace, monospace; width: 100%; }
       button { padding: 0.25rem 0.75rem; }
-      .error { color: var(--error); }
       .days { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 1rem; }
       .days a[aria-current="page"] { color: var(--text); font-weight: bold; text-decoration: none; }
       label { display: block; }
@@ -28,12 +26,8 @@
       button { cursor: pointer; font: inherit; }
       dl { column-gap: 1rem; display: grid; grid-template-columns: max-content 1fr; row-gap: 0.25rem; }
       dd { font-family: ui-monospace, monospace; font-weight: bold; margin: 0; }
-      select { background: var(--background); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font: inherit; padding: 0.25rem; }
-      button:disabled { cursor: default; opacity: 0.5; }
-      .elevator { border-top: 1px solid var(--border); margin-top: 2rem; padding-top: 1rem; }
-      .controls { align-items: center; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+      .controls { align-items: center; display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
       .controls button { min-height: 2.5rem; min-width: 5rem; }
-      .controls select { min-height: 2.5rem; }
       .status { font-variant-numeric: tabular-nums; }
       .strip { display: grid; font-family: ui-monospace, monospace; font-size: 1.25rem; grid-template-columns: 1fr 1.5ch 1fr; line-height: 2rem; white-space: pre; }
       .strip .before { display: flex; justify-content: flex-end; opacity: 0.6; overflow: hidden; }

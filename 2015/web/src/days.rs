@@ -1,56 +1,34 @@
 //! The table of days the site can solve.
 
-use leptos::prelude::*;
-use puzzle::Puzzle;
+use leptos::prelude::AnyView;
 
-use crate::{
-    elevator::elevator,
-    page::{Visual, page},
-};
+use crate::{day1, day2};
 
 /// A day whose puzzle the site can solve.
 pub struct Day {
     pub year: u16,
     pub number: u8,
-    page: fn(Option<Visual>) -> AnyView,
-    visual: Option<Visual>,
+    pub page: fn() -> AnyView,
 }
 
 impl Day {
-    const fn of<P: Puzzle>() -> Self {
-        Day {
-            year: P::YEAR,
-            number: P::DAY,
-            page: any_page::<P>,
-            visual: None,
-        }
-    }
-
-    /// Adds a visualization of the puzzle input to the day's page.
-    const fn with_visual(self, visual: Visual) -> Self {
-        Day {
-            visual: Some(visual),
-            ..self
-        }
-    }
-
-    pub fn page(&self) -> AnyView {
-        (self.page)(self.visual)
-    }
-
     pub fn path(&self) -> String {
         format!("{}/day/{}", year_path(self.year), self.number)
     }
 }
 
-fn any_page<P: Puzzle>(visual: Option<Visual>) -> AnyView {
-    page::<P>(visual).into_any()
-}
-
 /// Every solvable day, ordered by year and then by day.
 const DAYS: &[Day] = &[
-    Day::of::<day1::Day1>().with_visual(elevator),
-    Day::of::<day2::Day2>(),
+    Day {
+        year: 2015,
+        number: 1,
+        page: day1::page,
+    },
+    Day {
+        year: 2015,
+        number: 2,
+        page: day2::page,
+    },
 ];
 
 pub fn year_path(year: u16) -> String {
