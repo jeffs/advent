@@ -122,6 +122,7 @@ pub fn solve(input: &str) -> Result<usize> {
     let mut sum = 0;
     for row in grid.rows() {
         for point in row.points() {
+            // TODO: Diagonals.
             sum += [
                 point.matches_right(),
                 point.matches_up(),
