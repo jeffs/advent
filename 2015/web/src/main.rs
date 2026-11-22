@@ -2,59 +2,31 @@ mod core;
 
 use leptos::{
     ev,
-    html::{button, div, p, section},
+    html::{label, progress, textarea},
     prelude::*,
 };
 
 use shared::{Event, ViewModel};
 
-fn event_button(
-    class: &'static str,
-    label: &'static str,
-    event: Event,
-    core: core::Core,
-    render: WriteSignal<ViewModel>,
-) -> impl IntoView {
-    button()
-        .class(class)
-        .on(ev::click, move |_| {
-            core::update(&core, event.clone(), render);
-        })
-        .child(label)
+fn input_textarea(core: core::Core, render: WriteSignal<ViewModel>) -> impl IntoView {
+    textarea().on(ev::input, move |event| {
+        let input = event_target_value(&event);
+        core::update(&core, Event::Input(input), render);
+    })
 }
 
 fn root() -> impl IntoView {
     let core = core::new();
     let (view, render) = signal(core.view());
 
-    section()
-        .class("box container has-text-centered m-5")
-        .child((
-            p().class("is-size-5").child(move || view.get().count),
-            div().class("buttons section is-centered").child((
-                event_button(
-                    "button is-primary is-danger",
-                    "Reset",
-                    Event::Reset,
-                    core.clone(),
-                    render,
-                ),
-                event_button(
-                    "button is-primary is-success",
-                    "Increment",
-                    Event::Increment,
-                    core.clone(),
-                    render,
-                ),
-                event_button(
-                    "button is-primary is-warning",
-                    "Decrement",
-                    Event::Decrement,
-                    core.clone(),
-                    render,
-                ),
-            )),
-        ))
+    let progress_bar = progress()
+        .value(move || view.get().index)
+        .max(move || view.get().input_len);
+
+    leptos::html::main()
+        .child(input_textarea(core, render))
+        .child(progress_bar)
+        .child(label().child(("Floor: ", move || view.get().floor)))
 }
 
 fn main() {

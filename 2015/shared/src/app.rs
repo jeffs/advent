@@ -1,4 +1,3 @@
-// ANCHOR: app
 use crux_core::{
     App, Command,
     macros::effect,
@@ -7,9 +6,7 @@ use crux_core::{
 
 #[derive(Clone)]
 pub enum Event {
-    Increment,
-    Decrement,
-    Reset,
+    Input(String),
 }
 
 #[effect]
@@ -18,20 +15,58 @@ pub enum Effect {
     Render(RenderOperation),
 }
 
+pub enum Direction {
+    Up,
+    Down,
+}
+
+impl Direction {
+    fn from_char(c: char) -> Option<Self> {
+        Some(match c {
+            '(' => Self::Up,
+            ')' => Self::Down,
+            _ => return None,
+        })
+    }
+}
+
 #[derive(Default)]
 pub struct Model {
-    count: isize,
+    // Instructions to be processed.
+    directions: Vec<Direction>,
+    // How many directions (input characters) have been processed.
+    index: usize,
+    // Floor after processing `index` instructions.
+    //
+    // This is the answer to part 1 once `index == input.len()`.
+    floor: i32,
 }
 
 #[derive(Clone, Default)]
 pub struct ViewModel {
-    pub count: String,
+    // How many instructions have been processed.
+    pub index: usize,
+    // Total number of instructions to be processed.
+    pub input_len: usize,
+    // Current floor.
+    //
+    // When `index == input.len()`, this is the answer to part 1.
+    pub floor: i32,
 }
 
 #[derive(Default)]
 pub struct Counter;
 
-// ANCHOR: impl_app
+fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
+    let directions: Option<Vec<_>> = input.chars().map(Direction::from_char).collect();
+    let Some(directions) = directions else {
+        // TODO: Show errors.
+        return Command::done();
+    };
+    model.directions = directions;
+    render()
+}
+
 impl App for Counter {
     type Event = Event;
     type Model = Model;
@@ -40,101 +75,43 @@ impl App for Counter {
 
     fn update(&self, event: Event, model: &mut Model) -> Command<Effect, Event> {
         match event {
-            Event::Increment => model.count += 1,
-            Event::Decrement => model.count -= 1,
-            Event::Reset => model.count = 0,
+            Event::Input(s) => update_input(&s, model),
         }
-
-        render()
     }
 
     fn view(&self, model: &Model) -> ViewModel {
         ViewModel {
-            count: format!("Count is: {}", model.count),
+            index: model.index,
+            input_len: model.directions.len(),
+            floor: model.floor,
         }
     }
 }
-// ANCHOR_END: impl_app
-// ANCHOR_END: app
 
-// ANCHOR: test
 #[cfg(test)]
 mod test {
     use super::*;
 
-    #[test]
-    fn renders() {
-        let app = Counter;
+    fn solve(input: String) -> i32 {
         let mut model = Model::default();
-
-        app.update(Event::Reset, &mut model).expect_only_render();
-    }
-
-    #[test]
-    fn shows_initial_count() {
-        let app = Counter;
-        let model = Model::default();
-
-        let actual_view = app.view(&model).count;
-        let expected_view = "Count is: 0";
-        assert_eq!(actual_view, expected_view);
-    }
-
-    #[test]
-    fn increments_count() {
-        let app = Counter;
-        let mut model = Model::default();
-
-        app.update(Event::Increment, &mut model)
+        Counter
+            .update(Event::Input(input), &mut model)
             .expect_only_render();
-
-        let actual_view = app.view(&model).count;
-        let expected_view = "Count is: 1";
-        assert_eq!(actual_view, expected_view);
+        Counter.view(&model).floor
     }
 
     #[test]
-    fn decrements_count() {
-        let app = Counter;
-        let mut model = Model::default();
-
-        app.update(Event::Decrement, &mut model)
-            .expect_only_render();
-
-        let actual_view = app.view(&model).count;
-        let expected_view = "Count is: -1";
-        assert_eq!(actual_view, expected_view);
-    }
-
-    #[test]
-    fn resets_count() {
-        let app = Counter;
-        let mut model = Model::default();
-
-        let _ = app.update(Event::Increment, &mut model);
-        let _ = app.update(Event::Reset, &mut model);
-
-        // Was the view updated correctly?
-        let actual = app.view(&model).count;
-        let expected = "Count is: 0";
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn counts_up_and_down() {
-        let app = Counter;
-        let mut model = Model::default();
-
-        let _ = app.update(Event::Increment, &mut model);
-        let _ = app.update(Event::Reset, &mut model);
-        let _ = app.update(Event::Decrement, &mut model);
-        let _ = app.update(Event::Increment, &mut model);
-        let _ = app.update(Event::Increment, &mut model);
-
-        // Was the view updated correctly?
-        let actual = app.view(&model).count;
-        let expected = "Count is: 1";
-        assert_eq!(actual, expected);
+    fn part1_examples_get_correct_answers() {
+        for (inputs, want) in [
+            (&[""][..], 0), // Empty input produces the answer 0.
+            (&["(())", "()()"][..], 0),
+            (&["(((", "(()(()(", "))((((("], 3),
+            (&["())", "))("], -1),
+            (&[")))", ")())())"], -3),
+        ] {
+            for input in inputs {
+                assert_eq!(solve(input.to_string()), want, "{input}");
+            }
+        }
     }
 }
-// ANCHOR_END: test
