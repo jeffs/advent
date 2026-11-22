@@ -44,24 +44,24 @@ fn update_step(model: &mut Model) {
 
 /// The instructions around the current position.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Strip {
+pub struct Passage {
     pub before: String,
     /// The instruction the next step follows, if any remain.
     pub next: Option<char>,
     pub after: String,
 }
 
-impl Strip {
-    /// How many instructions to show on each side of the next one.
-    const RADIUS: usize = 16;
+impl Passage {
+    /// How many instructions the passage reaches on each side of the next one.
+    const REACH: usize = 16;
 
     fn around(input: &str, position: usize) -> Self {
-        let start = position.saturating_sub(Self::RADIUS);
-        let mut window = input.chars().skip(start);
-        Strip {
-            before: window.by_ref().take(position - start).collect(),
-            next: window.next(),
-            after: window.take(Self::RADIUS).collect(),
+        let start = position.saturating_sub(Self::REACH);
+        let mut chars = input.chars().skip(start);
+        Passage {
+            before: chars.by_ref().take(position - start).collect(),
+            next: chars.next(),
+            after: chars.take(Self::REACH).collect(),
         }
     }
 }
@@ -70,7 +70,7 @@ impl Strip {
 pub struct ViewModel {
     pub floor: i32,
     pub position: usize,
-    pub strip: Strip,
+    pub passage: Passage,
     pub finished: bool,
 }
 
@@ -110,7 +110,7 @@ impl App for Day1 {
         ViewModel {
             floor: model.floor,
             position: model.position,
-            strip: Strip::around(&model.input, model.position),
+            passage: Passage::around(&model.input, model.position),
             finished: model.finished(),
         }
     }
@@ -132,7 +132,7 @@ mod tests {
             .expect_only_render();
 
         let expected = ViewModel {
-            strip: Strip {
+            passage: Passage {
                 before: String::new(),
                 next: Some('('),
                 after: "()".to_owned(),
@@ -154,7 +154,7 @@ mod tests {
 
         let view = Day1.view(&model);
         assert_eq!((view.position, view.floor), (0, 0));
-        assert_eq!(view.strip.next, Some('('));
+        assert_eq!(view.passage.next, Some('('));
     }
 
     #[test]
@@ -163,14 +163,14 @@ mod tests {
     }
 
     #[test]
-    fn strip_shows_the_instructions_on_both_sides() {
-        let strip = Strip::around("abcde", 2);
+    fn passage_shows_the_instructions_on_both_sides() {
+        let passage = Passage::around("abcde", 2);
 
-        let expected = Strip {
+        let expected = Passage {
             before: "ab".to_owned(),
             next: Some('c'),
             after: "de".to_owned(),
         };
-        assert_eq!(strip, expected);
+        assert_eq!(passage, expected);
     }
 }

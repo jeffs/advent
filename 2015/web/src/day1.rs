@@ -37,12 +37,12 @@ fn play(core: Rc<Core<Day1>>, render: WriteSignal<ViewModel>, playing: RwSignal<
 }
 
 /// Draws the instructions around the next one, which stays centered.
-fn strip(view: &ViewModel) -> impl IntoView + use<> {
-    let strip = view.strip.clone();
-    div().class("strip").child((
-        span().class("before").child(strip.before),
-        span().class("next").child(strip.next.map(String::from)),
-        span().class("after").child(strip.after),
+fn passage(view: &ViewModel) -> impl IntoView + use<> {
+    let passage = view.passage.clone();
+    div().class("passage").child((
+        span().class("before").child(passage.before),
+        span().class("next").child(passage.next.map(String::from)),
+        span().class("after").child(passage.after),
     ))
 }
 
@@ -112,6 +112,6 @@ pub fn page() -> impl IntoView {
     (
         label().child(("Paste your input here:", input)),
         div().class("controls").child((toggle, reset)),
-        move || (view.with(status), view.with(strip)),
+        move || (view.with(status), view.with(passage)),
     )
 }
