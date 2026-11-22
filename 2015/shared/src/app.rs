@@ -4,7 +4,7 @@ use crux_core::{
     render::{RenderOperation, render},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Event {
     Input(String),
 }
@@ -61,6 +61,7 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
     let directions: Option<Vec<_>> = input.chars().map(Direction::from_char).collect();
     let Some(directions) = directions else {
         // TODO: Show errors.
+        log::warn!("input should contain only parentheses");
         return Command::done();
     };
     model.directions = directions;

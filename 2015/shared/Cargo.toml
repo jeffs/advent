@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 crux_core.workspace = true
+log.workspace = true
 
 [dev-dependencies]
 crux_core = { workspace = true, features = ["testing"] }
