@@ -50,6 +50,13 @@ impl Direction {
             _ => return None,
         })
     }
+
+    fn to_char(&self) -> char {
+        match self {
+            Self::Up => '(',
+            Self::Down => ')',
+        }
+    }
 }
 
 #[derive(Default)]
@@ -90,8 +97,8 @@ impl Model {
 pub struct ViewModel {
     // How many instructions have been processed.
     pub index: usize,
-    // Total number of instructions to be processed.
-    pub input_len: usize,
+    // Instructions being processed.
+    pub input: String,
     // Current floor.
     //
     // When `index == input.len()`, this is the answer to part 1.
@@ -113,8 +120,7 @@ fn animate(model: &Model) -> Command<Effect, Event> {
 fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
     let directions: Option<Vec<_>> = input.chars().map(Direction::from_char).collect();
     let Some(directions) = directions else {
-        // TODO: Render errors.
-        log::warn!("input should contain only parentheses");
+        log::trace!("input should contain only parentheses");
         return Command::done();
     };
     let already_animating = model.needs_step();
@@ -153,7 +159,7 @@ impl App for Day1 {
     fn view(&self, model: &Model) -> ViewModel {
         ViewModel {
             index: model.index,
-            input_len: model.directions.len(),
+            input: model.directions.iter().map(Direction::to_char).collect(),
             floor: model.floor,
         }
     }
