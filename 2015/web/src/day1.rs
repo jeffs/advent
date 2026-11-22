@@ -1,4 +1,4 @@
-//! The day 1 page: an elevator following the instructions, a step per frame.
+//! The day 1 page: a walk through the instructions, a step per frame.
 
 use std::rc::Rc;
 
@@ -8,9 +8,6 @@ use leptos::{
     html::{button, div, label, p, span, textarea},
     prelude::*,
 };
-
-/// How many floors to draw above, and below, the current one.
-const FLOORS_EACH_WAY: i32 = 4;
 
 /// Sends `event` to the core and performs the effects the core requests.
 fn update(core: &Core<Day1>, event: Event, render: WriteSignal<ViewModel>) {
@@ -46,25 +43,6 @@ fn strip(view: &ViewModel) -> impl IntoView + use<> {
         span().class("next").child(strip.next.map(String::from)),
         span().class("after").child(strip.after),
     ))
-}
-
-/// Draws the floors around `current`, highest first.
-fn shaft(current: i32) -> impl IntoView {
-    let floors = (-FLOORS_EACH_WAY..=FLOORS_EACH_WAY).rev().map(|offset| {
-        let floor = current.saturating_add(offset);
-        let mut class = String::from("floor");
-        if offset == 0 {
-            class.push_str(" car");
-        }
-        if floor == 0 {
-            class.push_str(" ground");
-        }
-        div()
-            .class(class)
-            .child((span().class("number").child(floor), span().class("room")))
-    });
-
-    div().class("shaft").child(floors.collect_view())
 }
 
 pub fn page() -> AnyView {
@@ -117,7 +95,6 @@ pub fn page() -> AnyView {
                     view.floor, view.position
                 )),
                 strip(&view),
-                shaft(view.floor),
             )
         },
     )
