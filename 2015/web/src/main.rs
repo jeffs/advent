@@ -1,44 +1,62 @@
 mod core;
 
-use leptos::prelude::*;
-use shared::Event;
+use leptos::{
+    ev,
+    html::{button, div, p, section},
+    prelude::*,
+};
 
-#[component]
-fn RootComponent() -> impl IntoView {
+use shared::{Event, ViewModel};
+
+fn event_button(
+    class: &'static str,
+    label: &'static str,
+    event: Event,
+    core: core::Core,
+    render: WriteSignal<ViewModel>,
+) -> impl IntoView {
+    button()
+        .class(class)
+        .on(ev::click, move |_| {
+            core::update(&core, event.clone(), render);
+        })
+        .child(label)
+}
+
+fn root() -> impl IntoView {
     let core = core::new();
     let (view, render) = signal(core.view());
-    let (event, set_event) = signal(Event::Reset);
 
-    Effect::new(move |_| {
-        core::update(&core, event.get(), render);
-    });
-
-    view! {
-        <section class="box container has-text-centered m-5">
-            <p class="is-size-5">{move || view.get().count}</p>
-            <div class="buttons section is-centered">
-                <button class="button is-primary is-danger"
-                    on:click=move |_| set_event.set(Event::Reset)
-                >
-                    {"Reset"}
-                </button>
-                <button class="button is-primary is-success"
-                    on:click=move |_| set_event.set(Event::Increment)
-                >
-                    {"Increment"}
-                </button>
-                <button class="button is-primary is-warning"
-                    on:click=move |_| set_event.set(Event::Decrement)
-                >
-                    {"Decrement"}
-                </button>
-            </div>
-        </section>
-    }
+    section()
+        .class("box container has-text-centered m-5")
+        .child((
+            p().class("is-size-5").child(move || view.get().count),
+            div().class("buttons section is-centered").child((
+                event_button(
+                    "button is-primary is-danger",
+                    "Reset",
+                    Event::Reset,
+                    core.clone(),
+                    render,
+                ),
+                event_button(
+                    "button is-primary is-success",
+                    "Increment",
+                    Event::Increment,
+                    core.clone(),
+                    render,
+                ),
+                event_button(
+                    "button is-primary is-warning",
+                    "Decrement",
+                    Event::Decrement,
+                    core.clone(),
+                    render,
+                ),
+            )),
+        ))
 }
 
 fn main() {
-    leptos::mount::mount_to_body(|| {
-        view! { <RootComponent /> }
-    });
+    leptos::mount::mount_to_body(root);
 }
