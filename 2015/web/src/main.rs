@@ -9,8 +9,8 @@ use leptos::{
     prelude::*,
 };
 use leptos_router::{
-    ParamSegment, StaticSegment,
-    components::{A, AProps, Route, RouteProps, Router, RouterProps, Routes, RoutesProps},
+    NestedRoute, ParamSegment, StaticSegment,
+    components::{A, AProps, Router, RouterProps, Routes, RoutesProps},
     hooks::use_params_map,
 };
 
@@ -98,43 +98,30 @@ fn day_route() -> impl IntoView {
     }
 }
 
-fn routes() -> impl IntoView {
-    Routes(
-        RoutesProps::builder()
-            .fallback(not_found)
-            .children(ToChildren::to_children(|| {
-                (
-                    Route(
-                        RouteProps::builder()
-                            .path(StaticSegment(""))
-                            .view(index)
-                            .build(),
-                    ),
-                    Route(
-                        RouteProps::builder()
-                            .path((StaticSegment("day"), ParamSegment("day")))
-                            .view(day_route)
-                            .build(),
-                    ),
-                )
-            }))
-            .build(),
-    )
-}
-
 fn app() -> impl IntoView {
+    // The links and routes need the router's context, so they are built
+    // inside its children.
+    let page = || {
+        let header = header().child(nav().child((
+            a().href(ALL_YEARS).child("Advent of Code"),
+            link("/", "2015".to_owned()),
+        )));
+        let routes = (
+            NestedRoute::new(StaticSegment(""), index),
+            NestedRoute::new((StaticSegment("day"), ParamSegment("day")), day_route),
+        );
+        let routes = Routes(
+            RoutesProps::builder()
+                .fallback(not_found)
+                .children(ToChildren::to_children(|| routes))
+                .build(),
+        );
+        (header, main_element().child(routes))
+    };
     Router(
         RouterProps::builder()
             .base(BASE)
-            .children(ToChildren::to_children(|| {
-                (
-                    header().child(nav().child((
-                        a().href(ALL_YEARS).child("Advent of Code"),
-                        link("/", "2015".to_owned()),
-                    ))),
-                    main_element().child(routes()),
-                )
-            }))
+            .children(ToChildren::to_children(page))
             .build(),
     )
 }
