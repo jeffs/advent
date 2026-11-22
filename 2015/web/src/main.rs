@@ -1,3 +1,18 @@
+/// Returns the value of the page's query parameter with this name.
+///
+/// Returns `None` if the query lacks the parameter, or the browser can't
+/// read the query.
+fn url_param(name: &str) -> Option<String> {
+    let search = web_sys::window()?.location().search().ok()?;
+    web_sys::UrlSearchParams::new_with_str(&search)
+        .ok()?
+        .get(name)
+}
+
+fn url_log_level() -> Option<log::Level> {
+    url_param("log")?.parse().ok()
+}
+
 /// Returns the level named by the `log` URL parameter (e.g., `?log=trace`).
 ///
 /// Without the parameter, returns a default that depends on the build
@@ -8,21 +23,6 @@ fn log_level() -> log::Level {
     } else {
         log::Level::Info
     })
-}
-
-fn url_log_level() -> Option<log::Level> {
-    url_param("log")?.parse().ok()
-}
-
-/// Returns the value of the page's query parameter with this name.
-///
-/// Returns `None` if the query lacks the parameter, or the browser can't
-/// read the query.
-fn url_param(name: &str) -> Option<String> {
-    let search = web_sys::window()?.location().search().ok()?;
-    web_sys::UrlSearchParams::new_with_str(&search)
-        .ok()?
-        .get(name)
 }
 
 fn main() {
