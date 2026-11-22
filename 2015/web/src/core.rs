@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
 use leptos::prelude::{Update as _, WriteSignal, request_animation_frame};
-use shared::{Counter, Effect, Event, ViewModel};
+use shared::{Day1, Effect, Event, ViewModel};
 
-pub type Core = Rc<shared::Core<Counter>>;
+pub type Core = Rc<shared::Core<Day1>>;
 
 pub fn new() -> Core {
     Rc::new(shared::Core::new())

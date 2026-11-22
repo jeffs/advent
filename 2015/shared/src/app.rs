@@ -99,7 +99,7 @@ pub struct ViewModel {
 }
 
 #[derive(Default)]
-pub struct Counter;
+pub struct Day1;
 
 /// Renders, and requests another frame if directions remain.
 fn animate(model: &Model) -> Command<Effect, Event> {
@@ -137,7 +137,7 @@ fn update_frame(model: &mut Model) -> Command<Effect, Event> {
     animate(model)
 }
 
-impl App for Counter {
+impl App for Day1 {
     type Event = Event;
     type Model = Model;
     type ViewModel = ViewModel;
@@ -177,10 +177,10 @@ mod test {
 
     /// Processes the event and resolves requests until no commands remain.
     fn run(event: Event, model: &mut Model) {
-        let mut commands = vec![Counter.update(event, model)];
+        let mut commands = vec![Day1.update(event, model)];
         while let Some(mut command) = commands.pop() {
             process_effects(command.effects());
-            commands.extend(command.events().map(|event| Counter.update(event, model)));
+            commands.extend(command.events().map(|event| Day1.update(event, model)));
         }
     }
 
@@ -194,10 +194,9 @@ mod test {
     #[test]
     fn input_while_animating_does_not_request_second_frame() {
         let mut model = Model::default();
-        let mut first = Counter.update(Event::Input("((".to_string()), &mut model);
+        let mut first = Day1.update(Event::Input("((".to_string()), &mut model);
         first.expect_render().expect_render_frame();
-        Counter
-            .update(Event::Input("()".to_string()), &mut model)
+        Day1.update(Event::Input("()".to_string()), &mut model)
             .expect_only_render();
         assert_eq!(model.index, 0);
     }
@@ -214,7 +213,7 @@ mod test {
             for input in inputs {
                 let mut model = Model::default();
                 run(Event::Input(input.to_string()), &mut model);
-                assert_eq!(Counter.view(&model).floor, want, "{input}");
+                assert_eq!(Day1.view(&model).floor, want, "{input}");
             }
         }
     }
