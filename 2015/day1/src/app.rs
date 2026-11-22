@@ -39,7 +39,15 @@ impl Model {
 /// Follows the next instruction.
 fn update_step(model: &mut Model) {
     // The body is a placeholder that leaves the model as it is.
-    let _ = model;
+    let Some(instruction) = model.input.as_bytes().get(model.position) else {
+        return;
+    };
+    match instruction {
+        b'(' => model.floor += 1,
+        b')' => model.floor -= 1,
+        _ => (), // TODO: Report errors to shell.
+    }
+    model.position += 1;
 }
 
 /// The instructions around the current position.
@@ -120,6 +128,18 @@ impl App for Day1 {
 mod tests {
     use super::*;
 
+    fn solve_part_1(input: String) -> i32 {
+        let model = &mut Model::default();
+        Day1.update(Event::Reset, model).expect_only_render();
+        Day1.update(Event::SetInput(input), model)
+            .expect_only_render();
+        while {
+            Day1.update(Event::Step, model).expect_only_render();
+            !Day1.view(model).finished
+        } {}
+        Day1.view(model).floor
+    }
+
     #[test]
     fn set_input_trims_the_instructions_and_starts_over() {
         let mut model = Model {
@@ -172,5 +192,22 @@ mod tests {
             after: "de".to_owned(),
         };
         assert_eq!(passage, expected);
+    }
+
+    #[test]
+    fn app_solves_part_1() {
+        for (input, want) in [
+            ("(())", 0),
+            ("()()", 0),
+            ("(((", 3),
+            ("(()(()(", 3),
+            ("))(((((", 3),
+            ("())", -1),
+            ("))(", -1),
+            (")))", -3),
+            (")())())", -3),
+        ] {
+            assert_eq!(solve_part_1(input.to_owned()), want, "{input}");
+        }
     }
 }
