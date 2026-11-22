@@ -1,8 +1,5 @@
 [workspace]
-members = [
-    "shared",
-    "web-leptos",
-]
+members = ["shared", "web"]
 resolver = "3"
 
 [workspace.package]
