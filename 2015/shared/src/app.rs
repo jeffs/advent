@@ -71,6 +71,19 @@ impl Model {
     fn needs_step(&self) -> bool {
         self.index < self.directions.len()
     }
+
+    /// Advances work toward the solution.
+    fn step(&mut self) {
+        let Some(direction) = self.directions.get(self.index) else {
+            log::warn!("Redundant step");
+            return;
+        };
+        self.index += 1;
+        match direction {
+            Direction::Up => self.floor += 1,
+            Direction::Down => self.floor -= 1,
+        }
+    }
 }
 
 #[derive(Clone, Default)]
@@ -119,8 +132,7 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
 
 fn update_frame(model: &mut Model) -> Command<Effect, Event> {
     if model.needs_step() {
-        // TODO: This is where the domain logic belongs.
-        model.index += 1;
+        model.step();
     }
     animate(model)
 }
