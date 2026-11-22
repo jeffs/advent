@@ -46,58 +46,72 @@ fn strip(view: &ViewModel) -> impl IntoView + use<> {
     ))
 }
 
-pub fn page() -> AnyView {
+fn toggle_button(
+    core: Rc<Core<Day1>>,
+    playing: RwSignal<bool>,
+    render: WriteSignal<ViewModel>,
+) -> impl IntoView {
+    let on_click = move |_| {
+        if playing.get_untracked() {
+            playing.set(false);
+            return;
+        }
+        if core.view().finished {
+            // Just when I thought I was out, they pull me back in.
+            update(&core, Event::Reset, render);
+        }
+        playing.set(true);
+        play(Rc::clone(&core), render, playing);
+    };
+    button()
+        .on(ev::click, on_click)
+        .child(move || if playing.get() { "Pause" } else { "Play" })
+}
+
+fn reset_button(
+    core: Rc<Core<Day1>>,
+    playing: RwSignal<bool>,
+    render: WriteSignal<ViewModel>,
+) -> impl IntoView {
+    button()
+        .on(ev::click, move |_| {
+            playing.set(false);
+            update(&core, Event::Reset, render);
+        })
+        .child("Reset")
+}
+
+fn input(
+    core: Rc<Core<Day1>>,
+    playing: RwSignal<bool>,
+    render: WriteSignal<ViewModel>,
+) -> impl IntoView {
+    textarea().rows("6").on(ev::input, move |event| {
+        playing.set(false);
+        update(&core, Event::SetInput(event_target_value(&event)), render);
+    })
+}
+
+fn status(view: &ViewModel) -> impl IntoView + use<> {
+    let (floor, position) = (view.floor, view.position);
+    p().class("status")
+        .child(format!("Floor {floor} after {position} instructions"))
+}
+
+pub fn page() -> impl IntoView {
     log::debug!("Mounting day 1");
 
     let core = Rc::new(Core::<Day1>::new());
     let (view, render) = signal(core.view());
     let playing = RwSignal::new(false);
 
-    let input = textarea().rows("6").on(ev::input, {
-        let core = Rc::clone(&core);
-        move |event| {
-            playing.set(false);
-            update(&core, Event::SetInput(event_target_value(&event)), render);
-        }
-    });
-
-    let toggle = button()
-        .on(ev::click, {
-            let core = Rc::clone(&core);
-            move |_| {
-                if playing.get_untracked() {
-                    playing.set(false);
-                    return;
-                }
-                if core.view().finished {
-                    update(&core, Event::Reset, render);
-                }
-                playing.set(true);
-                play(Rc::clone(&core), render, playing);
-            }
-        })
-        .child(move || if playing.get() { "Pause" } else { "Play" });
-
-    let reset = button()
-        .on(ev::click, move |_| {
-            playing.set(false);
-            update(&core, Event::Reset, render);
-        })
-        .child("Reset");
+    let input = input(Rc::clone(&core), playing, render);
+    let toggle = toggle_button(Rc::clone(&core), playing, render);
+    let reset = reset_button(core, playing, render);
 
     (
         label().child(("Paste your input here:", input)),
         div().class("controls").child((toggle, reset)),
-        move || {
-            let view = view.get();
-            (
-                p().class("status").child(format!(
-                    "Floor {} after {} instructions",
-                    view.floor, view.position
-                )),
-                strip(&view),
-            )
-        },
+        move || (view.with(status), view.with(strip)),
     )
-        .into_any()
 }

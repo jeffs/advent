@@ -16,7 +16,7 @@ fn update(core: &Core<Day2>, event: Event, render: WriteSignal<ViewModel>) {
     }
 }
 
-pub fn page() -> AnyView {
+pub fn page() -> impl IntoView {
     log::debug!("Mounting day 2");
 
     let core = Core::<Day2>::new();
@@ -35,5 +35,4 @@ pub fn page() -> AnyView {
             dd().child(move || view.get().part2),
         )),
     )
-        .into_any()
 }

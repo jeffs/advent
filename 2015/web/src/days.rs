@@ -1,11 +1,12 @@
-//! The days the site can solve.
+//! Provides a page representing each daily solution.
 
-use leptos::prelude::AnyView;
+use leptos::prelude::*;
 
-use crate::{day1, day2};
-
-/// The page for each solvable day, starting with day 1.
-const PAGES: &[fn() -> AnyView] = &[day1::page, day2::page];
+/// Daily solutions in chronological order.
+const PAGES: &[fn() -> AnyView] = &[
+    || crate::day1::page().into_any(),
+    || crate::day2::page().into_any(),
+];
 
 /// Returns the number of every solvable day, in order.
 pub fn numbers() -> impl Iterator<Item = usize> {
