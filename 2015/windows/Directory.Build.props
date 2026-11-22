@@ -1,6 +1,0 @@
-<Project>
-  <!-- BoltFFI's generated C# buffer helpers use unsafe pointer allocation. -->
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'CounterApp.Shared'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-</Project>

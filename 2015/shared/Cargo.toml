@@ -15,12 +15,6 @@ nursery = "warn"
 [lib]
 crate-type = ["cdylib", "lib", "staticlib"]
 
-# ANCHOR: typegen_bin
-[[bin]]
-name = "codegen"
-required-features = ["codegen"]
-# ANCHOR_END: typegen_bin
-
 # ANCHOR: typegen
 [features]
 facet_typegen = ["crux_core/facet_typegen"]

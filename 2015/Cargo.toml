@@ -1,11 +1,7 @@
 [workspace]
 members = [
     "shared",
-    "tauri/src-tauri",
-    "tui",
-    "web-dioxus",
     "web-leptos",
-    "web-yew",
 ]
 resolver = "3"
 
