@@ -1,0 +1,4 @@
+module SharedFFI {
+    header "shared/shared.h"
+    export *
+}
