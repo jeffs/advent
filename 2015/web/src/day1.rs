@@ -22,7 +22,8 @@ fn update(core: &Core<Day1>, event: Event, render: WriteSignal<ViewModel>) {
 /// the walk finishes.
 fn play(core: Rc<Core<Day1>>, render: WriteSignal<ViewModel>, playing: RwSignal<bool>) {
     request_animation_frame(move || {
-        // The signal is gone once the user has left the page.
+        // The document outlives this page: once the router shows another day,
+        // the frame still fires, but the page's signals are gone.
         if playing.try_get_untracked() != Some(true) {
             return;
         }
