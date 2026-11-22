@@ -27,7 +27,10 @@ pub struct Model {
     input: String,
     /// How many instructions have been followed.
     position: usize,
+    /// Ultimately, the answre to part 1.
     floor: i32,
+    /// Ultimately, the answer to part 2.
+    basement: Option<usize>,
 }
 
 impl Model {
@@ -42,12 +45,17 @@ fn update_step(model: &mut Model) {
     let Some(instruction) = model.input.as_bytes().get(model.position) else {
         return;
     };
+    model.position += 1;
     match instruction {
         b'(' => model.floor += 1,
-        b')' => model.floor -= 1,
+        b')' => {
+            model.floor -= 1;
+            if model.floor == -1 && model.basement.is_none() {
+                model.basement = Some(model.position);
+            }
+        }
         _ => (), // TODO: Report errors to shell.
     }
-    model.position += 1;
 }
 
 /// The instructions around the current position.
@@ -77,6 +85,7 @@ impl Passage {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ViewModel {
     pub floor: i32,
+    pub basement: Option<usize>,
     pub position: usize,
     pub passage: Passage,
     pub finished: bool,
@@ -117,6 +126,7 @@ impl App for Day1 {
     fn view(&self, model: &Model) -> ViewModel {
         ViewModel {
             floor: model.floor,
+            basement: model.basement,
             position: model.position,
             passage: Passage::around(&model.input, model.position),
             finished: model.finished(),
@@ -128,7 +138,12 @@ impl App for Day1 {
 mod tests {
     use super::*;
 
-    fn solve_part_1(input: String) -> i32 {
+    struct Solutions {
+        part1: i32,
+        part2: Option<usize>,
+    }
+
+    fn solve(input: String) -> Solutions {
         let model = &mut Model::default();
         Day1.update(Event::Reset, model).expect_only_render();
         Day1.update(Event::SetInput(input), model)
@@ -137,7 +152,11 @@ mod tests {
             Day1.update(Event::Step, model).expect_only_render();
             !Day1.view(model).finished
         } {}
-        Day1.view(model).floor
+        let view = Day1.view(model);
+        Solutions {
+            part1: view.floor,
+            part2: view.basement,
+        }
     }
 
     #[test]
@@ -168,6 +187,7 @@ mod tests {
             input: "(()".to_owned(),
             position: 3,
             floor: 1,
+            basement: None,
         };
 
         Day1.update(Event::Reset, &mut model).expect_only_render();
@@ -207,7 +227,14 @@ mod tests {
             (")))", -3),
             (")())())", -3),
         ] {
-            assert_eq!(solve_part_1(input.to_owned()), want, "{input}");
+            assert_eq!(solve(input.to_owned()).part1, want, "{input}");
+        }
+    }
+
+    #[test]
+    fn app_solves_part_2() {
+        for (input, want) in [(")", Some(1)), ("()())", Some(5))] {
+            assert_eq!(solve(input.to_owned()).part2, want, "{input}");
         }
     }
 }

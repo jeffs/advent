@@ -93,9 +93,20 @@ fn input(
 }
 
 fn status(view: &ViewModel) -> impl IntoView + use<> {
-    let (floor, position) = (view.floor, view.position);
-    p().class("status")
-        .child(format!("Floor {floor} after {position} instructions"))
+    let part1 = {
+        let (floor, position) = (view.floor, view.position);
+        let s = if position == 1 { "" } else { "s" };
+        p().class("status").child(format!(
+            "Part1: Floor {floor} after {position} instruction{s}"
+        ))
+    };
+    let part2 = view.basement.map(|position| {
+        let s = if position == 1 { "" } else { "s" };
+        p().class("status").child(format!(
+            "Part2: Found basement after {position} instruction{s}"
+        ))
+    });
+    (part1, part2)
 }
 
 pub fn page() -> impl IntoView {
