@@ -9,13 +9,13 @@ pub fn new() -> Core {
     Rc::new(shared::Core::new())
 }
 
-pub fn process_effect(core: &Core, effect: Effect, render: WriteSignal<ViewModel>) {
+fn process_effect(core: &Core, effect: Effect, render: WriteSignal<ViewModel>) {
     log::debug!("{effect:?}");
     match effect {
         Effect::Render(_) => {
             render.update(|view| *view = core.view());
         }
-        Effect::AnimationFrame(mut request) => {
+        Effect::RenderFrame(mut request) => {
             let core = Rc::clone(core);
             request_animation_frame(move || {
                 let effects = core

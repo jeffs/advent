@@ -7,27 +7,34 @@ use crux_core::{
 
 #[derive(Clone, Debug)]
 pub enum Event {
+    /// Resets the sequence of directions to be followed.
     Input(String),
-    // The shell is about to repaint.
-    Frame,
+    /// Advances the solver.
+    ///
+    /// Triggered by resolution of [`RenderFrameOperation`].
+    Step,
 }
 
-/// Asks the shell to resolve the request just before its next repaint.
+/// Requests resolution in an animation frame.
+///
+/// The term "animation frame" here means a regularly scheduled UI update.
+/// Resolving the effect may trigger a subsequent `Step` event, which in turn
+/// may emit another `RenderFrameOperation`, and so on until work is complete.
 #[derive(Debug)]
-pub struct AnimationFrame;
+pub struct RenderFrameOperation;
 
-impl Operation for AnimationFrame {
+impl Operation for RenderFrameOperation {
     type Output = ();
     const KIND: Option<OperationKind> = Some(OperationKind::Request);
 }
 
-impl operation::Request for AnimationFrame {}
+impl operation::Request for RenderFrameOperation {}
 
 #[effect]
 #[derive(Debug)]
 pub enum Effect {
     Render(RenderOperation),
-    AnimationFrame(AnimationFrame),
+    RenderFrame(RenderFrameOperation),
 }
 
 pub enum Direction {
@@ -58,10 +65,10 @@ pub struct Model {
 }
 
 impl Model {
-    /// Returns whether directions remain to be processed.
+    /// Returns true until we finish solving part 1.
     ///
-    /// An animation frame request is outstanding exactly when this is true.
-    fn is_animating(&self) -> bool {
+    /// After that, the answer to part 1 is in [`Self::floor`].
+    fn needs_step(&self) -> bool {
         self.index < self.directions.len()
     }
 }
@@ -83,8 +90,8 @@ pub struct Counter;
 
 /// Renders, and requests another frame if directions remain.
 fn animate(model: &Model) -> Command<Effect, Event> {
-    if model.is_animating() {
-        render().and(Command::request_from_shell(AnimationFrame).then_send(|()| Event::Frame))
+    if model.needs_step() {
+        render().and(Command::request_from_shell(RenderFrameOperation).then_send(|()| Event::Step))
     } else {
         render()
     }
@@ -93,15 +100,17 @@ fn animate(model: &Model) -> Command<Effect, Event> {
 fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
     let directions: Option<Vec<_>> = input.chars().map(Direction::from_char).collect();
     let Some(directions) = directions else {
-        // TODO: Show errors.
+        // TODO: Render errors.
         log::warn!("input should contain only parentheses");
         return Command::done();
     };
-    let frame_pending = model.is_animating();
-    model.directions = directions;
-    model.index = 0;
-    model.floor = 0;
-    if frame_pending {
+    let already_animating = model.needs_step();
+    *model = Model {
+        directions,
+        index: 0,
+        floor: 0,
+    };
+    if already_animating {
         render()
     } else {
         animate(model)
@@ -109,7 +118,8 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
 }
 
 fn update_frame(model: &mut Model) -> Command<Effect, Event> {
-    if model.is_animating() {
+    if model.needs_step() {
+        // TODO: This is where the domain logic belongs.
         model.index += 1;
     }
     animate(model)
@@ -124,7 +134,7 @@ impl App for Counter {
     fn update(&self, event: Event, model: &mut Model) -> Command<Effect, Event> {
         match event {
             Event::Input(s) => update_input(&s, model),
-            Event::Frame => update_frame(model),
+            Event::Step => update_frame(model),
         }
     }
 
@@ -141,26 +151,25 @@ impl App for Counter {
 mod test {
     use super::*;
 
-    /// Processes the event, resolving every animation frame request, until
-    /// no commands remain.
-    fn run(event: Event, model: &mut Model) {
-        let mut commands = vec![Counter.update(event, model)];
-        while let Some(mut command) = commands.pop() {
-            let effects: Vec<_> = command.effects().collect();
-            for effect in effects {
-                if let Effect::AnimationFrame(mut request) = effect {
+    /// Resolves animation frames. Render is a no-op.
+    fn process_effects(effects: impl Iterator<Item = Effect>) {
+        for effect in effects {
+            match effect {
+                Effect::Render(_) => (),
+                Effect::RenderFrame(mut request) => {
                     request.resolve(()).expect("resolving animation frame");
                 }
             }
-            let events: Vec<_> = command.events().collect();
-            commands.extend(events.into_iter().map(|event| Counter.update(event, model)));
         }
     }
 
-    fn solve(input: String) -> i32 {
-        let mut model = Model::default();
-        run(Event::Input(input), &mut model);
-        Counter.view(&model).floor
+    /// Processes the event and resolves requests until no commands remain.
+    fn run(event: Event, model: &mut Model) {
+        let mut commands = vec![Counter.update(event, model)];
+        while let Some(mut command) = commands.pop() {
+            process_effects(command.effects());
+            commands.extend(command.events().map(|event| Counter.update(event, model)));
+        }
     }
 
     #[test]
@@ -174,7 +183,7 @@ mod test {
     fn input_while_animating_does_not_request_second_frame() {
         let mut model = Model::default();
         let mut first = Counter.update(Event::Input("((".to_string()), &mut model);
-        first.expect_render().expect_animation_frame();
+        first.expect_render().expect_render_frame();
         Counter
             .update(Event::Input("()".to_string()), &mut model)
             .expect_only_render();
@@ -191,7 +200,9 @@ mod test {
             (&[")))", ")())())"], -3),
         ] {
             for input in inputs {
-                assert_eq!(solve(input.to_string()), want, "{input}");
+                let mut model = Model::default();
+                run(Event::Input(input.to_string()), &mut model);
+                assert_eq!(Counter.view(&model).floor, want, "{input}");
             }
         }
     }
