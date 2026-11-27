@@ -14,6 +14,7 @@ fn input_textarea(ctx: Context, input: Memo<String>) -> impl IntoView {
     let node = NodeRef::<html::Textarea>::new();
     textarea()
         .node_ref(node)
+        .autofocus(true)
         .prop("value", input)
         .on(ev::input, move |event| {
             // Send the input to the core, and Don't let the controlled
