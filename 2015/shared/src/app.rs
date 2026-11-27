@@ -13,6 +13,8 @@ pub enum Event {
     ///
     /// Triggered by resolution of [`RenderFrameOperation`].
     Step,
+    /// Sets the number of steps to take per frame.
+    Speed(usize),
 }
 
 /// Requests resolution in an animation frame.
@@ -61,14 +63,16 @@ impl Direction {
 
 #[derive(Default)]
 pub struct Model {
-    // Instructions to be processed.
+    /// Instructions to be processed.
     directions: Vec<Direction>,
-    // How many directions (input characters) have been processed.
+    /// How many directions (input characters) have been processed.
     index: usize,
-    // Floor after processing `index` instructions.
-    //
-    // This is the answer to part 1 once `index == input.len()`.
+    /// Floor after processing `index` instructions.
+    ///
+    /// This is the answer to part 1 once `index == input.len()`.
     floor: i32,
+    /// How many directions to process per animation frame.
+    speed: usize,
 }
 
 impl Model {
@@ -79,16 +83,22 @@ impl Model {
         self.index < self.directions.len()
     }
 
-    /// Advances work toward the solution.
+    /// Processes a single direction.
     fn step(&mut self) {
         let Some(direction) = self.directions.get(self.index) else {
-            log::warn!("Redundant step");
             return;
         };
         self.index += 1;
         match direction {
             Direction::Up => self.floor += 1,
             Direction::Down => self.floor -= 1,
+        }
+    }
+
+    /// Processes `self.speed` directions.
+    fn advance(&mut self) {
+        for _ in 0..self.speed {
+            self.step()
         }
     }
 }
@@ -128,6 +138,7 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
         directions,
         index: 0,
         floor: 0,
+        speed: 1,
     };
     if already_animating {
         render()
@@ -137,9 +148,7 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
 }
 
 fn update_frame(model: &mut Model) -> Command<Effect, Event> {
-    if model.needs_step() {
-        model.step();
-    }
+    model.advance();
     animate(model)
 }
 
@@ -151,9 +160,11 @@ impl App for Day1 {
 
     fn update(&self, event: Event, model: &mut Model) -> Command<Effect, Event> {
         match event {
-            Event::Input(s) => update_input(&s, model),
-            Event::Step => update_frame(model),
+            Event::Input(s) => return update_input(&s, model),
+            Event::Step => return update_frame(model),
+            Event::Speed(n) => model.speed = n,
         }
+        Command::done()
     }
 
     fn view(&self, model: &Model) -> ViewModel {
