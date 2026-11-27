@@ -1,0 +1,3 @@
+[working-directory: 'web']
+dev *args:
+    trunk serve --watch ../shared/src --watch . "$@"
