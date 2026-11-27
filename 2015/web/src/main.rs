@@ -1,32 +1,35 @@
-/// Returns the value of the page's query parameter with this name.
-///
-/// Returns `None` if the query lacks the parameter, or the browser can't
-/// read the query.
+/// Returns the value of the named query parameter.
 fn url_param(name: &str) -> Option<String> {
-    let search = web_sys::window()?.location().search().ok()?;
-    web_sys::UrlSearchParams::new_with_str(&search)
-        .ok()?
-        .get(name)
+    use web_sys::{UrlSearchParams, window};
+    let search = window()?.location().search().ok()?;
+    UrlSearchParams::new_with_str(&search).ok()?.get(name)
 }
 
-fn url_log_level() -> Option<log::Level> {
-    url_param("log")?.parse().ok()
-}
-
-/// Returns the level named by the `log` URL parameter (e.g., `?log=trace`).
+/// Returns the level named by the `log` URL parameter, e.g. `?log=trace`.
 ///
-/// Without the parameter, returns a default that depends on the build
-/// profile.
-fn log_level() -> log::Level {
-    url_log_level().unwrap_or(if cfg!(debug_assertions) {
-        log::Level::Debug
-    } else {
-        log::Level::Info
-    })
+/// Defaults to `Debug` in debug builds, and `Info` in release builds.
+///
+/// # Errors
+///
+/// If the parameter has an invalid value, returns the value.
+fn log_level() -> Result<log::Level, String> {
+    match url_param("log") {
+        None if cfg!(debug_assertions) => Ok(log::Level::Debug),
+        None => Ok(log::Level::Info),
+        Some(value) => value.parse().map_err(|_| value),
+    }
+}
+
+/// Iniializes the `console_log` crate.
+fn init_console_log(level: log::Level) {
+    if let Err(err) = console_log::init_with_level(level) {
+        // Scream into the void.
+        log::warn!("initializing logger: {err}");
+    }
 }
 
 fn main() {
-    console_log::init_with_level(log_level()).expect("initializing console logger");
     console_error_panic_hook::set_once();
+    init_console_log(log_level().expect("bad log level"));
     leptos::mount::mount_to_body(web::root);
 }
