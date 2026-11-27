@@ -1,0 +1,15 @@
+[workspace]
+resolver = "3"
+members = ["shared", "web"]
+
+[workspace.package]
+edition = "2024"
+
+[workspace.dependencies]
+console_error_panic_hook = "0.1.7"
+console_log = "1.1.0"
+crux_core = { git = "https://github.com/redbadger/crux", rev = "16b9177756b0e54ae4b3fbd90705b8ec9b5fb063" }
+log = "0.4.35"
+web-sys = "0.3.107"
+
+[workspace.lints]

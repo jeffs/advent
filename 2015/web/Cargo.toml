@@ -1,0 +1,15 @@
+[package]
+name = "web"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+console_error_panic_hook.workspace = true
+console_log.workspace = true
+leptos = { version = "0.8.20", features = ["csr"] }
+log.workspace = true
+shared = { path = "../shared" }
+web-sys = { workspace = true, features = ["Location", "UrlSearchParams", "Window"] }
+
+[lints]
+workspace = true
