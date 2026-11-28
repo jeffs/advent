@@ -2,7 +2,7 @@ mod core;
 
 use leptos::{
     ev,
-    html::{self, label, progress, textarea},
+    html::{self, div, h1, h2, label, progress, section, span, textarea},
     prelude::*,
 };
 
@@ -46,6 +46,12 @@ fn speed_slider(ctx: Context, speed: Memo<usize>) -> impl IntoView {
         })
 }
 
+fn row(label: &'static str, child: impl IntoView) -> impl IntoView {
+    html::label()
+        .class("row")
+        .child((span().child((label, ":")), child))
+}
+
 pub fn root() -> impl IntoView {
     let ctx = Context::new();
     let view = ctx.view();
@@ -56,9 +62,20 @@ pub fn root() -> impl IntoView {
         .value(move || view.get().index)
         .max(move || input.get().len());
 
-    html::main()
-        .child(input_textarea(ctx.clone(), input))
-        .child(progress_bar)
-        .child(label().child(("Speed:", speed_slider(ctx, speed))))
-        .child(label().child(("Floor: ", move || view.get().floor)))
+    let main = html::main()
+        .child(
+            section()
+                .child(h2().child("Input"))
+                .child(input_textarea(ctx.clone(), input))
+                .child(row("Speed", speed_slider(ctx, speed))),
+        )
+        .child(
+            section()
+                .class("output")
+                .child(h2().child("Output"))
+                .child(row("Progress", progress_bar))
+                .child(row("Floor", move || view.get().floor)),
+        );
+
+    (h1().child("2015 Day 1"), main)
 }
