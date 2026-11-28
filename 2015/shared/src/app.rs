@@ -103,16 +103,20 @@ impl Model {
     }
 }
 
+pub const SPEED_MAX: usize = 100;
+
 #[derive(Clone, Default)]
 pub struct ViewModel {
-    // How many instructions have been processed.
+    /// How many instructions have been processed.
     pub index: usize,
-    // Instructions being processed.
+    /// Instructions being processed.
     pub input: String,
-    // Current floor.
-    //
-    // When `index == input.len()`, this is the answer to part 1.
+    /// Current floor.
+    ///
+    /// When `index == input.len()`, this is the answer to part 1.
     pub floor: i32,
+    /// Directions to process per frame ([`Effect::RenderFrame`] resolution).
+    pub speed: usize,
 }
 
 #[derive(Default)]
@@ -147,11 +151,6 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
     }
 }
 
-fn update_frame(model: &mut Model) -> Command<Effect, Event> {
-    model.advance();
-    animate(model)
-}
-
 impl App for Day1 {
     type Event = Event;
     type Model = Model;
@@ -160,11 +159,16 @@ impl App for Day1 {
 
     fn update(&self, event: Event, model: &mut Model) -> Command<Effect, Event> {
         match event {
-            Event::Input(s) => return update_input(&s, model),
-            Event::Step => return update_frame(model),
-            Event::Speed(n) => model.speed = n,
+            Event::Input(s) => update_input(&s, model),
+            Event::Step => {
+                model.advance();
+                animate(model)
+            }
+            Event::Speed(n) => {
+                model.speed = n;
+                render()
+            }
         }
-        Command::done()
     }
 
     fn view(&self, model: &Model) -> ViewModel {
@@ -172,6 +176,7 @@ impl App for Day1 {
             index: model.index,
             input: model.directions.iter().map(Direction::to_char).collect(),
             floor: model.floor,
+            speed: model.speed,
         }
     }
 }

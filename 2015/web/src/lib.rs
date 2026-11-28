@@ -26,18 +26,23 @@ fn input_textarea(ctx: Context, input: Memo<String>) -> impl IntoView {
         })
 }
 
-fn speed_slider(ctx: Context) -> impl IntoView {
+fn speed_slider(ctx: Context, speed: Memo<usize>) -> impl IntoView {
+    let node = NodeRef::new();
     html::input()
         .r#type("range")
-        .attr("max", "100")
-        .attr("value", "1")
+        .node_ref(node)
+        .attr("max", core::SPEED_MAX)
+        .prop("value", move || speed.get().to_string())
         .on(ev::input, move |event| {
             let value = event_target_value(&event);
-            let Ok(speed) = value.parse() else {
+            let Ok(value) = value.parse() else {
                 log::warn!("speed slider: bad value: {value}");
                 return;
             };
-            ctx.update(Event::Speed(speed));
+            ctx.update(Event::Speed(value));
+            if let Some(element) = node.get_untracked() {
+                element.set_value(&speed.get_untracked().to_string());
+            }
         })
 }
 
@@ -45,6 +50,7 @@ pub fn root() -> impl IntoView {
     let ctx = Context::new();
     let view = ctx.view();
     let input = Memo::new(move |_| view.get().input);
+    let speed = Memo::new(move |_| view.get().speed);
 
     let progress_bar = progress()
         .value(move || view.get().index)
@@ -53,6 +59,6 @@ pub fn root() -> impl IntoView {
     html::main()
         .child(input_textarea(ctx.clone(), input))
         .child(progress_bar)
-        .child(label().child(("Speed:", speed_slider(ctx))))
+        .child(label().child(("Speed:", speed_slider(ctx, speed))))
         .child(label().child(("Floor: ", move || view.get().floor)))
 }
