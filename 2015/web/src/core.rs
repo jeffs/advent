@@ -4,6 +4,8 @@ use leptos::prelude::*;
 
 use shared::{Day1, Effect, Event, ViewModel};
 
+pub use shared::SPEED_MAX;
+
 #[derive(Clone)]
 pub struct Context {
     /// `Rc` to allow sharing by callbacks, particularly animation frames.

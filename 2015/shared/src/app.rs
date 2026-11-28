@@ -13,6 +13,8 @@ pub enum Event {
     ///
     /// Triggered by resolution of [`RenderFrameOperation`].
     Step,
+    /// Sets the number of steps to take per frame.
+    Speed(usize),
 }
 
 /// Requests resolution in an animation frame.
@@ -61,14 +63,16 @@ impl Direction {
 
 #[derive(Default)]
 pub struct Model {
-    // Instructions to be processed.
+    /// Instructions to be processed.
     directions: Vec<Direction>,
-    // How many directions (input characters) have been processed.
+    /// How many directions (input characters) have been processed.
     index: usize,
-    // Floor after processing `index` instructions.
-    //
-    // This is the answer to part 1 once `index == input.len()`.
+    /// Floor after processing `index` instructions.
+    ///
+    /// This is the answer to part 1 once `index == input.len()`.
     floor: i32,
+    /// How many directions to process per animation frame.
+    speed: usize,
 }
 
 impl Model {
@@ -79,10 +83,9 @@ impl Model {
         self.index < self.directions.len()
     }
 
-    /// Advances work toward the solution.
+    /// Processes a single direction.
     fn step(&mut self) {
         let Some(direction) = self.directions.get(self.index) else {
-            log::warn!("Redundant step");
             return;
         };
         self.index += 1;
@@ -91,18 +94,29 @@ impl Model {
             Direction::Down => self.floor -= 1,
         }
     }
+
+    /// Processes `self.speed` directions.
+    fn advance(&mut self) {
+        for _ in 0..self.speed {
+            self.step()
+        }
+    }
 }
+
+pub const SPEED_MAX: usize = 100;
 
 #[derive(Clone, Default)]
 pub struct ViewModel {
-    // How many instructions have been processed.
+    /// How many instructions have been processed.
     pub index: usize,
-    // Instructions being processed.
+    /// Instructions being processed.
     pub input: String,
-    // Current floor.
-    //
-    // When `index == input.len()`, this is the answer to part 1.
+    /// Current floor.
+    ///
+    /// When `index == input.len()`, this is the answer to part 1.
     pub floor: i32,
+    /// Directions to process per frame ([`Effect::RenderFrame`] resolution).
+    pub speed: usize,
 }
 
 #[derive(Default)]
@@ -128,19 +142,13 @@ fn update_input(input: &str, model: &mut Model) -> Command<Effect, Event> {
         directions,
         index: 0,
         floor: 0,
+        speed: 1,
     };
     if already_animating {
         render()
     } else {
         animate(model)
     }
-}
-
-fn update_frame(model: &mut Model) -> Command<Effect, Event> {
-    if model.needs_step() {
-        model.step();
-    }
-    animate(model)
 }
 
 impl App for Day1 {
@@ -152,7 +160,14 @@ impl App for Day1 {
     fn update(&self, event: Event, model: &mut Model) -> Command<Effect, Event> {
         match event {
             Event::Input(s) => update_input(&s, model),
-            Event::Step => update_frame(model),
+            Event::Step => {
+                model.advance();
+                animate(model)
+            }
+            Event::Speed(n) => {
+                model.speed = n;
+                render()
+            }
         }
     }
 
@@ -161,6 +176,7 @@ impl App for Day1 {
             index: model.index,
             input: model.directions.iter().map(Direction::to_char).collect(),
             floor: model.floor,
+            speed: model.speed,
         }
     }
 }
